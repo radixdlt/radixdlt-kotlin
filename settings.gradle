@@ -1,0 +1,4 @@
+rootProject.name = 'radixdlt-kotlin'
+include 'radixdlt-kotlin'
+include 'examples'
+
