@@ -16,5 +16,3 @@ object AndroidUtil {
             return isAndroid == 1
         }
 }
-
-

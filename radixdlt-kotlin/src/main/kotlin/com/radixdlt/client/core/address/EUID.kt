@@ -2,7 +2,6 @@ package com.radixdlt.client.core.address
 
 import java.math.BigInteger
 
-
 class EUID {
     private val value: BigInteger
 

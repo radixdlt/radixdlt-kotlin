@@ -78,5 +78,4 @@ class ECKeyPairGenerator private constructor() {
             return ECKeyPairGenerator()
         }
     }
-
 }

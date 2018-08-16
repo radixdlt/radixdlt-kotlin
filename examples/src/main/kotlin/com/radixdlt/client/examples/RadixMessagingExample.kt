@@ -1,5 +1,6 @@
 package com.radixdlt.client.examples
 
+import com.radixdlt.client.application.RadixApplicationAPI
 import com.radixdlt.client.core.Bootstrap
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
@@ -7,8 +8,8 @@ import com.radixdlt.client.core.identity.SimpleRadixIdentity
 import com.radixdlt.client.messaging.RadixMessaging
 
 object RadixMessagingExample {
-    private const val TO_ADDRESS_BASE58 = "9fXrpiDg65UUpDMLKq5eKNd2nCULWchugeBc1ob1Y8vAtSbV2Jx"
-    private const val MESSAGE = "Hello World!"
+    private val TO_ADDRESS_BASE58 = "JFgcgRKq6GbQqP8mZzDRhtr7K7YQM1vZiYopZLRpAeVxcnePRXX"
+    private val MESSAGE = "Hello World!"
     private val queryType = RadixMessagesQueryType.BY_CONVO
 
     private enum class RadixMessagesQueryType {
@@ -17,7 +18,7 @@ object RadixMessagingExample {
     }
 
     init {
-        RadixUniverse.bootstrap(Bootstrap.ALPHANET)
+        RadixUniverse.bootstrap(Bootstrap.WINTERFELL)
     }
 
     @Throws(Exception::class)
@@ -30,22 +31,24 @@ object RadixMessagingExample {
                 .subscribe { println(it) }
 
         // Identity Manager which manages user's keys, signing, encrypting and decrypting
-        val radixIdentity = SimpleRadixIdentity()
+        val api = RadixApplicationAPI.create(SimpleRadixIdentity())
 
         // Addresses
         val toAddress = RadixAddress.fromString(TO_ADDRESS_BASE58)
 
+        val messaging = RadixMessaging(api)
+
         when (queryType) {
-            RadixMessagesQueryType.ALL ->
+            RadixMessagingExample.RadixMessagesQueryType.ALL ->
                 // Print out to console all received messages
-                RadixMessaging.instance
-                        .getAllMessagesDecrypted(radixIdentity)
+                messaging
+                        .allMessages
                         .subscribe { println(it) }
 
-            RadixMessagesQueryType.BY_CONVO ->
+            RadixMessagingExample.RadixMessagesQueryType.BY_CONVO ->
                 // Group messages by other address, useful for messaging apps
-                RadixMessaging.instance
-                        .getAllMessagesDecryptedAndGroupedByParticipants(radixIdentity)
+                messaging
+                        .allMessagesGroupedByParticipants
                         .subscribe { convo ->
                             println("New Conversation with: " + convo.key)
                             convo.subscribe { println(it) }
@@ -53,8 +56,9 @@ object RadixMessagingExample {
         }
 
         // Send a message!
-        RadixMessaging.instance
-                .sendMessage(MESSAGE, radixIdentity, toAddress)
-                .subscribe { println(it) }
+        messaging
+                .sendMessage(MESSAGE, toAddress)
+                .toCompletable()
+                .subscribe { println("Submitted") }
     }
 }

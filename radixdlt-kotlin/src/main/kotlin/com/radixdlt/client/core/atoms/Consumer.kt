@@ -3,7 +3,6 @@ package com.radixdlt.client.core.atoms
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.crypto.ECKeyPair
 
-
 class Consumer : AbstractConsumable {
 
     override val signedQuantity: Long
@@ -40,4 +39,3 @@ fun <K, V> MutableMap<K, V>.mergeAfterFunction(key: K, value: V, function: (t: V
     this[key] = newValue
     return newValue
 }
-
