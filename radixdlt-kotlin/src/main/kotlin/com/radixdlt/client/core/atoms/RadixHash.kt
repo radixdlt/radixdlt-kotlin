@@ -4,9 +4,11 @@ import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
 import com.radixdlt.client.core.util.Hash
+import com.radixdlt.client.core.util.Int128
 
 import java.math.BigInteger
 import java.nio.ByteBuffer
+import java.util.*
 
 class RadixHash private constructor(private val hash: ByteArray) {
 
@@ -15,7 +17,7 @@ class RadixHash private constructor(private val hash: ByteArray) {
     }
 
     fun toEUID(): EUID {
-        return EUID(hash.copyOfRange(0, HASH_MAX_SIZE))
+        return EUID(Int128.from(Arrays.copyOfRange(hash, 0, EUID.BYTES)))
     }
 
     fun putSelf(byteBuffer: ByteBuffer) {

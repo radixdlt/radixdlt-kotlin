@@ -28,7 +28,7 @@ class AssetAmountTest {
     @Test
     fun testUnusualSubUnits() {
         // 1 foot = 12 inches
-        val foot = Asset("FOOT", 12, EUID(BigInteger.valueOf("FOOT".hashCode().toLong())))
+        val foot = Asset("FOOT", 12, EUID("FOOT".hashCode()))
         assertEquals("0 FOOT", AssetAmount(foot, 0).toString())
         assertEquals("1/12 FOOT", AssetAmount(foot, 1).toString())
         assertEquals("6/12 FOOT", AssetAmount(foot, 6).toString())

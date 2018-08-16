@@ -113,7 +113,7 @@ class RadixJsonRpcClientTest {
 
         val observer = TestObserver<Atom>()
 
-        jsonRpcClient.getAtom(EUID(BigInteger.ONE)).subscribe(observer)
+        jsonRpcClient.getAtom(EUID(1)).subscribe(observer)
 
         observer.assertValueCount(0)
         observer.assertComplete()
@@ -152,7 +152,7 @@ class RadixJsonRpcClientTest {
 
         val observer = TestObserver<Atom>()
 
-        jsonRpcClient.getAtom(EUID(BigInteger.ONE)).subscribe(observer)
+        jsonRpcClient.getAtom(EUID(1)).subscribe(observer)
 
         observer.assertValue { atom -> atom.asMessageAtom.applicationId == "Test" }
         observer.assertComplete()
@@ -205,7 +205,7 @@ class RadixJsonRpcClientTest {
 
         val observer = TestObserver<ApplicationPayloadAtom>()
 
-        jsonRpcClient.getAtoms(AtomQuery(EUID(BigInteger.ONE), ApplicationPayloadAtom::class.java)).subscribe(observer)
+        jsonRpcClient.getAtoms(AtomQuery(EUID(1), ApplicationPayloadAtom::class.java)).subscribe(observer)
 
         observer.assertNoErrors()
         observer.assertValueCount(1)
@@ -262,7 +262,7 @@ class RadixJsonRpcClientTest {
 
         val observer = TestObserver<ApplicationPayloadAtom>()
 
-        jsonRpcClient.getAtoms(AtomQuery(EUID(BigInteger.ONE), ApplicationPayloadAtom::class.java))
+        jsonRpcClient.getAtoms(AtomQuery(EUID(1), ApplicationPayloadAtom::class.java))
                 .subscribe(observer)
         observer.cancel()
 

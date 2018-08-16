@@ -13,7 +13,7 @@ class RadixUniverseTest {
 
     @Test
     fun testRadixUniverseCreation() {
-        RadixUniverse.bootstrap(Bootstrap.WINTERFELL)
+        RadixUniverse.bootstrap(Bootstrap.BETANET)
         val universe = RadixUniverse.instance
         assertNotNull(universe)
         assertNotNull(universe.systemPublicKey)

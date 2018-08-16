@@ -45,7 +45,7 @@ class ChatBot(
                             .filter { message -> message.from != address } // Don't reply to ourselves!
                             .filter { message -> Math.abs(message.timestamp - System.currentTimeMillis()) < 60000 } // Only reply to recent messages
                             .flatMap(object : io.reactivex.functions.Function<RadixMessage, ObservableSource<AtomSubmissionUpdate>> {
-                                internal var chatBotAlgorithm = chatBotAlgorithmSupplier.get()
+                                var chatBotAlgorithm = chatBotAlgorithmSupplier.get()
 
                                 override fun apply(message: RadixMessage): ObservableSource<AtomSubmissionUpdate> {
                                     return RadixMessaging.instance.sendMessage(chatBotAlgorithm.apply(message.getContent()), identity, message.from)
@@ -62,7 +62,7 @@ class ChatBot(
         @Throws(Exception::class)
         @JvmStatic
         fun main(args: Array<String>) {
-            RadixUniverse.bootstrap(Bootstrap.ALPHANET)
+            RadixUniverse.bootstrap(Bootstrap.BETANET)
 
             RadixUniverse.instance
                     .network

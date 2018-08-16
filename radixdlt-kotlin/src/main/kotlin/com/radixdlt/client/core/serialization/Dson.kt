@@ -9,11 +9,11 @@ import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.util.Base64Encoded
 import okio.ByteString
 import org.bouncycastle.util.encoders.Base64
+import org.bouncycastle.util.encoders.Hex
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
-import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -87,7 +87,7 @@ class Dson private constructor() {
             jsonObject.addProperty("serializer", "EUID")
             val buffer = ByteArray(length)
             byteBuffer.get(buffer)
-            jsonObject.addProperty("value", BigInteger(buffer).toString())
+            jsonObject.addProperty("value", Hex.toHexString(buffer))
             result = jsonObject
         } else if (type == Primitive.HASH.value) {
             val jsonObject = JsonObject()
@@ -132,10 +132,10 @@ class Dson private constructor() {
             raw = outputStream.toByteArray()
             type = 6
         } else if (o is Long) {
-            raw = Companion.longToByteArray((o as Long?)!!)
+            raw = longToByteArray((o as Long?)!!)
             type = 2
         } else if (o is EUID) {
-            raw = o.bigInteger().toByteArray()
+            raw = o.toByteArray()
             type = 7
         } else if (o is Base64Encoded) {
             raw = o.toByteArray()

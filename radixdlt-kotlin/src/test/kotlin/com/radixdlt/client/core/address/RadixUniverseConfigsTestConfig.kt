@@ -8,7 +8,7 @@ class RadixUniverseConfigsTestConfig {
 
     @Test
     fun createDevelopmentUniverseFromJson() {
-        val winterfell = RadixUniverseConfigs.winterfell
-        assertNotNull(winterfell)
+        val betanet = RadixUniverseConfigs.betanet
+        assertNotNull(betanet)
     }
 }

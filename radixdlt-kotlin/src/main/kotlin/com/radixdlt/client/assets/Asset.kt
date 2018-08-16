@@ -1,7 +1,6 @@
 package com.radixdlt.client.assets
 
 import com.radixdlt.client.core.address.EUID
-import java.math.BigInteger
 import java.util.*
 
 class Asset(val iso: String, val subUnits: Int, val id: EUID) {
@@ -15,12 +14,12 @@ class Asset(val iso: String, val subUnits: Int, val id: EUID) {
         }
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o == null || o !is Asset) {
+    override fun equals(other: Any?): Boolean {
+        if (other == null || other !is Asset) {
             return false
         }
 
-        val asset = o as Asset?
+        val asset = other as Asset?
         return this.iso == asset!!.iso
     }
 
@@ -33,7 +32,7 @@ class Asset(val iso: String, val subUnits: Int, val id: EUID) {
         /**
          * Radix Token asset. TODO: Read from universe file. Hardcode for now.
          */
-        @JvmField val XRD = Asset("TEST", 100000, EUID(BigInteger.valueOf("TEST".hashCode().toLong())))
-        @JvmField val POW = Asset("POW", 1, EUID(BigInteger.valueOf(79416)))
+        @JvmField val XRD = Asset("TEST", 100000, EUID("TEST".hashCode()))
+        @JvmField val POW = Asset("POW", 1, EUID(79416))
     }
 }

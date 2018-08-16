@@ -1,24 +1,22 @@
 package com.radixdlt.client.core.address
 
-import java.math.BigInteger
-
+import com.radixdlt.client.core.util.Int128
+import com.radixdlt.client.core.util.LONG_BYTES
+import org.bouncycastle.util.encoders.Hex
+import java.util.*
 
 class EUID {
-    private val value: BigInteger
+    private val value: Int128
 
     val shard: Long
-        get() = value.toLong()
+        get() = value.low
 
-    constructor(value: ByteArray) {
-        this.value = BigInteger(value)
-    }
-
-    constructor(value: BigInteger) {
+    constructor(value: Int128) {
         this.value = value
     }
 
-    fun bigInteger(): BigInteger {
-        return value
+    constructor(value: Int) {
+        this.value = Int128.from(value)
     }
 
     override fun hashCode(): Int {
@@ -26,15 +24,39 @@ class EUID {
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other == null || other !is EUID) {
+        if (other !is EUID) {
             return false
         }
 
-        val o = other as EUID?
-        return this.value == o!!.value
+        return this.value == other.value
     }
 
     override fun toString(): String {
-        return value.toString()
+        return Hex.toHexString(value.toByteArray())
+    }
+
+    /**
+     * Return an array of `byte` that represents this [EUID].
+     * Note that the returned array is always [.BYTES] bytes in length,
+     * and is padded on the right with the value of the sign bit, if necessary.
+     *
+     * @return An array of [.BYTES] bytes.
+     */
+    fun toByteArray(): ByteArray {
+        val bytes = value.toByteArray()
+        if (bytes.size < BYTES) {
+            // Pad with sign bit
+            val newBytes = ByteArray(BYTES)
+            val fillSize = BYTES - bytes.size
+            val fill = if (bytes[0] < 0) (-1).toByte() else 0.toByte()
+            Arrays.fill(newBytes, 0, fillSize, fill)
+            System.arraycopy(bytes, 0, newBytes, fillSize, bytes.size)
+            return newBytes
+        }
+        return bytes
+    }
+
+    companion object {
+        const val BYTES = LONG_BYTES * 2
     }
 }

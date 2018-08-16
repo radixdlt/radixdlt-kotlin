@@ -12,9 +12,9 @@ class AtomBuilderTest {
     @Test
     fun buildTransactionAtomWithPayload() {
         val ecKeyPair = mock(ECKeyPair::class.java)
-        `when`(ecKeyPair.getUID()).thenReturn(EUID(BigInteger.ONE))
+        `when`(ecKeyPair.getUID()).thenReturn(EUID(1))
 
-        val consumable = Consumable(1, setOf(ecKeyPair), 0, EUID(BigInteger.valueOf(2L)))
+        val consumable = Consumable(1, setOf(ecKeyPair), 0, EUID(2))
 
         val atomBuilder = AtomBuilder()
         val atom = atomBuilder
@@ -33,7 +33,7 @@ class AtomBuilderTest {
                 .type(ApplicationPayloadAtom::class.java)
                 .applicationId("Test")
                 .payload("Hello")
-                .addDestination(EUID(BigInteger.ONE))
+                .addDestination(EUID(1))
 
         val atom1 = atomBuilder.build()
         val atom2 = atomBuilder.build()

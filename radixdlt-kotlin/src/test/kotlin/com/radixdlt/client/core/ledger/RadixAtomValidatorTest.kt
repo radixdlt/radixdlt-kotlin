@@ -21,9 +21,9 @@ class RadixAtomValidatorTest {
 
         val keyPair = mock(ECKeyPair::class.java)
         val publicKey = mock(ECPublicKey::class.java)
-        `when`(keyPair.getUID()).thenReturn(EUID(BigInteger.ONE))
+        `when`(keyPair.getUID()).thenReturn(EUID(1))
         `when`(keyPair.getPublicKey()).thenReturn(publicKey)
-        `when`(publicKey.getUID()).thenReturn(EUID(BigInteger.ONE))
+        `when`(publicKey.getUID()).thenReturn(EUID(1))
 
         val consumer = mock(Consumer::class.java)
         `when`(consumer.isAbstractConsumable).thenReturn(true)
@@ -47,9 +47,9 @@ class RadixAtomValidatorTest {
 
         val keyPair = mock(ECKeyPair::class.java)
         val publicKey = mock(ECPublicKey::class.java)
-        `when`(keyPair.getUID()).thenReturn(EUID(BigInteger.ONE))
+        `when`(keyPair.getUID()).thenReturn(EUID(1))
         `when`(keyPair.getPublicKey()).thenReturn(publicKey)
-        `when`(publicKey.getUID()).thenReturn(EUID(BigInteger.ONE))
+        `when`(publicKey.getUID()).thenReturn(EUID(1))
 
         val consumer = mock(Consumer::class.java)
         `when`(consumer.isAbstractConsumable).thenReturn(true)

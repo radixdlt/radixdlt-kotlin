@@ -7,7 +7,7 @@ import com.radixdlt.client.core.identity.SimpleRadixIdentity
 import com.radixdlt.client.messaging.RadixMessaging
 
 object RadixMessagingExample {
-    private const val TO_ADDRESS_BASE58 = "9fXrpiDg65UUpDMLKq5eKNd2nCULWchugeBc1ob1Y8vAtSbV2Jx"
+    private const val TO_ADDRESS_BASE58 = "JFgcgRKq6GbQqP8mZzDRhtr7K7YQM1vZiYopZLRpAeVxcnePRXX"
     private const val MESSAGE = "Hello World!"
     private val queryType = RadixMessagesQueryType.BY_CONVO
 
@@ -17,7 +17,7 @@ object RadixMessagingExample {
     }
 
     init {
-        RadixUniverse.bootstrap(Bootstrap.ALPHANET)
+        RadixUniverse.bootstrap(Bootstrap.BETANET)
     }
 
     @Throws(Exception::class)

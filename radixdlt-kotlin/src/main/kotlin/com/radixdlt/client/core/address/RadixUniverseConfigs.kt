@@ -6,6 +6,10 @@ import java.io.InputStream
 object RadixUniverseConfigs {
 
     @JvmStatic
+    val betanet: RadixUniverseConfig
+        get() = RadixUniverseConfig.fromInputStream(getConfigFileStream("betanet.json"))
+
+    @JvmStatic
     val winterfell: RadixUniverseConfig
         get() = RadixUniverseConfig.fromInputStream(getConfigFileStream("testuniverse.json"))
 

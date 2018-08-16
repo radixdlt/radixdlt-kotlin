@@ -27,7 +27,7 @@ class AtomQuery<T : Atom>(val destination: EUID, val atomClass: Class<T>) {
 
     fun toJson(): JsonObject {
         val query = JsonObject()
-        query.addProperty("destination", destination.bigInteger())
+        query.addProperty("destination", destination.toString())
 
         if (atomType != null) {
             query.addProperty("atomSerializer", atomType.serializer)

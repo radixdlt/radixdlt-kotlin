@@ -11,7 +11,9 @@ import com.radixdlt.client.core.atoms.NullAtom.JunkParticle
 import com.radixdlt.client.core.crypto.*
 import com.radixdlt.client.core.network.NodeRunnerData
 import com.radixdlt.client.core.util.Base64Encoded
+import com.radixdlt.client.core.util.Int128
 import org.bouncycastle.util.encoders.Base64
+import org.bouncycastle.util.encoders.Hex
 import java.io.IOException
 import java.lang.reflect.Type
 import java.util.*
@@ -19,8 +21,6 @@ import java.util.*
 object RadixJson {
 
     private val BASE64_SERIALIZER = JsonSerializer<Base64Encoded> { src, _, _ -> serializedValue("BASE64", src.base64()) }
-
-    private val EUID_SERIALIZER = JsonSerializer<EUID> { uid, _, _ -> serializedValue("EUID", uid.bigInteger().toString()) }
 
     private val PAYLOAD_DESERIALIZER = JsonDeserializer<Payload> { json, _, _ -> Payload.fromBase64(json.asJsonObject.get("value").asString) }
 
@@ -167,7 +167,7 @@ object RadixJson {
                 .registerTypeAdapter(Particle::class.java, PARTICLE_DESERIALIZER)
                 .registerTypeAdapter(Atom::class.java, ATOM_SERIALIZER)
                 .registerTypeAdapter(Atom::class.java, ATOM_DESERIALIZER)
-                .registerTypeAdapter(EUID::class.java, EUID_SERIALIZER)
+                .registerTypeAdapter(EUID::class.java, EUIDSerializer())
                 .registerTypeAdapter(Payload::class.java, PAYLOAD_DESERIALIZER)
                 .registerTypeAdapter(EncryptedPrivateKey::class.java, PROTECTOR_DESERIALIZER)
                 .registerTypeAdapter(ECPublicKey::class.java, PK_DESERIALIZER)
@@ -182,6 +182,17 @@ object RadixJson {
         element.addProperty("serializer", type)
         element.addProperty("value", value)
         return element
+    }
+
+    private class EUIDSerializer : JsonDeserializer<EUID>, JsonSerializer<EUID> {
+        override fun serialize(src: EUID, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+            return serializedValue("EUID", src.toString())
+        }
+
+        @Throws(JsonParseException::class)
+        override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): EUID {
+            return EUID(Int128.from(Hex.decode(json.asJsonObject.get("value").asString)))
+        }
     }
 
     private class ByteArraySerializer : JsonDeserializer<ByteArray>, JsonSerializer<ByteArray> {

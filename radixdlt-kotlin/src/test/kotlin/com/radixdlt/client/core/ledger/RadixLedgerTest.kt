@@ -13,10 +13,6 @@ import io.reactivex.functions.Consumer
 import org.junit.Test
 import org.mockito.Mockito.*
 
-import java.math.BigInteger
-
-
-
 class RadixLedgerTest {
 
     @Test
@@ -26,7 +22,7 @@ class RadixLedgerTest {
                 .type(ApplicationPayloadAtom::class.java)
                 .applicationId("Test")
                 .payload("Hello")
-                .addDestination(EUID(BigInteger.ONE))
+                .addDestination(EUID(1))
                 .build()
                 .rawAtom
 
@@ -36,7 +32,7 @@ class RadixLedgerTest {
         `when`(network.getRadixClient(any(Long::class.java))).thenReturn(Single.just(client))
         `when`(client.getAtoms<Atom>(any())).thenReturn(Observable.just(atom, atom))
         val ledger = RadixLedger(0, network)
-        ledger.getAllAtoms(EUID(BigInteger.ONE), ApplicationPayloadAtom::class.java)
+        ledger.getAllAtoms(EUID(1), ApplicationPayloadAtom::class.java)
                 .subscribe(observer)
 
         verify(observer, times(1)).accept(any())

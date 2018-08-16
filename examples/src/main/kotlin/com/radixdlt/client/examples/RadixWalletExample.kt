@@ -10,14 +10,14 @@ import com.radixdlt.client.wallet.RadixWallet
 
 object RadixWalletExample {
 
-    private const val TO_ADDRESS_BASE58 = "9fXrpiDg65UUpDMLKq5eKNd2nCULWchugeBc1ob1Y8vAtSbV2Jx"
+    private const val TO_ADDRESS_BASE58 = "JFgcgRKq6GbQqP8mZzDRhtr7K7YQM1vZiYopZLRpAeVxcnePRXX"
     //	private static String TO_ADDRESS_BASE58 = null;
     private const val PAYLOAD = "A gift for you!"
     private const val AMOUNT: Long = 1
 
     // Initialize Radix Universe
     init {
-        RadixUniverse.bootstrap(Bootstrap.ALPHANET)
+        RadixUniverse.bootstrap(Bootstrap.BETANET)
     }
 
     @Throws(Exception::class)
@@ -31,11 +31,7 @@ object RadixWalletExample {
 
         // Identity Manager which manages user's keys, signing, encrypting and decrypting
         val radixIdentity: RadixIdentity = if (args.isNotEmpty()) {
-            if (args[0] == "-system") {
-                RadixUniverse.instance.systemIdentity ?: throw IllegalStateException("System key not present")
-            } else {
-                SimpleRadixIdentity(args[0])
-            }
+            SimpleRadixIdentity(args[0])
         } else {
             SimpleRadixIdentity()
         }

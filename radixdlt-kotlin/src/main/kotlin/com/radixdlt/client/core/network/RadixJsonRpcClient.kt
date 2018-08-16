@@ -111,12 +111,10 @@ class RadixJsonRpcClient(
                             }
                             .subscribe { msg ->
                                 val received = msg.asJsonObject
-                                if (received.has("result")) {
-                                    emitter.onSuccess(received.get("result"))
-                                } else if (received.has("error")) {
-                                    emitter.onError(RuntimeException(received.toString()))
-                                } else {
-                                    emitter.onError(
+                                when {
+                                    received.has("result") -> emitter.onSuccess(received.get("result"))
+                                    received.has("error") -> emitter.onError(JsonRpcException(requestObject, received))
+                                    else -> emitter.onError(
                                             RuntimeException("Received bad json rpc message: " + received.toString())
                                     )
                                 }
