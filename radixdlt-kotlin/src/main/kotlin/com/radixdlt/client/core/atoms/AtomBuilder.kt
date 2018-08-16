@@ -5,7 +5,6 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.crypto.*
 import java.util.*
 
-
 class AtomBuilder {
 
     private val destinations = HashSet<EUID>()
@@ -14,7 +13,6 @@ class AtomBuilder {
     private val signatureId: EUID? = null
     private var timestamp: Long? = null
     private var sharedKey: ECKeyPair? = null
-    private val protectors = ArrayList<ECPublicKey>()
     private var applicationId: String? = null
     private var payloadRaw: ByteArray? = null
     private var atomClass: Class<out Atom>? = null
@@ -36,7 +34,6 @@ class AtomBuilder {
     }
 
     fun payload(payloadRaw: ByteArray): AtomBuilder {
-
         this.payloadRaw = payloadRaw
         return this
     }
@@ -45,11 +42,10 @@ class AtomBuilder {
         return this.payload(payloadRaw.toByteArray())
     }
 
-    fun addProtector(publicKey: ECPublicKey): AtomBuilder {
-        protectors.add(publicKey)
+    fun protectors(protectors: List<EncryptedPrivateKey>): AtomBuilder {
+        this.encryptor = Encryptor(protectors)
         return this
     }
-
 
     fun addParticle(particle: Particle): AtomBuilder {
         this.particles.add(particle)
@@ -92,23 +88,7 @@ class AtomBuilder {
         }
 
         if (this.payloadRaw != null) {
-            if (!protectors.isEmpty()) {
-                if (this.sharedKey == null) {
-                    this.sharedKey = ECKeyPairGenerator.newInstance().generateKeyPair()
-                }
-
-                if (this.encryptor == null) {
-                    this.encryptor = Encryptor(
-                            protectors.asSequence().map { publicKey -> this.sharedKey!!.encryptPrivateKey(publicKey) }.toList()
-                    )
-                    this.payload = Payload(this.sharedKey!!.getPublicKey().encrypt(this.payloadRaw!!))
-                }
-            } else {
-                if (this.payload == null) {
-                    encryptor = null
-                    payload = Payload(this.payloadRaw!!)
-                }
-            }
+            this.payload = Payload(this.payloadRaw!!)
         }
 
         // TODO: add this check to when payloadRaw is first set

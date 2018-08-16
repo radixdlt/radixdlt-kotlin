@@ -8,7 +8,6 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.*
 
-
 class RadixUniverseConfig
 internal constructor(genesis: List<Atom>,
                      private val port: Int,

@@ -8,19 +8,6 @@ abstract class PayloadAtom : Atom {
     val encrypted: Payload?
     val encryptor: Encryptor?
 
-    val encryptedPayload: EncryptedPayload?
-        get() {
-            if (encrypted == null) {
-                return null
-            }
-
-            return if (encryptor == null) {
-                EncryptedPayload(encrypted)
-            } else {
-                EncryptedPayload(encrypted, encryptor)
-            }
-        }
-
     internal constructor(destinations: Set<EUID>, encrypted: Payload?, timestamp: Long, signatureId: EUID, signature: ECSignature) : super(destinations, timestamp, signatureId, signature) {
         this.encrypted = encrypted
         this.encryptor = null

@@ -1,9 +1,11 @@
 package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.core.address.EUID
+import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomValidationException
 import com.radixdlt.client.core.atoms.RadixHash
+import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.network.AtomQuery
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
@@ -26,6 +28,17 @@ class RadixLedger(val magic: Int, val radixNetwork: RadixNetwork) {
 
     fun setDebug(debug: Boolean) {
         this.debug.set(debug)
+    }
+
+    /**
+     * Maps a public key to it's corresponding Radix address in this universe.
+     * Within a universe, a public key has a one to one bijective relationship to an address
+     *
+     * @param publicKey the key to get an address from
+     * @return the corresponding address to the key for this universe
+     */
+    fun getAddressFromPublicKey(publicKey: ECPublicKey): RadixAddress {
+        return RadixAddress(magic, publicKey)
     }
 
     /**

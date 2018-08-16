@@ -5,7 +5,6 @@ import com.radixdlt.client.core.crypto.ECSignature
 import com.radixdlt.client.core.serialization.Dson
 import java.util.*
 
-
 abstract class Atom {
     val destinations: Set<EUID>
     private val timestamps: Map<String, Long>?

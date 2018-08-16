@@ -1,11 +1,9 @@
 package com.radixdlt.client.core.identity
 
+import com.radixdlt.client.application.EncryptedData
 import com.radixdlt.client.core.atoms.Atom
-import com.radixdlt.client.core.atoms.EncryptedPayload
 import com.radixdlt.client.core.atoms.UnsignedAtom
-import com.radixdlt.client.core.crypto.ECKeyPair
-import com.radixdlt.client.core.crypto.ECKeyPairGenerator
-import com.radixdlt.client.core.crypto.ECPublicKey
+import com.radixdlt.client.core.crypto.*
 import io.reactivex.Single
 
 // Simply generate a key pair and don't worry about saving it
@@ -26,8 +24,16 @@ class OneTimeUseIdentity : RadixIdentity {
         }
     }
 
-    override fun decrypt(data: EncryptedPayload?): Single<ByteArray> {
-        return Single.fromCallable { data?.decrypt(myKey) }
+    override fun decrypt(data: EncryptedData): Single<ByteArray> {
+        for (protector in data.protectors) {
+            // TODO: remove exception catching
+            try {
+                return Single.just(myKey.decrypt(data.encrypted, protector))
+            } catch (e: MacMismatchException) {
+            }
+
+        }
+        return Single.error(CryptoException("Cannot decrypt"))
     }
 
     override fun getPublicKey(): ECPublicKey {

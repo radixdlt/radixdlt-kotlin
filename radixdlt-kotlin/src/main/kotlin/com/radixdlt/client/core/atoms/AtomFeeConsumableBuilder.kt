@@ -6,7 +6,6 @@ import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.pow.ProofOfWorkBuilder
 import java.util.*
 
-
 class AtomFeeConsumableBuilder {
     private var owner: ECPublicKey? = null
     private var magic: Int = 0

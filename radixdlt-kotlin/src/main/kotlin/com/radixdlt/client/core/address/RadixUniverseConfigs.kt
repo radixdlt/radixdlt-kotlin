@@ -2,7 +2,6 @@ package com.radixdlt.client.core.address
 
 import java.io.InputStream
 
-
 object RadixUniverseConfigs {
 
     @JvmStatic

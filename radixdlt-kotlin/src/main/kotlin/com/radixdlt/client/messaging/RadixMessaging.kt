@@ -1,92 +1,81 @@
 package com.radixdlt.client.messaging
 
-import com.radixdlt.client.core.RadixUniverse
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import com.radixdlt.client.application.EncryptedData
+import com.radixdlt.client.application.RadixApplicationAPI
+import com.radixdlt.client.application.RadixApplicationAPI.Result
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
-import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.IdParticle
-import com.radixdlt.client.core.identity.RadixIdentities
+import com.radixdlt.client.core.crypto.ECSignature
 import com.radixdlt.client.core.identity.RadixIdentity
-import com.radixdlt.client.core.ledger.RadixLedger
-import com.radixdlt.client.core.network.AtomSubmissionUpdate
+import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.observables.GroupedObservable
 import org.slf4j.LoggerFactory
 import java.util.*
 
-class RadixMessaging internal constructor(private val universe: RadixUniverse) {
-    private val ledger: RadixLedger = universe.ledger
+class RadixMessaging(private val api: RadixApplicationAPI) {
 
+    private val identity: RadixIdentity = api.identity
+    private val myAddress: RadixAddress = api.address
+    private val parser = JsonParser()
 
-    fun getAllMessagesEncrypted(euid: EUID): Observable<EncryptedMessage> {
-        return ledger.getAllAtoms(euid, ApplicationPayloadAtom::class.java)
-                .filter { atom -> atom.applicationId == APPLICATION_ID } // Only get messaging atoms
-                .map { EncryptedMessage.fromAtom(it) }
-    }
-
-    fun getAllMessagesEncrypted(address: RadixAddress): Observable<EncryptedMessage> {
-        return this.getAllMessagesEncrypted(address.getUID())
-    }
-
-    fun getAllMessagesDecrypted(identity: RadixIdentity): Observable<RadixMessage> {
-        return this.getAllMessagesEncrypted(identity.getPublicKey().getUID())
-                .flatMapMaybe { decryptable ->
-                    RadixIdentities.decrypt(identity, decryptable)
-                            .toMaybe()
-                            .doOnError { error -> LOGGER.error(error.toString()) }
-                            .onErrorComplete()
+    val allMessages: Observable<RadixMessage>
+        get() = api.getDecryptableData(myAddress)
+                .filter { decryptedData -> APPLICATION_ID == decryptedData.metaData["application"] }
+                .flatMapMaybe { decryptedData ->
+                    try {
+                        val jsonObject = parser.parse(String(decryptedData.data)).asJsonObject
+                        val from = RadixAddress(jsonObject.get("from").asString)
+                        val to = RadixAddress(jsonObject.get("to").asString)
+                        val content = jsonObject.get("content").asString
+                        val signaturesUnchecked = decryptedData.metaData["signatures"]
+                        val signatures = signaturesUnchecked as Map<String, ECSignature>
+                        signatures[from.getUID().toString()] ?: throw RuntimeException("Unsigned message")
+                        val timestamp = decryptedData.metaData["timestamp"] as Long
+                        return@flatMapMaybe Maybe.just(RadixMessage(from, to, content, timestamp))
+                    } catch (e: Exception) {
+                        LOGGER.warn(e.message)
+                        return@flatMapMaybe Maybe.empty<RadixMessage>()
+                    }
                 }
-    }
 
-    fun getAllMessagesDecryptedAndGroupedByParticipants(identity: RadixIdentity): Observable<GroupedObservable<RadixAddress, RadixMessage>> {
-        return this.getAllMessagesDecrypted(identity)
+    val allMessagesGroupedByParticipants: Observable<GroupedObservable<RadixAddress, RadixMessage>>
+        get() = this.allMessages
                 .groupBy { msg -> if (msg.from.publicKey == identity.getPublicKey()) msg.to else msg.from }
-    }
 
-    fun sendMessage(content: RadixMessageContent, fromIdentity: RadixIdentity, uniqueId: EUID?): Observable<AtomSubmissionUpdate> {
-        Objects.requireNonNull(content)
-        if (content.content.length > MAX_MESSAGE_LENGTH) {
+    fun sendMessage(message: String, toAddress: RadixAddress, uniqueId: EUID?): Result {
+        Objects.requireNonNull(message)
+        Objects.requireNonNull(toAddress)
+
+        if (message.length > MAX_MESSAGE_LENGTH) {
             throw IllegalArgumentException(
-                    "Message must be under " + MAX_MESSAGE_LENGTH + " characters but was " + content.content.length
+                    "Message must be under " + MAX_MESSAGE_LENGTH + " characters but was " + message.length
             )
         }
 
-        val atomBuilder = AtomBuilder()
-                .type(ApplicationPayloadAtom::class.java)
-                .applicationId(RadixMessaging.APPLICATION_ID)
-                .payload(content.toJson())
-                .addDestination(content.to!!)
-                .addDestination(content.from!!)
-                .addProtector(content.to.publicKey)
-                .addProtector(content.from.publicKey)
-
         if (uniqueId != null) {
-            atomBuilder.addParticle(IdParticle.create("jwt", uniqueId, fromIdentity.getPublicKey()))
+            throw IllegalArgumentException("Unique ids not supported")
         }
 
-        val unsignedAtom = atomBuilder.buildWithPOWFee(ledger.magic, fromIdentity.getPublicKey())
+        val messageJson = JsonObject()
+        messageJson.addProperty("from", myAddress.toString())
+        messageJson.addProperty("to", toAddress.toString())
+        messageJson.addProperty("content", message)
 
-        return fromIdentity.sign(unsignedAtom)
-                .flatMapObservable { ledger.submitAtom(it) }
+        val encryptedData = EncryptedData.EncryptedDataBuilder()
+                .data(messageJson.toString().toByteArray())
+                .metaData("application", RadixMessaging.APPLICATION_ID)
+                .addReader(toAddress.publicKey)
+                .addReader(myAddress.publicKey)
+                .build()
+
+        return api.storeData(encryptedData, toAddress, myAddress)
     }
 
-    fun sendMessage(content: RadixMessageContent, fromIdentity: RadixIdentity): Observable<AtomSubmissionUpdate> {
-        return this.sendMessage(content, fromIdentity, null)
-    }
-
-    fun sendMessage(message: String, fromIdentity: RadixIdentity, toAddress: RadixAddress, uniqueId: EUID?): Observable<AtomSubmissionUpdate> {
-        Objects.requireNonNull(message)
-        Objects.requireNonNull(fromIdentity)
-        Objects.requireNonNull(toAddress)
-
-        val fromAddress = universe.getAddressFrom(fromIdentity.getPublicKey())
-
-        return this.sendMessage(RadixMessageContent(toAddress, fromAddress, message), fromIdentity, uniqueId)
-    }
-
-    fun sendMessage(message: String, fromIdentity: RadixIdentity, toAddress: RadixAddress): Observable<AtomSubmissionUpdate> {
-        return this.sendMessage(message, fromIdentity, toAddress, null)
+    fun sendMessage(message: String, toAddress: RadixAddress): Result {
+        return this.sendMessage(message, toAddress, null)
     }
 
     companion object {
@@ -95,20 +84,5 @@ class RadixMessaging internal constructor(private val universe: RadixUniverse) {
         const val APPLICATION_ID = "radix-messaging"
 
         const val MAX_MESSAGE_LENGTH = 256
-
-        /**
-         * Lock to protect default messaging object
-         */
-        private val lock = Any()
-        private var radixMessaging: RadixMessaging? = null
-
-        @JvmStatic
-        val instance: RadixMessaging
-            get() = synchronized(lock) {
-                if (radixMessaging == null) {
-                    radixMessaging = RadixMessaging(RadixUniverse.instance)
-                }
-                return radixMessaging as RadixMessaging
-            }
     }
 }

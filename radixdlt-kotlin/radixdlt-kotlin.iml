@@ -73,13 +73,5 @@
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: byte-buddy-1.8.15" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: byte-buddy-agent-1.8.15" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: objenesis-2.6" level="project" />
-    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-1.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-1.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-1.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-1.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-1.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-1.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-1.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-1.0-SNAPSHOT" level="project" />
   </component>
 </module>

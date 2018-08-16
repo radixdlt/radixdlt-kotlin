@@ -1,6 +1,5 @@
 package com.radixdlt.client.core.address
 
-
 enum class RadixUniverseType(private val kname: String, private val ordinalValue: Int) {
     PUBLIC("RADIX_PUBLIC", 1), DEVELOPMENT("RADIX_DEVELOPMENT", 2);
 

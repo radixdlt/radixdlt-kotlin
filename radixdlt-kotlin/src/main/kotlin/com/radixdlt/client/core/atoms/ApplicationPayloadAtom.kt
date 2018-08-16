@@ -4,7 +4,6 @@ import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.crypto.ECSignature
 import com.radixdlt.client.core.crypto.Encryptor
 
-
 class ApplicationPayloadAtom : PayloadAtom {
     val applicationId: String
 

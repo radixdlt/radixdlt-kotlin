@@ -4,7 +4,7 @@ import java.util.*
 
 class Encryptor(protectors: List<EncryptedPrivateKey>) {
 
-    private val protectors: List<EncryptedPrivateKey> = ArrayList(protectors)
+    val protectors: List<EncryptedPrivateKey> = ArrayList(protectors)
 
     @Throws(CryptoException::class)
     fun decrypt(data: ByteArray, accessor: ECKeyPair): ByteArray {
