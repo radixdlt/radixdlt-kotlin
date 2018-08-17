@@ -1,6 +1,9 @@
+@file:Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+
 package com.radixdlt.client.core.util
 
-import java.lang.Long.MIN_VALUE
+import java.lang.Long as JLong
+
 import java.util.*
 
 /**
@@ -142,7 +145,7 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
      * @return The result of shifting `this` left one bit.
      */
     fun shiftLeft(): Int128 {
-        val h = this.high shl 1 or this.low.ushr(java.lang.Long.SIZE - 1)
+        val h = this.high shl 1 or this.low.ushr(JLong.SIZE - 1)
         val l = this.low shl 1
         return Int128.from(h, l)
     }
@@ -155,7 +158,7 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
      */
     fun shiftRight(): Int128 {
         val h = this.high shr 1
-        val l = this.low.ushr(1) or (this.high shl java.lang.Long.SIZE - 1)
+        val l = this.low.ushr(1) or (this.high shl JLong.SIZE - 1)
         return Int128.from(h, l)
     }
 
@@ -167,7 +170,7 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
      */
     fun logicalShiftRight(): Int128 {
         val h = this.high.ushr(1)
-        val l = this.low.ushr(1) or (this.high shl java.lang.Long.SIZE - 1)
+        val l = this.low.ushr(1) or (this.high shl JLong.SIZE - 1)
         return Int128.from(h, l)
     }
 
@@ -185,7 +188,7 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
                 h += 1
             }
         }
-        return Int128.from(h shr 1, l.ushr(1) or (h shl java.lang.Long.SIZE - 1))
+        return Int128.from(h shr 1, l.ushr(1) or (h shl JLong.SIZE - 1))
     }
 
     /**
@@ -224,7 +227,7 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
     }
 
     override fun compareTo(other: Int128): Int {
-        var cmp = java.lang.Long.compare(this.high, other.high)
+        var cmp = JLong.compare(this.high, other.high)
         if (cmp == 0) {
             cmp = compareUnsigned(this.low, other.low)
         }
@@ -263,7 +266,7 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
      * copied from Java8 Long.class and converted to Kotlin
      */
     private fun compareUnsigned(x: Long, y: Long): Int {
-        return java.lang.Long.compare(x + MIN_VALUE, y + MIN_VALUE)
+        return JLong.compare(x + JLong.MIN_VALUE, y + JLong.MIN_VALUE)
     }
 
     override fun toInt(): Int {
@@ -302,17 +305,17 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
         // Note that it is not possible for this exponent to overflow a double
         // (128 < 1023).
         val shift = bitLength(h)
-        var exponent = (java.lang.Long.SIZE + shift - 1).toLong()
+        var exponent = (JLong.SIZE + shift - 1).toLong()
 
         // Merge all the bits into l, discarding lower bits
         l = l ushr shift.toLong().toInt()
-        h = h shl (java.lang.Long.SIZE - shift).toLong().toInt()
+        h = h shl (JLong.SIZE - shift).toLong().toInt()
         l = l or h
 
         // Extract 53 bits of significand. Note that we make a
         // quick stop part way through to organise rounding.
         // Note that rounding is approximate, not RTNE.
-        l = l ushr (java.lang.Long.SIZE - SIGNIFICAND_PREC - 1).toLong().toInt()
+        l = l ushr (JLong.SIZE - SIGNIFICAND_PREC - 1).toLong().toInt()
         l += 1
         l = l ushr 1
 
@@ -396,9 +399,9 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
      */
     fun numberOfLeadingZeros(): Int {
         return if (this.high == 0L)
-            java.lang.Long.SIZE + java.lang.Long.numberOfLeadingZeros(this.low)
+            JLong.SIZE + JLong.numberOfLeadingZeros(this.low)
         else
-            java.lang.Long.numberOfLeadingZeros(this.high)
+            JLong.numberOfLeadingZeros(this.high)
     }
 
     /**
@@ -429,7 +432,7 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
     }
 
     override fun hashCode(): Int {
-        return java.lang.Long.hashCode(this.high) * 31 + java.lang.Long.hashCode(this.low)
+        return hashCode(this.high) * 31 + hashCode(this.low)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -471,6 +474,14 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
         return sb.reverse().toString()
     }
 
+    /**
+     * Returns a hash code for a `long` value.
+     *
+     * @param value the value to hash
+     * @return a hash code value for a `long` value.
+     */
+    private fun hashCode(value: Long): Int = (value xor value.ushr(32)).toInt()
+
     private fun unsignedLong(mostSignificantBits: Long, leastSignificantBits: Long) =
             (mostSignificantBits shl 32) or leastSignificantBits
 
@@ -490,7 +501,7 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
         /**
          * Size of this numeric type in bits.
          */
-        val SIZE = java.lang.Long.SIZE * 2
+        val SIZE = JLong.SIZE * 2
         /**
          * Size of this numeric type in bytes.
          */
@@ -650,7 +661,7 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
         }
 
         private fun bitLength(n: Long): Int {
-            return java.lang.Long.SIZE - java.lang.Long.numberOfLeadingZeros(n)
+            return JLong.SIZE - JLong.numberOfLeadingZeros(n)
         }
 
         // Internal computation.  dividend and divisor assumed positive.
