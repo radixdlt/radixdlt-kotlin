@@ -114,7 +114,7 @@ class RadixLedger(val magic: Int, val radixNetwork: RadixNetwork) {
             }
 
             return status.doOnNext { atomSubmissionUpdate ->
-                if (atomSubmissionUpdate.state == AtomSubmissionState.VALIDATION_ERROR) {
+                if (atomSubmissionUpdate.getState() == AtomSubmissionState.VALIDATION_ERROR) {
                     LOGGER.error(atomSubmissionUpdate.message + "\n" + RadixJson.gson.toJson(atom))
                 }
             }

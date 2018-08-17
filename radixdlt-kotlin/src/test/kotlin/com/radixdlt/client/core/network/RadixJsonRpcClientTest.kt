@@ -319,7 +319,7 @@ class RadixJsonRpcClientTest {
         ).subscribe(observer)
 
         observer.assertNoErrors()
-        observer.assertValueAt(observer.valueCount() - 1) { update -> update.state == AtomSubmissionState.STORED }
+        observer.assertValueAt(observer.valueCount() - 1) { update -> update.getState() == AtomSubmissionState.STORED }
         observer.assertComplete()
     }
 }
