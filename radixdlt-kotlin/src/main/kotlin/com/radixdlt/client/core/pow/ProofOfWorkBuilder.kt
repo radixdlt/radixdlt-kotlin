@@ -3,7 +3,7 @@ package com.radixdlt.client.core.pow
 import com.radixdlt.client.core.atoms.RadixHash
 import okio.ByteString
 import java.nio.ByteBuffer
-import java.util.*
+import java.util.BitSet
 
 class ProofOfWorkBuilder {
     fun build(magic: Int, seed: ByteArray, leading: Int): ProofOfWork {

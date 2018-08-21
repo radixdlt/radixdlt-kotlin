@@ -20,7 +20,7 @@ import java.io.IOException
 import java.math.BigInteger
 import java.security.GeneralSecurityException
 import java.security.SecureRandom
-import java.util.*
+import java.util.Arrays
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
@@ -29,10 +29,11 @@ class ECPublicKey(publicKey: ByteArray) : Base64Encoded {
 
     val publicPoint: ECPoint
         get() {
-            val domainSize = if (this.publicKey[0].toInt() == 4) (this.publicKey.size / 2 - 1) * 8 else (this.publicKey.size - 1) * 8
+            val domainSize =
+                if (this.publicKey[0].toInt() == 4) (this.publicKey.size / 2 - 1) * 8 else (this.publicKey.size - 1) * 8
 
             val domain = ECKeyPairGenerator.getDomain(domainSize)
-                    ?: throw RuntimeException("Invalid domain key size " + (this.publicKey.size - 1) * 8)
+                ?: throw RuntimeException("Invalid domain key size " + (this.publicKey.size - 1) * 8)
 
             return domain.curve.decodePoint(this.publicKey)
         }
@@ -90,9 +91,9 @@ class ECPublicKey(publicKey: ByteArray) : Base64Encoded {
         val outputStream = DataOutputStream(baos)
 
         outputStream.write(iv)
-        //outputStream.writeByte(ephemeralPublicKey.length());
+        // outputStream.writeByte(ephemeralPublicKey.length());
         outputStream.write(ephemeralPublicKey.publicKey)
-        //outputStream.writeInt(encrypted.length);
+        // outputStream.writeInt(encrypted.length);
         outputStream.write(encrypted)
 
         try {
@@ -120,11 +121,9 @@ class ECPublicKey(publicKey: ByteArray) : Base64Encoded {
             return if (length < buffer.size) {
                 Arrays.copyOfRange(buffer, 0, length)
             } else buffer
-
         } catch (e: InvalidCipherTextException) {
             throw RuntimeException(e)
         }
-
     }
 
     fun encrypt(data: ByteArray): ByteArray {
@@ -172,6 +171,5 @@ class ECPublicKey(publicKey: ByteArray) : Base64Encoded {
         } catch (ioex: IOException) {
             throw RuntimeException(ioex)
         }
-
     }
 }

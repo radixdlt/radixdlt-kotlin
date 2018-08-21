@@ -2,7 +2,7 @@ package com.radixdlt.client.assets
 
 import com.radixdlt.client.core.address.EUID
 import java.math.BigInteger
-import java.util.*
+import java.util.Objects
 
 class Asset(val iso: String, val subUnits: Int, val id: EUID) {
 
@@ -33,7 +33,9 @@ class Asset(val iso: String, val subUnits: Int, val id: EUID) {
         /**
          * Radix Token asset. TODO: Read from universe file. Hardcode for now.
          */
-        @JvmField val XRD = Asset("TEST", 100000, EUID(BigInteger.valueOf("TEST".hashCode().toLong())))
-        @JvmField val POW = Asset("POW", 1, EUID(BigInteger.valueOf(79416)))
+        @JvmField
+        val XRD = Asset("TEST", 100000, EUID(BigInteger.valueOf("TEST".hashCode().toLong())))
+        @JvmField
+        val POW = Asset("POW", 1, EUID(BigInteger.valueOf(79416)))
     }
 }

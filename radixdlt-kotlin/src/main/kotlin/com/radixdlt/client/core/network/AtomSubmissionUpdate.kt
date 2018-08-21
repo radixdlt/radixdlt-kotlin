@@ -2,9 +2,16 @@ package com.radixdlt.client.core.network
 
 import com.radixdlt.client.core.address.EUID
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
-class AtomSubmissionUpdate(private val hid: EUID, private val state: AtomSubmissionState, val message: String?, val timestamp: Long) {
+class AtomSubmissionUpdate(
+    private val hid: EUID,
+    private val state: AtomSubmissionState,
+    val message: String?,
+    val timestamp: Long
+) {
 
     val isComplete: Boolean
         get() = this.getState().isComplete

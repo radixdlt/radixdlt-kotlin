@@ -14,7 +14,8 @@ import com.radixdlt.client.core.network.RadixNetwork
 import com.radixdlt.client.core.serialization.RadixJson
 import io.reactivex.functions.Predicate
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.util.HashSet
+import java.util.Objects
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -55,39 +56,39 @@ class RadixLedger(val magic: Int, val radixNetwork: RadixNetwork) {
 
         val atomQuery = AtomQuery(destination, atomClass)
         return radixNetwork.getRadixClient(destination.shard)
-                //.doOnSubscribe(client -> logger.info("Looking for client to serve atoms at: " + destination))
-                //.doOnSuccess(client -> logger.info("Found client to serve atoms: " + client.getLocation()))
-                .flatMapObservable { client -> client.getAtoms(atomQuery) }
-                .doOnError(Throwable::printStackTrace)
-                .retryWhen(IncreasingRetryTimer())
-                .filter(object : Predicate<T> {
-                    private val atomsSeen = HashSet<RadixHash>()
+            // .doOnSubscribe(client -> logger.info("Looking for client to serve atoms at: " + destination))
+            // .doOnSuccess(client -> logger.info("Found client to serve atoms: " + client.getLocation()))
+            .flatMapObservable { client -> client.getAtoms(atomQuery) }
+            .doOnError(Throwable::printStackTrace)
+            .retryWhen(IncreasingRetryTimer())
+            .filter(object : Predicate<T> {
+                private val atomsSeen = HashSet<RadixHash>()
 
-                    override fun test(t: T): Boolean {
-                        if (atomsSeen.contains(t.hash)) {
-                            LOGGER.warn("Atom Already Seen: destination({}) atom({})", destination, t)
-                            return false
-                        }
-                        atomsSeen.add(t.hash)
+                override fun test(t: T): Boolean {
+                    if (atomsSeen.contains(t.hash)) {
+                        LOGGER.warn("Atom Already Seen: destination({}) atom({})", destination, t)
+                        return false
+                    }
+                    atomsSeen.add(t.hash)
 
-                        return true
-                    }
-                })
-                .filter { atom ->
-                    return@filter try {
-                        RadixAtomValidator.getInstance().validate(atom)
-                        true
-                    } catch (e: AtomValidationException) {
-                        // TODO: Stop stream and mark client as untrustable
-                        LOGGER.error(e.toString())
-                        false
-                    }
+                    return true
                 }
-                .doOnSubscribe {
-                    LOGGER.info("Atom Query Subscribe: destination({}) class({})", destination, atomClass.simpleName)
+            })
+            .filter { atom ->
+                return@filter try {
+                    RadixAtomValidator.getInstance().validate(atom)
+                    true
+                } catch (e: AtomValidationException) {
+                    // TODO: Stop stream and mark client as untrustable
+                    LOGGER.error(e.toString())
+                    false
                 }
-                .publish()
-                .refCount()
+            }
+            .doOnSubscribe {
+                LOGGER.info("Atom Query Subscribe: destination({}) class({})", destination, atomClass.simpleName)
+            }
+            .publish()
+            .refCount()
     }
 
     /**
@@ -100,11 +101,11 @@ class RadixLedger(val magic: Int, val radixNetwork: RadixNetwork) {
      */
     fun submitAtom(atom: Atom): io.reactivex.Observable<AtomSubmissionUpdate> {
         val status = radixNetwork.getRadixClient(atom.requiredFirstShard)
-                //.doOnSubscribe(client -> logger.info("Looking for client to submit atom"))
-                //.doOnSuccess(client -> logger.info("Found client to submit atom: " + client.getLocation()))
-                .flatMapObservable { client -> client.submitAtom(atom) }
-                .doOnError(Throwable::printStackTrace)
-                .retryWhen(IncreasingRetryTimer())
+            // .doOnSubscribe(client -> logger.info("Looking for client to submit atom"))
+            // .doOnSuccess(client -> logger.info("Found client to submit atom: " + client.getLocation()))
+            .flatMapObservable { client -> client.submitAtom(atom) }
+            .doOnError(Throwable::printStackTrace)
+            .retryWhen(IncreasingRetryTimer())
 
         if (debug.get()) {
             try {

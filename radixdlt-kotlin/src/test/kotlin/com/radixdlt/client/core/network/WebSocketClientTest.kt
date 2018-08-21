@@ -1,9 +1,12 @@
 package com.radixdlt.client.core.network
 
-
 import com.radixdlt.client.util.any
 import io.reactivex.observers.TestObserver
-import okhttp3.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
 import org.junit.Test
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock

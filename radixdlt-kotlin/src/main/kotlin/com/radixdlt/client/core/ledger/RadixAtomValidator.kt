@@ -1,7 +1,11 @@
 package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.assets.Asset
-import com.radixdlt.client.core.atoms.*
+import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.AtomValidationException
+import com.radixdlt.client.core.atoms.AtomValidator
+import com.radixdlt.client.core.atoms.Consumer
+import com.radixdlt.client.core.atoms.Particle
 import com.radixdlt.client.core.crypto.ECSignature
 
 class RadixAtomValidator private constructor() : AtomValidator {
@@ -18,40 +22,41 @@ class RadixAtomValidator private constructor() : AtomValidator {
         val hash = atom.hash
 
         val exception = atom.particles!!.asSequence()
-                .filter(Particle::isAbstractConsumable)
-                .map(Particle::asAbstractConsumable)
-                .map { particle ->
-            if (particle.ownersPublicKeys.isEmpty()) {
-                return@map AtomValidationException("No owners in particle");
-            }
-
-            if (particle.assetId == Asset.POW.id) {
-                return@map null
-            }
-
-            if (particle is Consumer) {
-                val consumerException: AtomValidationException? = particle.ownersPublicKeys.asSequence().map { owner ->
-                    val signature: ECSignature? = atom.getSignature(owner.getUID())
-                    if (signature == null) {
-                        return@map AtomValidationException("Missing signature")
-                    }
-
-                    if (!hash.verifySelf(owner, signature)) {
-                        return@map AtomValidationException("Bad signature")
-                    }
-
-                    null
-                }.filter {
-                    it != null
-                }.firstOrNull() // In java it findsAny() from Optional
-
-                if (consumerException != null) {
-                    return@map consumerException
+            .filter(Particle::isAbstractConsumable)
+            .map(Particle::asAbstractConsumable)
+            .map { particle ->
+                if (particle.ownersPublicKeys.isEmpty()) {
+                    return@map AtomValidationException("No owners in particle")
                 }
-            }
 
-            null
-        }.filter { it != null }.firstOrNull() // In java it findsAny() from Optional
+                if (particle.assetId == Asset.POW.id) {
+                    return@map null
+                }
+
+                if (particle is Consumer) {
+                    val consumerException: AtomValidationException? =
+                        particle.ownersPublicKeys.asSequence().map { owner ->
+                            val signature: ECSignature? = atom.getSignature(owner.getUID())
+                            if (signature == null) {
+                                return@map AtomValidationException("Missing signature")
+                            }
+
+                            if (!hash.verifySelf(owner, signature)) {
+                                return@map AtomValidationException("Bad signature")
+                            }
+
+                            null
+                        }.filter {
+                            it != null
+                        }.firstOrNull() // In java it findsAny() from Optional
+
+                    if (consumerException != null) {
+                        return@map consumerException
+                    }
+                }
+
+                null
+            }.filter { it != null }.firstOrNull() // In java it findsAny() from Optional
 
         if (exception != null) {
             throw exception

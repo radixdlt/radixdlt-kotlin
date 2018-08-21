@@ -12,17 +12,17 @@ class RadixPeer(val location: String, val isSsl: Boolean, val port: Int) {
 
         if (isSsl) {
             this.radixClient = RadixJsonRpcClient(
-                    WebSocketClient(
-                            (HttpClients::getSslAllTrustingClient),
-                            Request.Builder().url("wss://$location:$port/rpc").build()
-                    )
+                WebSocketClient(
+                    (HttpClients::getSslAllTrustingClient),
+                    Request.Builder().url("wss://$location:$port/rpc").build()
+                )
             )
         } else {
             this.radixClient = RadixJsonRpcClient(
-                    WebSocketClient(
-                            (HttpClients::getSslAllTrustingClient),
-                            Request.Builder().url("ws://$location:$port/rpc").build()
-                    )
+                WebSocketClient(
+                    (HttpClients::getSslAllTrustingClient),
+                    Request.Builder().url("ws://$location:$port/rpc").build()
+                )
             )
         }
     }

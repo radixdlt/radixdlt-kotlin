@@ -4,7 +4,11 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
-import okhttp3.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -25,12 +29,12 @@ class WebSocketClient(private val okHttpClient: () -> OkHttpClient, val endpoint
 
     init {
         this.status
-                .filter { status -> status == RadixClientStatus.FAILURE }
-                .debounce(1, TimeUnit.MINUTES)
-                .subscribe {
-                    this.messages = PublishSubject.create()
-                    this.status.onNext(RadixClientStatus.CLOSED)
-                }
+            .filter { status -> status == RadixClientStatus.FAILURE }
+            .debounce(1, TimeUnit.MINUTES)
+            .subscribe {
+                this.messages = PublishSubject.create()
+                this.status.onNext(RadixClientStatus.CLOSED)
+            }
     }
 
     fun getMessages(): Observable<String> {
@@ -97,17 +101,17 @@ class WebSocketClient(private val okHttpClient: () -> OkHttpClient, val endpoint
      */
     fun connect(): Completable {
         return this.getStatus()
-                .doOnNext { status ->
-                    // TODO: cancel tryConnect on dispose
-                    if (status == RadixClientStatus.CLOSED) {
-                        this.tryConnect()
-                    } else if (status == RadixClientStatus.FAILURE) {
-                        throw IOException()
-                    }
+            .doOnNext { status ->
+                // TODO: cancel tryConnect on dispose
+                if (status == RadixClientStatus.CLOSED) {
+                    this.tryConnect()
+                } else if (status == RadixClientStatus.FAILURE) {
+                    throw IOException()
                 }
-                .filter { status -> status == RadixClientStatus.OPEN }
-                .firstOrError()
-                .ignoreElement()
+            }
+            .filter { status -> status == RadixClientStatus.OPEN }
+            .firstOrError()
+            .ignoreElement()
     }
 
     fun send(message: String): Boolean {

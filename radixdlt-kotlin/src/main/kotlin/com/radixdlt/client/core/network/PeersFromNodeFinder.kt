@@ -13,8 +13,8 @@ class PeersFromNodeFinder(private val nodeFinderUrl: String, private val port: I
 
     override fun findPeers(): Observable<RadixPeer> {
         val request = Request.Builder()
-                .url(this.nodeFinderUrl)
-                .build()
+            .url(this.nodeFinderUrl)
+            .build()
 
         return Single.create<String> { emitter ->
             val call = HttpClients.getSslAllTrustingClient().newCall(request)
@@ -41,9 +41,9 @@ class PeersFromNodeFinder(private val nodeFinderUrl: String, private val port: I
                 }
             })
         }
-        .map { peerUrl -> PeersFromSeed(RadixPeer(peerUrl, true, port)) }
-        .flatMapObservable(PeersFromSeed::findPeers)
-        .timeout(3, TimeUnit.SECONDS)
-        .retryWhen(IncreasingRetryTimer())
+            .map { peerUrl -> PeersFromSeed(RadixPeer(peerUrl, true, port)) }
+            .flatMapObservable(PeersFromSeed::findPeers)
+            .timeout(3, TimeUnit.SECONDS)
+            .retryWhen(IncreasingRetryTimer())
     }
 }

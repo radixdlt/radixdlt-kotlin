@@ -2,8 +2,14 @@ package com.radixdlt.client.core.atoms
 
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.crypto.*
-import java.util.*
+import com.radixdlt.client.core.crypto.ECKeyPair
+import com.radixdlt.client.core.crypto.ECPublicKey
+import com.radixdlt.client.core.crypto.ECSignature
+import com.radixdlt.client.core.crypto.EncryptedPrivateKey
+import com.radixdlt.client.core.crypto.Encryptor
+import java.util.ArrayList
+import java.util.HashSet
+import java.util.Objects
 
 class AtomBuilder {
 
@@ -33,7 +39,7 @@ class AtomBuilder {
         return this
     }
 
-    fun payload(payloadRaw: ByteArray): AtomBuilder {
+    fun payload(payloadRaw: ByteArray?): AtomBuilder {
         this.payloadRaw = payloadRaw
         return this
     }
@@ -55,7 +61,8 @@ class AtomBuilder {
 
     fun <T : Particle> addParticles(particles: List<T>): AtomBuilder {
         this.particles.addAll(particles)
-        particles.asSequence().flatMap { particle -> particle.destinations!!.asSequence() }.forEach { destinations.add(it) }
+        particles.asSequence().flatMap { particle -> particle.destinations!!.asSequence() }
+            .forEach { destinations.add(it) }
         return this
     }
 
@@ -70,10 +77,10 @@ class AtomBuilder {
         val size = unsignedAtom.rawAtom.toDson().size
 
         val fee = AtomFeeConsumableBuilder()
-                .atom(unsignedAtom)
-                .owner(owner)
-                .pow(magic, Math.ceil(Math.log(size * 8.0)).toInt())
-                .build()
+            .atom(unsignedAtom)
+            .owner(owner)
+            .pow(magic, Math.ceil(Math.log(size * 8.0)).toInt())
+            .build()
 
         this.addParticle(fee)
 
@@ -101,7 +108,8 @@ class AtomBuilder {
             atom = TransactionAtom(particles, destinations, payload, encryptor, this.timestamp!!)
         } else if (ApplicationPayloadAtom::class.java.isAssignableFrom(atomClass!!)) {
             Objects.requireNonNull<String>(applicationId, "Payload Atom must have an application id")
-            atom = ApplicationPayloadAtom(applicationId!!, particles, destinations, payload!!, encryptor, this.timestamp!!)
+            atom =
+                ApplicationPayloadAtom(applicationId!!, particles, destinations, payload!!, encryptor, this.timestamp!!)
         } else {
             throw IllegalStateException("Unable to create atom with class: " + atomClass!!.simpleName)
         }

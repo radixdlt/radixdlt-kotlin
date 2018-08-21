@@ -1,4 +1,4 @@
-package com.radixdlt.client.core.identity
+package com.radixdlt.client.application.identity
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -7,10 +7,10 @@ import com.radixdlt.client.core.atoms.RadixHash
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECKeyPairGenerator
 import com.radixdlt.client.core.crypto.LinuxSecureRandom
-import com.radixdlt.client.core.identity.model.Cipherparams
-import com.radixdlt.client.core.identity.model.Crypto
-import com.radixdlt.client.core.identity.model.Keystore
-import com.radixdlt.client.core.identity.model.Pbkdfparams
+import com.radixdlt.client.application.identity.model.Cipherparams
+import com.radixdlt.client.application.identity.model.Crypto
+import com.radixdlt.client.application.identity.model.Keystore
+import com.radixdlt.client.application.identity.model.Pbkdfparams
 import com.radixdlt.client.core.util.AndroidUtil
 import okio.ByteString
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -24,7 +24,7 @@ import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.security.Security
 import java.security.spec.InvalidKeySpecException
-import java.util.*
+import java.util.Arrays
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
@@ -134,7 +134,13 @@ object PrivateKeyEncrypter {
     }
 
     @Throws(UnsupportedEncodingException::class)
-    private fun createKeystore(ecKeyPair: ECKeyPair, cipherText: String, mac: ByteArray, iv: ByteArray, salt: ByteArray): Keystore {
+    private fun createKeystore(
+        ecKeyPair: ECKeyPair,
+        cipherText: String,
+        mac: ByteArray,
+        iv: ByteArray,
+        salt: ByteArray
+    ): Keystore {
 
         val pbkdfparams = Pbkdfparams().apply {
             digest = DIGEST

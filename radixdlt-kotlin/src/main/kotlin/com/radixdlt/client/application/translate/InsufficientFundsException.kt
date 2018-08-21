@@ -1,10 +1,13 @@
-package com.radixdlt.client.wallet
+package com.radixdlt.client.application.translate
 
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.assets.AssetAmount
 
-class InsufficientFundsException(private val asset: Asset, val available: Long, val requestedAmount: Long) : Exception("Requested " + AssetAmount(asset, requestedAmount)
-        + " but only " + AssetAmount(asset, available) + " available.") {
+class InsufficientFundsException(
+    private val asset: Asset,
+    val available: Long,
+    val requestedAmount: Long
+) : Exception("Requested ${AssetAmount(asset, requestedAmount)} but only ${AssetAmount(asset, available)} available.") {
 
     override fun equals(other: Any?): Boolean {
         if (other !is InsufficientFundsException) {

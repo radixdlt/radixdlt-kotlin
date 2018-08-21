@@ -1,11 +1,11 @@
 package com.radixdlt.client.examples
 
 import com.radixdlt.client.application.RadixApplicationAPI
+import com.radixdlt.client.application.identity.SimpleRadixIdentity
 import com.radixdlt.client.core.Bootstrap
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.identity.SimpleRadixIdentity
-import com.radixdlt.client.messaging.RadixMessaging
+import com.radixdlt.client.dapps.messaging.RadixMessaging
 
 object RadixMessagingExample {
     private val TO_ADDRESS_BASE58 = "JFgcgRKq6GbQqP8mZzDRhtr7K7YQM1vZiYopZLRpAeVxcnePRXX"
@@ -26,9 +26,9 @@ object RadixMessagingExample {
     fun main(args: Array<String>) {
         // Display network connectivity
         RadixUniverse.instance
-                .network
-                .getStatusUpdates()
-                .subscribe { println(it) }
+            .network
+            .getStatusUpdates()
+            .subscribe { println(it) }
 
         // Identity Manager which manages user's keys, signing, encrypting and decrypting
         val api = RadixApplicationAPI.create(SimpleRadixIdentity())
@@ -42,23 +42,23 @@ object RadixMessagingExample {
             RadixMessagingExample.RadixMessagesQueryType.ALL ->
                 // Print out to console all received messages
                 messaging
-                        .allMessages
-                        .subscribe { println(it) }
+                    .allMessages
+                    .subscribe { println(it) }
 
             RadixMessagingExample.RadixMessagesQueryType.BY_CONVO ->
                 // Group messages by other address, useful for messaging apps
                 messaging
-                        .allMessagesGroupedByParticipants
-                        .subscribe { convo ->
-                            println("New Conversation with: " + convo.key)
-                            convo.subscribe { println(it) }
-                        }
+                    .allMessagesGroupedByParticipants
+                    .subscribe { convo ->
+                        println("New Conversation with: " + convo.key)
+                        convo.subscribe { println(it) }
+                    }
         }
 
         // Send a message!
         messaging
-                .sendMessage(MESSAGE, toAddress)
-                .toCompletable()
-                .subscribe { println("Submitted") }
+            .sendMessage(MESSAGE, toAddress)
+            .toCompletable()
+            .subscribe { println("Submitted") }
     }
 }

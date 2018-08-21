@@ -1,6 +1,5 @@
 package com.radixdlt.client.core.atoms
 
-
 class Shards private constructor(private val low: Long, private val high: Long) {
 
     init {
@@ -27,7 +26,7 @@ class Shards private constructor(private val low: Long, private val high: Long) 
     }
 
     override fun hashCode(): Int {
-        //TODO: fix HACK
+        // TODO: fix HACK
         return (low.toString() + "-" + high).hashCode()
     }
 

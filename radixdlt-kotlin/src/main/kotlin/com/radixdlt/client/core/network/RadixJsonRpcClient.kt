@@ -13,7 +13,7 @@ import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.util.UUID
 
 /**
  * Responsible for managing the state across one web socket connection to a Radix Node.
@@ -21,10 +21,11 @@ import java.util.*
  * calls.
  */
 class RadixJsonRpcClient(
-        /**
-         * The websocket this is wrapping
-         */
-        private val wsClient: WebSocketClient) {
+    /**
+     * The websocket this is wrapping
+     */
+    private val wsClient: WebSocketClient
+) {
 
     /**
      * Hot observable of messages received through the websocket
@@ -47,7 +48,7 @@ class RadixJsonRpcClient(
      */
     val self: Single<NodeRunnerData>
         get() = this.jsonRpcCall("Network.getSelf")
-                .map { result -> RadixJson.gson.fromJson(result, NodeRunnerData::class.java) }
+            .map { result -> RadixJson.gson.fromJson(result, NodeRunnerData::class.java) }
 
     /**
      * Retrieve list of nodes this node knows about
@@ -56,19 +57,18 @@ class RadixJsonRpcClient(
      */
     val livePeers: Single<List<NodeRunnerData>>
         get() = this.jsonRpcCall("Network.getLivePeers")
-                .map { result ->
-                    RadixJson.gson.fromJson<List<NodeRunnerData>>(result, object : TypeToken<List<NodeRunnerData>>() {
-
-                    }.type)
-                }
+            .map { result ->
+                RadixJson.gson.fromJson<List<NodeRunnerData>>(result, object : TypeToken<List<NodeRunnerData>>() {
+                }.type)
+            }
 
     init {
 
         val parser = JsonParser()
         this.messages = this.wsClient.getMessages()
-                .map { msg -> parser.parse(msg).asJsonObject }
-                .publish()
-                .refCount()
+            .map { msg -> parser.parse(msg).asJsonObject }
+            .publish()
+            .refCount()
     }
 
     /**
@@ -90,38 +90,38 @@ class RadixJsonRpcClient(
      */
     private fun jsonRpcCall(method: String, params: JsonObject): Single<JsonElement> {
         return this.wsClient.connect().andThen(
-                Single.create { emitter ->
-                    val uuid = UUID.randomUUID().toString()
+            Single.create { emitter ->
+                val uuid = UUID.randomUUID().toString()
 
-                    val requestObject = JsonObject()
-                    requestObject.addProperty("id", uuid)
-                    requestObject.addProperty("method", method)
-                    requestObject.add("params", params)
+                val requestObject = JsonObject()
+                requestObject.addProperty("id", uuid)
+                requestObject.addProperty("method", method)
+                requestObject.add("params", params)
 
-                    messages
-                            .filter { msg -> msg.has("id") }
-                            .filter { msg -> msg.get("id").asString == uuid }
-                            .firstOrError()
-                            .doOnSubscribe { disposable ->
-                                val sendSuccess = wsClient.send(RadixJson.gson.toJson(requestObject))
-                                if (!sendSuccess) {
-                                    disposable.dispose()
-                                    emitter.onError(RuntimeException("Could not connect."))
-                                }
-                            }
-                            .subscribe { msg ->
-                                val received = msg.asJsonObject
-                                if (received.has("result")) {
-                                    emitter.onSuccess(received.get("result"))
-                                } else if (received.has("error")) {
-                                    emitter.onError(RuntimeException(received.toString()))
-                                } else {
-                                    emitter.onError(
-                                            RuntimeException("Received bad json rpc message: " + received.toString())
-                                    )
-                                }
-                            }
-                }
+                messages
+                    .filter { msg -> msg.has("id") }
+                    .filter { msg -> msg.get("id").asString == uuid }
+                    .firstOrError()
+                    .doOnSubscribe { disposable ->
+                        val sendSuccess = wsClient.send(RadixJson.gson.toJson(requestObject))
+                        if (!sendSuccess) {
+                            disposable.dispose()
+                            emitter.onError(RuntimeException("Could not connect."))
+                        }
+                    }
+                    .subscribe { msg ->
+                        val received = msg.asJsonObject
+                        if (received.has("result")) {
+                            emitter.onSuccess(received.get("result"))
+                        } else if (received.has("error")) {
+                            emitter.onError(RuntimeException(received.toString()))
+                        } else {
+                            emitter.onError(
+                                RuntimeException("Received bad json rpc message: " + received.toString())
+                            )
+                        }
+                    }
+            }
         )
     }
 
@@ -134,7 +134,6 @@ class RadixJsonRpcClient(
     private fun jsonRpcCall(method: String): Single<JsonElement> {
         return this.jsonRpcCall(method, JsonObject())
     }
-
 
     /**
      * Connects to this Radix Node if not already connected and queries for an atom by HID.
@@ -149,12 +148,11 @@ class RadixJsonRpcClient(
         params.addProperty("hid", hid.toString())
 
         return this.jsonRpcCall("Ledger.getAtoms", params)
-                .map { result ->
-                    RadixJson.gson.fromJson<List<Atom>>(result, object : TypeToken<List<Atom>>() {
-
-                    }.type)
-                }
-                .flatMapMaybe { list -> if (list.isEmpty()) Maybe.empty() else Maybe.just(list[0]) }
+            .map { result ->
+                RadixJson.gson.fromJson<List<Atom>>(result, object : TypeToken<List<Atom>>() {
+                }.type)
+            }
+            .flatMapMaybe { list -> if (list.isEmpty()) Maybe.empty() else Maybe.just(list[0]) }
     }
 
     /**
@@ -178,41 +176,41 @@ class RadixJsonRpcClient(
      */
     fun jsonRpcSubscribe(method: String, rawParams: JsonObject, notificationMethod: String): Observable<JsonElement> {
         return this.wsClient.connect().andThen(
-                Observable.create { emitter ->
-                    val subscriberId = UUID.randomUUID().toString()
-                    val params = rawParams.deepCopy()
-                    params.addProperty("subscriberId", subscriberId)
+            Observable.create { emitter ->
+                val subscriberId = UUID.randomUUID().toString()
+                val params = rawParams.deepCopy()
+                params.addProperty("subscriberId", subscriberId)
 
-                    val subscriptionDisposable = messages
-                            .filter { msg -> msg.has("method") }
-                            .filter { msg -> msg.get("method").asString == notificationMethod }
-                            .map { msg -> msg.get("params").asJsonObject }
-                            .filter { p -> p.get("subscriberId").asString == subscriberId }
-                            .subscribe(
-                                    { emitter.onNext(it) },
-                                    { emitter.onError(it) }
-                            )
+                val subscriptionDisposable = messages
+                    .filter { msg -> msg.has("method") }
+                    .filter { msg -> msg.get("method").asString == notificationMethod }
+                    .map { msg -> msg.get("params").asJsonObject }
+                    .filter { p -> p.get("subscriberId").asString == subscriberId }
+                    .subscribe(
+                        { emitter.onNext(it) },
+                        { emitter.onError(it) }
+                    )
 
-                    val methodDisposable = this.jsonRpcCall(method, params)
-                            .subscribe(
-                                    { },
-                                    { emitter.onError(it) }
-                            )
+                val methodDisposable = this.jsonRpcCall(method, params)
+                    .subscribe(
+                        { },
+                        { emitter.onError(it) }
+                    )
 
-                    emitter.setCancellable {
-                        methodDisposable.dispose()
-                        subscriptionDisposable.dispose()
+                emitter.setCancellable {
+                    methodDisposable.dispose()
+                    subscriptionDisposable.dispose()
 
-                        val cancelUuid = UUID.randomUUID().toString()
-                        val cancelObject = JsonObject()
-                        cancelObject.addProperty("id", cancelUuid)
-                        cancelObject.addProperty("method", "Subscription.cancel")
-                        val cancelParams = JsonObject()
-                        cancelParams.addProperty("subscriberId", subscriberId)
-                        cancelObject.add("params", cancelParams)
-                        wsClient.send(RadixJson.gson.toJson(cancelObject))
-                    }
+                    val cancelUuid = UUID.randomUUID().toString()
+                    val cancelObject = JsonObject()
+                    cancelObject.addProperty("id", cancelUuid)
+                    cancelObject.addProperty("method", "Subscription.cancel")
+                    val cancelParams = JsonObject()
+                    cancelParams.addProperty("subscriberId", subscriberId)
+                    cancelObject.add("params", cancelParams)
+                    wsClient.send(RadixJson.gson.toJson(cancelObject))
                 }
+            }
         )
     }
 
@@ -229,14 +227,14 @@ class RadixJsonRpcClient(
         params.add("query", atomQuery.toJson())
 
         return this.jsonRpcSubscribe("Atoms.subscribe", params, "Atoms.subscribeUpdate")
-                .map{ p -> p.asJsonObject.get("atoms").asJsonArray }
-                .flatMapIterable<JsonElement> { array -> array }
-                .map<JsonObject> { it.asJsonObject }
-                .map { jsonAtom -> RadixJson.gson.fromJson(jsonAtom, atomQuery.atomClass) }
-                .map { atom ->
-                    atom.putDebug("RECEIVED", System.currentTimeMillis())
-                    atom
-                }
+            .map { p -> p.asJsonObject.get("atoms").asJsonArray }
+            .flatMapIterable<JsonElement> { array -> array }
+            .map<JsonObject> { it.asJsonObject }
+            .map { jsonAtom -> RadixJson.gson.fromJson(jsonAtom, atomQuery.atomClass) }
+            .map { atom ->
+                atom.putDebug("RECEIVED", System.currentTimeMillis())
+                atom
+            }
     }
 
     /**
@@ -249,64 +247,66 @@ class RadixJsonRpcClient(
     </T> */
     fun <T : Atom> submitAtom(atom: T): Observable<AtomSubmissionUpdate> {
         return this.wsClient.connect().andThen(
-                Observable.create { emitter ->
-                    val jsonAtom = RadixJson.gson.toJsonTree(atom, Atom::class.java)
+            Observable.create { emitter ->
+                val jsonAtom = RadixJson.gson.toJsonTree(atom, Atom::class.java)
 
-                    val subscriberId = UUID.randomUUID().toString()
-                    val params = JsonObject()
-                    params.addProperty("subscriberId", subscriberId)
-                    params.add("atom", jsonAtom)
+                val subscriberId = UUID.randomUUID().toString()
+                val params = JsonObject()
+                params.addProperty("subscriberId", subscriberId)
+                params.add("atom", jsonAtom)
 
-                    val subscriptionDisposable = messages
-                            .filter { msg -> msg.has("method") }
-                            .filter { msg -> msg.get("method").asString == "AtomSubmissionState.onNext" }
-                            .map { msg -> msg.get("params").asJsonObject }
-                            .filter { p -> p.get("subscriberId").asString == subscriberId }
-                            .map { p ->
-                                val state = AtomSubmissionState.valueOf(p.get("value").asString)
-                                val message: String?
-                                if (p.has("message")) {
-                                    message = p.get("message").asString
-                                } else {
-                                    message = null
-                                }
-                                AtomSubmissionUpdate.now(atom.hid, state, message)
-                            }
-                            .takeUntil { it.isComplete }
-                            .subscribe(
-                                     { emitter.onNext(it) },
-                                     { emitter.onError(it) },
-                                     { emitter.onComplete() }
-                            )
-
-
-                    val methodDisposable = this.jsonRpcCall("Universe.submitAtomAndSubscribe", params)
-                            .doOnSubscribe {
-                                emitter.onNext(AtomSubmissionUpdate.now(atom.hid, AtomSubmissionState.SUBMITTING))
-                            }
-                            .subscribe(
-                                    {
-                                        emitter.onNext(AtomSubmissionUpdate.now(atom.hid,
-                                                AtomSubmissionState.SUBMITTED)
-                                        )
-                                    },
-                                    {
-                                        emitter.onNext(
-                                                AtomSubmissionUpdate.now(
-                                                        atom.hid,
-                                                        AtomSubmissionState.FAILED,
-                                                        it.message
-                                                )
-                                        )
-                                        emitter.onComplete()
-                                    }
-                            )
-
-                    emitter.setCancellable {
-                        methodDisposable.dispose()
-                        subscriptionDisposable.dispose()
+                val subscriptionDisposable = messages
+                    .filter { msg -> msg.has("method") }
+                    .filter { msg -> msg.get("method").asString == "AtomSubmissionState.onNext" }
+                    .map { msg -> msg.get("params").asJsonObject }
+                    .filter { p -> p.get("subscriberId").asString == subscriberId }
+                    .map { p ->
+                        val state = AtomSubmissionState.valueOf(p.get("value").asString)
+                        val message: String?
+                        if (p.has("message")) {
+                            message = p.get("message").asString
+                        } else {
+                            message = null
+                        }
+                        AtomSubmissionUpdate.now(atom.hid, state, message)
                     }
+                    .takeUntil { it.isComplete }
+                    .subscribe(
+                        { emitter.onNext(it) },
+                        { emitter.onError(it) },
+                        { emitter.onComplete() }
+                    )
+
+                val methodDisposable = this.jsonRpcCall("Universe.submitAtomAndSubscribe", params)
+                    .doOnSubscribe {
+                        emitter.onNext(AtomSubmissionUpdate.now(atom.hid, AtomSubmissionState.SUBMITTING))
+                    }
+                    .subscribe(
+                        {
+                            emitter.onNext(
+                                AtomSubmissionUpdate.now(
+                                    atom.hid,
+                                    AtomSubmissionState.SUBMITTED
+                                )
+                            )
+                        },
+                        {
+                            emitter.onNext(
+                                AtomSubmissionUpdate.now(
+                                    atom.hid,
+                                    AtomSubmissionState.FAILED,
+                                    it.message
+                                )
+                            )
+                            emitter.onComplete()
+                        }
+                    )
+
+                emitter.setCancellable {
+                    methodDisposable.dispose()
+                    subscriptionDisposable.dispose()
                 }
+            }
         )
     }
 

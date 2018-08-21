@@ -1,11 +1,11 @@
 package com.radixdlt.client.examples
 
 import com.radixdlt.client.application.RadixApplicationAPI
+import com.radixdlt.client.application.identity.SimpleRadixIdentity
 import com.radixdlt.client.core.Bootstrap
 import com.radixdlt.client.core.RadixUniverse
-import com.radixdlt.client.core.identity.SimpleRadixIdentity
-import com.radixdlt.client.messaging.RadixMessage
-import com.radixdlt.client.messaging.RadixMessaging
+import com.radixdlt.client.dapps.messaging.RadixMessage
+import com.radixdlt.client.dapps.messaging.RadixMessaging
 import io.reactivex.Completable
 import java.sql.Timestamp
 
@@ -13,13 +13,15 @@ import java.sql.Timestamp
  * This is an example of a ChatBot service which uses the RadixMessaging module
  * to chat with users in a Radix Universe.
  */
-class ChatBot(private val api: RadixApplicationAPI,
-              /**
-               * The chat algorithm to run on each new conversation
-               *
-               * TODO: make this asynchronous via Observers/Observables
-               */
-              private val chatBotAlgorithmSupplier: () -> (String) -> String) {
+class ChatBot(
+    private val api: RadixApplicationAPI,
+    /**
+     * The chat algorithm to run on each new conversation
+     *
+     * TODO: make this asynchronous via Observers/Observables
+     */
+    private val chatBotAlgorithmSupplier: () -> (String) -> String
+) {
 
     private val messaging: RadixMessaging = RadixMessaging(api)
 
@@ -31,23 +33,24 @@ class ChatBot(private val api: RadixApplicationAPI,
 
         // Subscribe/Decrypt messages
         messaging
-                .allMessagesGroupedByParticipants
-                .flatMapCompletable { convo ->
-                    convo
-                            .doOnNext { message -> println("Received at " + Timestamp(System.currentTimeMillis()) + ": " + message) } // Print messages
-                            .filter { message -> message.from != api.address } // Don't reply to ourselves!
-                            .filter { message -> Math.abs(message.timestamp - System.currentTimeMillis()) < 60000 } // Only reply to recent messages
-                            .flatMapCompletable(object : io.reactivex.functions.Function<RadixMessage, Completable> {
-                                var chatBotAlgorithm = chatBotAlgorithmSupplier()
+            .allMessagesGroupedByParticipants
+            .flatMapCompletable { convo ->
+                convo
+                    .doOnNext { message -> println("Received at " + Timestamp(System.currentTimeMillis()) + ": " + message) } // Print messages
+                    .filter { message -> message.from != api.address } // Don't reply to ourselves!
+                    .filter { message -> Math.abs(message.timestamp - System.currentTimeMillis()) < 60000 } // Only reply to recent messages
+                    .flatMapCompletable(object : io.reactivex.functions.Function<RadixMessage, Completable> {
+                        var chatBotAlgorithm = chatBotAlgorithmSupplier()
 
-                                override fun apply(message: RadixMessage): Completable {
-                                    return messaging.sendMessage(chatBotAlgorithm(message.content), message.from).toCompletable()
-                                }
-                            })
-                }.subscribe(
-                         { println() },
-                         { it.printStackTrace() }
-                )
+                        override fun apply(message: RadixMessage): Completable {
+                            return messaging.sendMessage(chatBotAlgorithm(message.content), message.from)
+                                .toCompletable()
+                        }
+                    })
+            }.subscribe(
+                { println() },
+                { it.printStackTrace() }
+            )
     }
 
     companion object {
@@ -58,9 +61,9 @@ class ChatBot(private val api: RadixApplicationAPI,
             RadixUniverse.bootstrap(Bootstrap.WINTERFELL)
 
             RadixUniverse.instance
-                    .network
-                    .getStatusUpdates()
-                    .subscribe { println(it) }
+                .network
+                .getStatusUpdates()
+                .subscribe { println(it) }
 
             // Setup Identity of Chatbot
             val radixIdentity = SimpleRadixIdentity("chatbot.key")

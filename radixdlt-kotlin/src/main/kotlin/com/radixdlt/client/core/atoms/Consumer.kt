@@ -8,12 +8,25 @@ class Consumer : AbstractConsumable {
     override val signedQuantity: Long
         get() = -quantity
 
-    constructor(quantity: Long, owner: ECKeyPair, nonce: Long, assetId: EUID) : super(quantity, setOf<ECKeyPair>(owner), nonce, assetId)
+    constructor(quantity: Long, owner: ECKeyPair, nonce: Long, assetId: EUID) : super(
+        quantity,
+        setOf<ECKeyPair>(owner),
+        nonce,
+        assetId
+    )
 
-    constructor(quantity: Long, owners: Set<ECKeyPair>, nonce: Long, assetId: EUID) : super(quantity, owners, nonce, assetId)
+    constructor(quantity: Long, owners: Set<ECKeyPair>, nonce: Long, assetId: EUID) : super(
+        quantity,
+        owners,
+        nonce,
+        assetId
+    )
 
-
-    fun addConsumerQuantities(amount: Long, newOwners: Set<ECKeyPair>, consumerQuantities: MutableMap<Set<ECKeyPair>, Long>) {
+    fun addConsumerQuantities(
+        amount: Long,
+        newOwners: Set<ECKeyPair>,
+        consumerQuantities: MutableMap<Set<ECKeyPair>, Long>
+    ) {
         if (amount > quantity) {
             throw IllegalArgumentException("Unable to create consumable with amount $amount (available: $quantity)")
         }

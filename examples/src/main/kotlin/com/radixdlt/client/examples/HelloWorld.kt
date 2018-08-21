@@ -18,8 +18,8 @@ object HelloWorld {
         // Connect to the network and retrieve list of
         // nodes you can connect to
         RadixUniverse.instance
-                .network
-                .connectAndGetStatusUpdates()
-                .subscribe { println(it) }
+            .network
+            .connectAndGetStatusUpdates()
+            .subscribe { println(it) }
     }
 }

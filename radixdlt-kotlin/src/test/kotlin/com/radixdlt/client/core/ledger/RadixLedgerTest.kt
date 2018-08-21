@@ -11,11 +11,11 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.functions.Consumer
 import org.junit.Test
-import org.mockito.Mockito.*
-
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import java.math.BigInteger
-
-
 
 class RadixLedgerTest {
 
@@ -23,12 +23,12 @@ class RadixLedgerTest {
     @Throws(Exception::class)
     fun testFilterOutDuplicateAtoms() {
         val atom = AtomBuilder()
-                .type(ApplicationPayloadAtom::class.java)
-                .applicationId("Test")
-                .payload("Hello")
-                .addDestination(EUID(BigInteger.ONE))
-                .build()
-                .rawAtom
+            .type(ApplicationPayloadAtom::class.java)
+            .applicationId("Test")
+            .payload("Hello")
+            .addDestination(EUID(BigInteger.ONE))
+            .build()
+            .rawAtom
 
         val observer = mock(Consumer::class.java) as Consumer<ApplicationPayloadAtom>
         val client = mock(RadixJsonRpcClient::class.java)
@@ -37,7 +37,7 @@ class RadixLedgerTest {
         `when`(client.getAtoms<Atom>(any())).thenReturn(Observable.just(atom, atom))
         val ledger = RadixLedger(0, network)
         ledger.getAllAtoms(EUID(BigInteger.ONE), ApplicationPayloadAtom::class.java)
-                .subscribe(observer)
+            .subscribe(observer)
 
         verify(observer, times(1)).accept(any())
     }

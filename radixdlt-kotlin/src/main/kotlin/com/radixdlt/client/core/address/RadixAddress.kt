@@ -4,7 +4,7 @@ import com.radixdlt.client.core.atoms.RadixHash
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.util.Base58
-import java.util.*
+import java.util.Objects
 
 class RadixAddress {
 

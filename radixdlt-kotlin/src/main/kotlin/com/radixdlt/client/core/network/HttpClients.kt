@@ -23,7 +23,6 @@ object HttpClients {
      */
     private var sslAllTrustingClient: OkHttpClient? = null
 
-
     private fun createClient(trustManager: (Array<X509Certificate>, String) -> Single<Boolean>): OkHttpClient {
         // TODO: Pass trust issue to user
         // Create a trust manager that does not validate certificate chains
@@ -59,9 +58,9 @@ object HttpClients {
             builder.hostnameVerifier { hostname, session -> hostname == session.peerHost }
 
             builder.connectTimeout(30, TimeUnit.SECONDS)
-                    .writeTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
-                    .pingInterval(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .pingInterval(30, TimeUnit.SECONDS)
 
             return builder.build()
         } catch (e: NoSuchAlgorithmException) {

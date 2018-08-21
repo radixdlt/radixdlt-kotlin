@@ -25,7 +25,6 @@ class PeersFromSeedTest {
         testObserver.assertValue { p -> p.location == "somewhere" }
     }
 
-
     @Test
     fun testFindPeersFail() {
         val peer = mock(RadixPeer::class.java)

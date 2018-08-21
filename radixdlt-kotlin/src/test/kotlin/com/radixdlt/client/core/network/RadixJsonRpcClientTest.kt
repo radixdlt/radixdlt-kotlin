@@ -1,6 +1,8 @@
 package com.radixdlt.client.core.network
 
-import com.google.gson.*
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
 import com.radixdlt.client.core.atoms.Atom
@@ -14,10 +16,10 @@ import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
 import io.reactivex.subjects.ReplaySubject
 import org.junit.Test
-import org.mockito.Mockito.*
-
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.mock
 import java.math.BigInteger
-
 
 class RadixJsonRpcClientTest {
 
@@ -190,8 +192,8 @@ class RadixJsonRpcClientTest {
 
             val atoms = JsonArray()
             val atom = gson.toJsonTree(
-                    ApplicationPayloadAtom("Test", emptyList(), emptySet(), null, null, 1),
-                    Atom::class.java
+                ApplicationPayloadAtom("Test", emptyList(), emptySet(), null, null, 1),
+                Atom::class.java
             )
             atoms.add(atom)
             params.add("atoms", atoms)
@@ -245,8 +247,8 @@ class RadixJsonRpcClientTest {
                 params.addProperty("subscriberId", subscriberId)
                 val atoms = JsonArray()
                 val atom = gson.toJsonTree(
-                        ApplicationPayloadAtom("Test", emptyList(), emptySet(), null, null, 1),
-                        Atom::class.java
+                    ApplicationPayloadAtom("Test", emptyList(), emptySet(), null, null, 1),
+                    Atom::class.java
                 )
                 atoms.add(atom)
                 params.add("atoms", atoms)
@@ -263,7 +265,7 @@ class RadixJsonRpcClientTest {
         val observer = TestObserver<ApplicationPayloadAtom>()
 
         jsonRpcClient.getAtoms(AtomQuery(EUID(BigInteger.ONE), ApplicationPayloadAtom::class.java))
-                .subscribe(observer)
+            .subscribe(observer)
         observer.cancel()
 
         observer.assertSubscribed()
@@ -315,7 +317,7 @@ class RadixJsonRpcClientTest {
         val observer = TestObserver<AtomSubmissionUpdate>()
 
         jsonRpcClient.submitAtom(
-                ApplicationPayloadAtom("Test", emptyList(), emptySet(), null, null, 1)
+            ApplicationPayloadAtom("Test", emptyList(), emptySet(), null, null, 1)
         ).subscribe(observer)
 
         observer.assertNoErrors()

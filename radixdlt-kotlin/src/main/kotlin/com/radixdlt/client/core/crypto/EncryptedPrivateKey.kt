@@ -2,7 +2,7 @@ package com.radixdlt.client.core.crypto
 
 import com.radixdlt.client.core.util.Base64Encoded
 import org.bouncycastle.util.encoders.Base64
-import java.util.*
+import java.util.Arrays
 
 class EncryptedPrivateKey(private val encryptedPrivateKey: ByteArray) : Base64Encoded {
 
