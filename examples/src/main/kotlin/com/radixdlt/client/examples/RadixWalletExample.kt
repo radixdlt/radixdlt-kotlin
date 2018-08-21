@@ -13,8 +13,8 @@ object RadixWalletExample {
 
     private const val TO_ADDRESS_BASE58 = "JFgcgRKq6GbQqP8mZzDRhtr7K7YQM1vZiYopZLRpAeVxcnePRXX"
     //	private static String TO_ADDRESS_BASE58 = null;
-    private const val PAYLOAD = "A gift for you!"
     private const val AMOUNT: Long = 1
+    private const val MESSAGE = "A gift for you!"
 
     // Initialize Radix Universe
     init {

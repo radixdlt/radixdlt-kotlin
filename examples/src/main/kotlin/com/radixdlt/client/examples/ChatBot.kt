@@ -1,4 +1,4 @@
-package com.radixdlt.client.services
+package com.radixdlt.client.examples
 
 import com.radixdlt.client.application.RadixApplicationAPI
 import com.radixdlt.client.application.identity.SimpleRadixIdentity
