@@ -2,15 +2,15 @@ package com.radixdlt.client.core.crypto
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.junit.AfterClass
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
-
 import java.security.Provider
 import java.security.SecureRandomSpi
 import java.security.Security
 import java.util.concurrent.atomic.AtomicInteger
-
-import org.junit.Assert.*
 
 class ECKeyPairGeneratorTest {
     class FakeSha1Provider internal constructor() : Provider("FakeSha1Provider", 1.0, null) {

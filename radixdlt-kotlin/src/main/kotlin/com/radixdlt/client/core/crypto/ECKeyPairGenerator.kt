@@ -6,8 +6,13 @@ import org.bouncycastle.crypto.ec.CustomNamedCurves
 import org.bouncycastle.crypto.params.ECDomainParameters
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jce.spec.ECParameterSpec
-import java.security.*
-import java.util.*
+import java.security.InvalidAlgorithmParameterException
+import java.security.KeyPairGenerator
+import java.security.NoSuchAlgorithmException
+import java.security.NoSuchProviderException
+import java.security.SecureRandom
+import java.security.Security
+import java.util.Arrays
 
 class ECKeyPairGenerator private constructor() {
 
@@ -23,7 +28,7 @@ class ECKeyPairGenerator private constructor() {
             g2.initialize(curveSpec, secureRandom)
             val keypair = g2.generateKeyPair()
             var privateKey = (keypair
-                    .private as org.bouncycastle.jce.interfaces.ECPrivateKey).d.toByteArray()
+                .private as org.bouncycastle.jce.interfaces.ECPrivateKey).d.toByteArray()
 
             if (privateKey.size != numBits / 8) {
                 // Remove signed byte

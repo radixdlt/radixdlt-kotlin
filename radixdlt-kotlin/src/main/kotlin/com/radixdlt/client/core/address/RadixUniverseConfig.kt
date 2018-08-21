@@ -6,17 +6,19 @@ import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.serialization.RadixJson
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.util.*
+import java.util.Collections
 
 class RadixUniverseConfig
-internal constructor(genesis: List<Atom>,
-                     private val port: Int,
-                     private val name: String,
-                     private val description: String,
-                     private val type: RadixUniverseType,
-                     private val timestamp: Long,
-                     val creator: ECPublicKey,
-                     val magic: Int) {
+internal constructor(
+    genesis: List<Atom>,
+    private val port: Int,
+    private val name: String,
+    private val description: String,
+    private val type: RadixUniverseType,
+    private val timestamp: Long,
+    val creator: ECPublicKey,
+    val magic: Int
+) {
 
     val genesis: List<Atom> = Collections.unmodifiableList(genesis)
 

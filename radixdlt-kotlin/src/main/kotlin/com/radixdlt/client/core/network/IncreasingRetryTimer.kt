@@ -1,6 +1,5 @@
 package com.radixdlt.client.core.network
 
-
 import io.reactivex.Observable
 import io.reactivex.ObservableSource
 import io.reactivex.functions.Function
@@ -14,8 +13,8 @@ class IncreasingRetryTimer : Function<Observable<Throwable>, ObservableSource<Lo
 
     override fun apply(attempts: Observable<Throwable>): ObservableSource<Long> {
         return attempts.zipWith(Observable.range(1, 300)) { _, i -> i }
-                .map { i -> Math.min(i * i, 100) }
-                .doOnNext { i -> LOGGER.info("Connection lost. Retrying in $i seconds...") }
-                .flatMap { i -> Observable.timer(i.toLong(), TimeUnit.SECONDS) }
+            .map { i -> Math.min(i * i, 100) }
+            .doOnNext { i -> LOGGER.info("Connection lost. Retrying in $i seconds...") }
+            .flatMap { i -> Observable.timer(i.toLong(), TimeUnit.SECONDS) }
     }
 }

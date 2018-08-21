@@ -4,7 +4,7 @@ import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.pow.ProofOfWorkBuilder
-import java.util.*
+import java.util.Objects
 
 class AtomFeeConsumableBuilder {
     private var owner: ECPublicKey? = null
@@ -37,10 +37,10 @@ class AtomFeeConsumableBuilder {
         val pow = ProofOfWorkBuilder().build(magic, seed, leading)
 
         return AtomFeeConsumable(
-                pow.nonce,
-                setOf<ECKeyPair>(owner!!.toECKeyPair()),
-                System.nanoTime(),
-                Asset.POW.id
+            pow.nonce,
+            setOf<ECKeyPair>(owner!!.toECKeyPair()),
+            System.nanoTime(),
+            Asset.POW.id
         )
     }
 }

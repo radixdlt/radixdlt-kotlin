@@ -1,19 +1,19 @@
-package com.radixdlt.client.messaging
+package com.radixdlt.client.dapps.messaging
 
 import com.google.gson.JsonObject
 import com.radixdlt.client.application.RadixApplicationAPI
-import com.radixdlt.client.application.UnencryptedData
+import com.radixdlt.client.application.identity.RadixIdentity
+import com.radixdlt.client.application.objects.UnencryptedData
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
-import com.radixdlt.client.core.identity.RadixIdentity
 import com.radixdlt.client.util.any
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import java.util.*
+import java.util.HashMap
 
 class RadixMessagingTest {
 
@@ -48,11 +48,11 @@ class RadixMessagingTest {
         val address = mock(RadixAddress::class.java)
         `when`(api.address).thenReturn(address)
         `when`(api.identity).thenReturn(myIdentity)
-        `when`(api.getDecryptableData(any())).thenReturn(Observable.just(undecryptableData, decryptableData))
+        `when`(api.getReadableData(any())).thenReturn(Observable.just(undecryptableData, decryptableData))
 
         val messaging = RadixMessaging(api)
         messaging.allMessages
-                .subscribe(observer)
+            .subscribe(observer)
 
         observer.assertValueCount(1)
         observer.assertNoErrors()

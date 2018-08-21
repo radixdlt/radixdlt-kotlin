@@ -2,12 +2,25 @@ package com.radixdlt.client.core.network
 
 import com.radixdlt.client.core.address.EUID
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
-class AtomSubmissionUpdate(private val hid: EUID, val state: AtomSubmissionState, val message: String?, val timestamp: Long) {
+class AtomSubmissionUpdate(
+    private val hid: EUID,
+    private val state: AtomSubmissionState,
+    val message: String?,
+    val timestamp: Long
+) {
 
     val isComplete: Boolean
-        get() = state.isComplete
+        get() = this.getState().isComplete
+
+    // Needed to allow unit testing to pass
+    // TODO: research if alternative
+    fun getState(): AtomSubmissionState {
+        return state
+    }
 
     enum class AtomSubmissionState(val isComplete: Boolean) {
         SUBMITTING(false),

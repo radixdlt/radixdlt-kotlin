@@ -27,11 +27,11 @@ class RadixNetwork(peerDiscovery: PeerDiscovery) {
 
     init {
         this.peers = peerDiscovery.findPeers()
-                .doOnNext { peer -> LOGGER.info("Added to peer list: " + peer.location) }
-                .replay().autoConnect(2)
+            .doOnNext { peer -> LOGGER.info("Added to peer list: " + peer.location) }
+            .replay().autoConnect(2)
         this.statusUpdates = peers.map { it.radixClient }
-                .flatMap { client -> client.status.map { status -> SimpleImmutableEntry(client.location, status) } }
-                .publish()
+            .flatMap { client -> client.status.map { status -> SimpleImmutableEntry(client.location, status) } }
+            .publish()
         this.statusUpdates.connect()
     }
 
@@ -66,14 +66,14 @@ class RadixNetwork(peerDiscovery: PeerDiscovery) {
      */
     fun getRadixClient(shards: Set<Long>): Single<RadixJsonRpcClient> {
         return this.getRadixClients(shards)
-                .flatMapMaybe { client ->
-                    client.status
-                            .filter { status -> status != RadixClientStatus.FAILURE }
-                            .map { status -> client }
-                            .firstOrError()
-                            .toMaybe()
-                }
-                .firstOrError()
+            .flatMapMaybe { client ->
+                client.status
+                    .filter { status -> status != RadixClientStatus.FAILURE }
+                    .map { status -> client }
+                    .firstOrError()
+                    .toMaybe()
+            }
+            .firstOrError()
     }
 
     /**

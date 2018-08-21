@@ -17,7 +17,6 @@ object Base58 {
         }
     }
 
-
     // Encodes the specified byte array into a String using the Base58 encoding scheme
     @JvmStatic
     fun toBase58(b: ByteArray): String {
@@ -80,6 +79,5 @@ object Base58 {
         } catch (e: Exception) {
             throw IllegalArgumentException(e)
         }
-
     }
 }

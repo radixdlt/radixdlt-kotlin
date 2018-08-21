@@ -1,6 +1,6 @@
 package com.radixdlt.client.core.crypto
 
-import java.util.*
+import java.util.ArrayList
 
 class Encryptor(protectors: List<EncryptedPrivateKey>) {
 
@@ -14,7 +14,6 @@ class Encryptor(protectors: List<EncryptedPrivateKey>) {
                 return accessor.decrypt(data, protector)
             } catch (e: MacMismatchException) {
             }
-
         }
 
         throw CryptoException("Unable to decrypt any of the " + protectors.size + " protectors.")

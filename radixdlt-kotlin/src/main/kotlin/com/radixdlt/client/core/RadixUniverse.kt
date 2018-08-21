@@ -4,8 +4,8 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.address.RadixUniverseConfig
 import com.radixdlt.client.core.address.RadixUniverseConfigs
 import com.radixdlt.client.core.crypto.ECPublicKey
-import com.radixdlt.client.core.identity.RadixIdentity
-import com.radixdlt.client.core.identity.SimpleRadixIdentity
+import com.radixdlt.client.application.identity.RadixIdentity
+import com.radixdlt.client.application.identity.SimpleRadixIdentity
 import com.radixdlt.client.core.ledger.RadixLedger
 import com.radixdlt.client.core.network.PeerDiscovery
 import com.radixdlt.client.core.network.RadixNetwork
@@ -32,18 +32,19 @@ import java.io.IOException
  * be used to cache atoms locally.
  */
 class RadixUniverse private constructor(
-        /**
-         * Universe Configuration
-         */
-        val config: RadixUniverseConfig,
-        /**
-         * Network Interface
-         */
-        val network: RadixNetwork,
-        /**
-         * Ledger Interface
-         */
-        val ledger: RadixLedger) {
+    /**
+     * Universe Configuration
+     */
+    val config: RadixUniverseConfig,
+    /**
+     * Network Interface
+     */
+    val network: RadixNetwork,
+    /**
+     * Ledger Interface
+     */
+    val ledger: RadixLedger
+) {
 
     val magic: Int
         get() = config.magic
@@ -113,7 +114,6 @@ class RadixUniverse private constructor(
          * Default Universe Instance
          */
         private var defaultUniverse: RadixUniverse? = null
-
 
         /**
          * Initializes the default universe with a Peer Discovery mechanism.

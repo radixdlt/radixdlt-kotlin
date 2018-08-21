@@ -1,4 +1,4 @@
-package com.radixdlt.client.messaging
+package com.radixdlt.client.dapps.messaging
 
 import com.radixdlt.client.core.address.RadixAddress
 
@@ -8,10 +8,11 @@ import java.util.Locale
 import java.util.TimeZone
 
 class RadixMessage(
-        val from: RadixAddress,
-        val to: RadixAddress,
-        val content: String,
-        val timestamp: Long
+    val from: RadixAddress,
+    val to: RadixAddress,
+    val content: String,
+    val timestamp: Long,
+    val isEncrypted: Boolean
 ) {
 
     override fun toString(): String {

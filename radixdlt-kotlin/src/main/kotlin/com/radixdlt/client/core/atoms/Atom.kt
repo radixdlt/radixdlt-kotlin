@@ -3,7 +3,8 @@ package com.radixdlt.client.core.atoms
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.crypto.ECSignature
 import com.radixdlt.client.core.serialization.Dson
-import java.util.*
+import java.util.Collections
+import java.util.HashMap
 
 abstract class Atom {
     val destinations: Set<EUID>
@@ -78,7 +79,13 @@ abstract class Atom {
         this.action = "STORE"
     }
 
-    constructor(particles: List<Particle>, destinations: Set<EUID>, timestamp: Long, signatureId: EUID, signature: ECSignature) {
+    constructor(
+        particles: List<Particle>,
+        destinations: Set<EUID>,
+        timestamp: Long,
+        signatureId: EUID,
+        signature: ECSignature
+    ) {
         this.destinations = destinations
         this.particles = particles
         this.timestamps = Collections.singletonMap("default", timestamp)
@@ -90,10 +97,10 @@ abstract class Atom {
     val requiredFirstShard: Set<Long>
         get() = if (this.particles != null && this.particles!!.asSequence().any(Particle::isConsumer)) {
             particles!!.asSequence()
-                    .filter(Particle::isConsumer)
-                    .flatMap { particle -> particle.destinations!!.asSequence() }
-                    .map(EUID::shard)
-                    .toSet()
+                .filter(Particle::isConsumer)
+                .flatMap { particle -> particle.destinations!!.asSequence() }
+                .map(EUID::shard)
+                .toSet()
         } else {
             shards
         }
@@ -133,6 +140,6 @@ abstract class Atom {
     }
 
     override fun toString(): String {
-        return "Atom hid(${hid}) destinations($destinations)"
+        return "Atom hid($hid) destinations($destinations)"
     }
 }

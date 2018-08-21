@@ -11,10 +11,15 @@ import org.bouncycastle.jce.spec.ECParameterSpec
 import org.bouncycastle.jce.spec.ECPrivateKeySpec
 import org.bouncycastle.jce.spec.ECPublicKeySpec
 import org.bouncycastle.math.ec.ECPoint
-import java.io.*
+import java.io.BufferedInputStream
+import java.io.ByteArrayInputStream
+import java.io.DataInputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
 import java.math.BigInteger
 import java.security.KeyFactory
-import java.util.*
+import java.util.Arrays
 
 class ECKeyPair {
     @SerializedName("public")
@@ -40,8 +45,8 @@ class ECKeyPair {
         try {
             val domain: ECDomainParameters = ECKeyPairGenerator.getDomain((this.privateKey.size - 1) * 8)!!
             val privateKeySpec: ECPrivateKeySpec = ECPrivateKeySpec(
-                    BigInteger(1, this.privateKey),
-                    ECParameterSpec(domain.getCurve(), domain.getG(), domain.getN(), domain.getH())
+                BigInteger(1, this.privateKey),
+                ECParameterSpec(domain.getCurve(), domain.getG(), domain.getN(), domain.getH())
             )
             ecPrivateKey = KeyFactory.getInstance("EC", "BC").generatePrivate(privateKeySpec) as ECPrivateKey
         } catch (e: Exception) {
@@ -51,11 +56,14 @@ class ECKeyPair {
         try {
             val domain: ECDomainParameters = ECKeyPairGenerator.getDomain((this.privateKey.size - 1) * 8)!!
             val publicKeySpec: ECPublicKeySpec = ECPublicKeySpec(
-                    domain.getG().multiply(ecPrivateKey.getD()),
-                    ECParameterSpec(domain.getCurve(), domain.getG(), domain.getN(), domain.getH())
+                domain.getG().multiply(ecPrivateKey.getD()),
+                ECParameterSpec(domain.getCurve(), domain.getG(), domain.getN(), domain.getH())
             )
             this.publicKey = ECPublicKey(
-                    (KeyFactory.getInstance("EC", "BC").generatePublic(publicKeySpec) as org.bouncycastle.jce.interfaces.ECPublicKey).getQ().getEncoded(true)
+                (KeyFactory.getInstance(
+                    "EC",
+                    "BC"
+                ).generatePublic(publicKeySpec) as org.bouncycastle.jce.interfaces.ECPublicKey).getQ().getEncoded(true)
             )
         } catch (e: Exception) {
             throw RuntimeException(e.message)
@@ -73,7 +81,6 @@ class ECKeyPair {
 
         return EncryptedPrivateKey(publicKey.encrypt(privateKey))
     }
-
 
     fun getPublicKey(): ECPublicKey {
         return publicKey
@@ -110,7 +117,6 @@ class ECKeyPair {
             println("${e.expectedBase64} ${e.actualBase64}")
             throw IllegalStateException("Unable to decrypt with shared private key.")
         }
-
     }
 
     @Throws(MacMismatchException::class)
@@ -125,7 +131,6 @@ class ECKeyPair {
             // 1. Read the IV
             val iv = ByteArray(16)
             inputStream.readFully(iv)
-
 
             // 2. Read the ephemeral public key
             val publicKeySize: Int = inputStream.readUnsignedByte()

@@ -16,8 +16,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.util.*
-
+import java.util.Arrays
 
 class Dson private constructor() {
 
@@ -127,7 +126,6 @@ class Dson private constructor() {
                 } catch (e: IOException) {
                     throw RuntimeException()
                 }
-
             }
             raw = outputStream.toByteArray()
             type = 6
@@ -162,7 +160,6 @@ class Dson private constructor() {
             val rawList: Sequence<DsonField> = fieldStream.sortedBy { it.name }
             raw = toByteArray(rawList)
             type = 5
-
         } else {
             var c: Class<*> = o.javaClass
             val fields = ArrayList<Field>()
@@ -172,37 +169,37 @@ class Dson private constructor() {
             }
 
             val fieldStream = fields.asSequence()
-                    .filter { field -> !field.name.equals("signatures", ignoreCase = true) }
-                    .filter { field -> !field.name.equals("serialVersionUID", ignoreCase = true) }
-                    .filter { field -> !field.name.equals("Companion", ignoreCase = true) } // Kotlin field
-                    .filter { field -> !Modifier.isTransient(field.modifiers) }
-                    .filter { field ->
-                        try {
-                            field.isAccessible = true
-                            return@filter field.get(o) != null;
-                        } catch (e: IllegalAccessException) {
-                            throw RuntimeException()
-                        }
+                .filter { field -> !field.name.equals("signatures", ignoreCase = true) }
+                .filter { field -> !field.name.equals("serialVersionUID", ignoreCase = true) }
+                .filter { field -> !field.name.equals("Companion", ignoreCase = true) } // Kotlin field
+                .filter { field -> !Modifier.isTransient(field.modifiers) }
+                .filter { field ->
+                    try {
+                        field.isAccessible = true
+                        return@filter field.get(o) != null
+                    } catch (e: IllegalAccessException) {
+                        throw RuntimeException()
                     }
-                    .map {
-                        object : DsonField {
-                            override val name: String
-                                get() {
-                                    val serializedName = it.getAnnotation(SerializedName::class.java)
-                                    return serializedName?.value ?: it.name
+                }
+                .map {
+                    object : DsonField {
+                        override val name: String
+                            get() {
+                                val serializedName = it.getAnnotation(SerializedName::class.java)
+                                return serializedName?.value ?: it.name
+                            }
+                        override val bytes: ByteArray
+                            get() {
+                                try {
+                                    it.isAccessible = true
+                                    val fieldObject = it.get(o)
+                                    return toDson(fieldObject)
+                                } catch (e: IllegalAccessException) {
+                                    throw RuntimeException()
                                 }
-                            override val bytes: ByteArray
-                                get() {
-                                    try {
-                                        it.isAccessible = true
-                                        val fieldObject = it.get(o)
-                                        return toDson(fieldObject)
-                                    } catch (e: IllegalAccessException) {
-                                        throw RuntimeException()
-                                    }
-                                }
-                        }
+                            }
                     }
+                }
 
             val rawList = fieldStream.asSequence().plus(versionField).sortedBy { it.name }
             raw = toByteArray(rawList)

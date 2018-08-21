@@ -10,49 +10,72 @@ class TransactionAtom : PayloadAtom {
 
     val consumables: List<Consumable>
         get() = particles!!.asSequence()
-                    .filter(Particle::isConsumable)
-                    .map(Particle::asConsumable)
-                    .toList()
+            .filter(Particle::isConsumable)
+            .map(Particle::asConsumable)
+            .toList()
 
     val consumers: List<Consumer>
         get() = particles!!.asSequence()
-                    .filter(Particle::isConsumer)
-                    .map(Particle::asConsumer)
-                    .toList()
+            .filter(Particle::isConsumer)
+            .map(Particle::asConsumer)
+            .toList()
 
-    internal constructor(particles: List<Particle>, destinations: Set<EUID>, payload: Payload?, timestamp: Long) : super(destinations, payload, particles, timestamp)
+    internal constructor(
+        particles: List<Particle>,
+        destinations: Set<EUID>,
+        payload: Payload?,
+        timestamp: Long
+    ) : super(destinations, payload, particles, timestamp)
 
-    internal constructor(particles: List<Particle>, destinations: Set<EUID>, payload: Payload?, encryptor: Encryptor?, timestamp: Long) : super(particles, destinations, payload, encryptor, timestamp)
+    internal constructor(
+        particles: List<Particle>,
+        destinations: Set<EUID>,
+        payload: Payload?,
+        encryptor: Encryptor?,
+        timestamp: Long
+    ) : super(particles, destinations, payload, encryptor, timestamp)
 
-    internal constructor(particles: List<Particle>, destinations: Set<EUID>, timestamp: Long) : super(destinations, null, particles, timestamp)
+    internal constructor(particles: List<Particle>, destinations: Set<EUID>, timestamp: Long) : super(
+        destinations,
+        null,
+        particles,
+        timestamp
+    )
 
-    internal constructor(particles: List<Particle>, destinations: Set<EUID>, payload: Payload?, encryptor: Encryptor?, signatureId: EUID, signature: ECSignature, timestamp: Long) : super(particles, destinations, payload, encryptor, timestamp, signatureId, signature)
-
+    internal constructor(
+        particles: List<Particle>,
+        destinations: Set<EUID>,
+        payload: Payload?,
+        encryptor: Encryptor?,
+        signatureId: EUID,
+        signature: ECSignature,
+        timestamp: Long
+    ) : super(particles, destinations, payload, encryptor, timestamp, signatureId, signature)
 
     fun summary(): Map<Set<ECPublicKey>, Map<EUID, Long>> {
         return particles!!.asSequence()
-                .filter(Particle::isAbstractConsumable)
-                .map(Particle::asAbstractConsumable)
-                .groupBy(AbstractConsumable::ownersPublicKeys)
-                .mapValues { it ->
-                    it.value.asSequence().groupBy(AbstractConsumable::assetId) {
-                        it.signedQuantity
-                    }.mapValues {
-                        it.value.sum()
-                    }
+            .filter(Particle::isAbstractConsumable)
+            .map(Particle::asAbstractConsumable)
+            .groupBy(AbstractConsumable::ownersPublicKeys)
+            .mapValues { it ->
+                it.value.asSequence().groupBy(AbstractConsumable::assetId) {
+                    it.signedQuantity
+                }.mapValues {
+                    it.value.sum()
                 }
+            }
     }
 
     fun consumableSummary(): Map<Set<ECPublicKey>, Map<EUID, List<Long>>> {
         return particles!!.asSequence()
-                .filter(Particle::isAbstractConsumable)
-                .map(Particle::asAbstractConsumable)
-                .groupBy(AbstractConsumable::ownersPublicKeys)
-                .mapValues { it: Map.Entry<Set<ECPublicKey>, List<AbstractConsumable>> ->
-                    it.value.asSequence().groupBy(AbstractConsumable::assetId) {
-                        it.signedQuantity
-                    }
+            .filter(Particle::isAbstractConsumable)
+            .map(Particle::asAbstractConsumable)
+            .groupBy(AbstractConsumable::ownersPublicKeys)
+            .mapValues { it: Map.Entry<Set<ECPublicKey>, List<AbstractConsumable>> ->
+                it.value.asSequence().groupBy(AbstractConsumable::assetId) {
+                    it.signedQuantity
                 }
+            }
     }
 
     override fun toString(): String {

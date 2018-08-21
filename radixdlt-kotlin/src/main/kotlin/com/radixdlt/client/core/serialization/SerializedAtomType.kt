@@ -10,7 +10,6 @@ enum class SerializedAtomType(val atomClass: Class<out Atom>, val serializer: Lo
     NULL(NullAtom::class.java, -1123323048L),
     MESSAGE(ApplicationPayloadAtom::class.java, -2040291185L);
 
-
     companion object {
 
         @JvmStatic

@@ -1,6 +1,7 @@
-package com.radixdlt.client.core.identity
+package com.radixdlt.client.application.identity
 
-import com.radixdlt.client.application.EncryptedData
+import com.radixdlt.client.application.objects.Data
+import com.radixdlt.client.application.objects.UnencryptedData
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.CryptoException
@@ -26,12 +27,6 @@ constructor(password: String, myKeyFile: File) : RadixIdentity {
     @Throws(Exception::class)
     @JvmOverloads constructor(password: String, fileName: String = "my_encrypted.key") : this(password, File(fileName))
 
-    fun synchronousSign(atom: UnsignedAtom): Atom {
-        val signature = myKey.sign(atom.hash.toByteArray())
-        val signatureId = myKey.getUID()
-        return atom.sign(signature, signatureId)
-    }
-
     @Throws(Exception::class)
     private fun getECKeyPair(password: String, myKeyfile: File): ECKeyPair {
         return ECKeyPair(PrivateKeyEncrypter.decryptPrivateKeyFile(password, myKeyfile.path))
@@ -45,16 +40,21 @@ constructor(password: String, myKeyFile: File) : RadixIdentity {
         }
     }
 
-    override fun decrypt(data: EncryptedData): Single<ByteArray> {
-        for (protector in data.protectors) {
-            // TODO: remove exception catching
-            try {
-                return Single.just(myKey.decrypt(data.encrypted, protector))
-            } catch (e: MacMismatchException) {
+    override fun decrypt(data: Data): Single<UnencryptedData> {
+        val encrypted = data.getMetaData()["encrypted"] as Boolean
+        if (encrypted) {
+            for (protector in data.protectors) {
+                // TODO: remove exception catching
+                try {
+                    val bytes = myKey.decrypt(data.bytes!!, protector)
+                    return Single.just(UnencryptedData(bytes, data.getMetaData(), true))
+                } catch (e: MacMismatchException) {
+                }
             }
-
+            return Single.error(CryptoException("Cannot decrypt"))
+        } else {
+            return Single.just(UnencryptedData(data.bytes!!, data.getMetaData(), false))
         }
-        return Single.error(CryptoException("Cannot decrypt"))
     }
 
     override fun getPublicKey(): ECPublicKey {
