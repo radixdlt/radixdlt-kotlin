@@ -1,6 +1,8 @@
 package com.radixdlt.client.core.network
 
-import com.google.gson.*
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
 import com.radixdlt.client.core.atoms.Atom
@@ -14,9 +16,9 @@ import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
 import io.reactivex.subjects.ReplaySubject
 import org.junit.Test
-import org.mockito.Mockito.*
-
-import java.math.BigInteger
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.mock
 
 
 class RadixJsonRpcClientTest {
@@ -319,7 +321,7 @@ class RadixJsonRpcClientTest {
         ).subscribe(observer)
 
         observer.assertNoErrors()
-        observer.assertValueAt(observer.valueCount() - 1) { update -> update.state == AtomSubmissionState.STORED }
+        observer.assertValueAt(observer.valueCount() - 1) { update -> update.getState() == AtomSubmissionState.STORED }
         observer.assertComplete()
     }
 }
