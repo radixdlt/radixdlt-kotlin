@@ -13,13 +13,13 @@ import java.util.HashMap
  */
 class Data private constructor(
     val bytes: ByteArray?,
-    private val metaData: Map<String, Any>,
+    private val metaData: Map<String, Any?>,
     // TODO: make unmodifiable
     val protectors: List<EncryptedPrivateKey>
 ) {
 
     class DataBuilder {
-        private val metaData = HashMap<String, Any>()
+        private val metaData = HashMap<String, Any?>()
         private var bytes: ByteArray? = null
         private val readers = ArrayList<ECPublicKey>()
         private var isPublicReadable: Boolean = false
@@ -69,7 +69,7 @@ class Data private constructor(
         }
     }
 
-    fun getMetaData(): Map<String, Any> {
+    fun getMetaData(): Map<String, Any?> {
         return Collections.unmodifiableMap(metaData)
     }
 
@@ -83,7 +83,7 @@ class Data private constructor(
 
         // TODO: Cleanup this interface
         @JvmStatic
-        fun raw(bytes: ByteArray?, metaData: Map<String, Any>, protectors: List<EncryptedPrivateKey>): Data {
+        fun raw(bytes: ByteArray?, metaData: Map<String, Any?>, protectors: List<EncryptedPrivateKey>): Data {
             return Data(bytes, metaData, protectors)
         }
     }

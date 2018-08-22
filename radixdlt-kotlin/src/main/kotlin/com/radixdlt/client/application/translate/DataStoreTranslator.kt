@@ -2,8 +2,8 @@ package com.radixdlt.client.application.translate
 
 import com.radixdlt.client.application.actions.DataStore
 import com.radixdlt.client.application.objects.Data
-import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
 import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.TransactionAtom
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import io.reactivex.Completable
 import java.util.HashMap
@@ -11,7 +11,7 @@ import java.util.HashMap
 class DataStoreTranslator private constructor() {
 
     fun translate(dataStore: DataStore, atomBuilder: AtomBuilder): Completable {
-        atomBuilder.type(ApplicationPayloadAtom::class.java)
+        atomBuilder.type(TransactionAtom::class.java)
         atomBuilder.payload(dataStore.data.bytes)
 
         if (!dataStore.data.protectors.isEmpty()) {
@@ -27,14 +27,14 @@ class DataStoreTranslator private constructor() {
         return Completable.complete()
     }
 
-    fun fromAtom(atom: ApplicationPayloadAtom): Data {
+    fun fromAtom(atom: TransactionAtom): Data {
         val protectors: List<EncryptedPrivateKey> = if (atom.encryptor?.protectors != null) {
             atom.encryptor.protectors
         } else {
             emptyList()
         }
 
-        val metaData = HashMap<String, Any>()
+        val metaData = HashMap<String, Any?>()
         metaData["timestamp"] = atom.timestamp
         metaData["signatures"] = atom.signatures!!
         metaData["application"] = atom.applicationId

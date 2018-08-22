@@ -2,7 +2,6 @@ package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.address.EUID
-import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
 import com.radixdlt.client.core.atoms.AtomValidationException
 import com.radixdlt.client.core.atoms.Consumer
 import com.radixdlt.client.core.atoms.RadixHash
@@ -13,7 +12,6 @@ import com.radixdlt.client.util.any
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import java.math.BigInteger
 import java.util.Arrays
 
 class RadixAtomValidatorTest {
@@ -61,7 +59,7 @@ class RadixAtomValidatorTest {
         `when`(consumer.ownersPublicKeys).thenReturn(setOf(publicKey))
         `when`(consumer.assetId).thenReturn(Asset.XRD.id)
 
-        val atom = mock(ApplicationPayloadAtom::class.java)
+        val atom = mock(TransactionAtom::class.java)
         `when`(atom.hash).thenReturn(hash)
         `when`(atom.getSignature(any())).thenReturn(null)
 

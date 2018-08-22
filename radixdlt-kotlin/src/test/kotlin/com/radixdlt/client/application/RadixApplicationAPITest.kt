@@ -8,10 +8,10 @@ import com.radixdlt.client.application.translate.InsufficientFundsException
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Payload
+import com.radixdlt.client.core.atoms.TransactionAtom
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.CryptoException
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
@@ -154,11 +154,11 @@ class RadixApplicationAPITest {
 
         val payload = mock(Payload::class.java)
 
-        val errorAtom = mock(ApplicationPayloadAtom::class.java)
+        val errorAtom = mock(TransactionAtom::class.java)
         `when`(errorAtom.encryptor).thenReturn(encryptor)
         `when`(errorAtom.encrypted).thenReturn(payload)
 
-        val okAtom = mock(ApplicationPayloadAtom::class.java)
+        val okAtom = mock(TransactionAtom::class.java)
         `when`(okAtom.encryptor).thenReturn(encryptor)
         `when`(okAtom.encrypted).thenReturn(payload)
 

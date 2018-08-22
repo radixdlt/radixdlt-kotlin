@@ -6,7 +6,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import java.math.BigInteger
 
 class AtomBuilderTest {
     @Test
@@ -30,7 +29,7 @@ class AtomBuilderTest {
     @Test
     fun testMultipleAtomPayloadBuildsShouldCreateSameAtom() {
         val atomBuilder = AtomBuilder()
-                .type(ApplicationPayloadAtom::class.java)
+                .type(TransactionAtom::class.java)
                 .applicationId("Test")
                 .payload("Hello")
                 .addDestination(EUID(1))

@@ -23,26 +23,8 @@ abstract class Atom {
     @Transient
     private var debug: MutableMap<String, Long>? = HashMap()
 
-    val isUnknown: Boolean
-        get() = this.javaClass == UnknownAtom::class.java
-
-    val isNullAtom: Boolean
-        get() = this.javaClass == NullAtom::class.java
-
-    val isMessageAtom: Boolean
-        get() = this.javaClass == ApplicationPayloadAtom::class.java
-
-    val isTransactionAtom: Boolean
-        get() = this.javaClass == TransactionAtom::class.java
-
-    val asNullAtom: NullAtom
-        get() = this as NullAtom
-
     val shards: Set<Long>
         get() = destinations.asSequence().map(EUID::shard).toSet()
-
-    val asMessageAtom: ApplicationPayloadAtom
-        get() = this as ApplicationPayloadAtom
 
     val asTransactionAtom: TransactionAtom
         get() = this as TransactionAtom

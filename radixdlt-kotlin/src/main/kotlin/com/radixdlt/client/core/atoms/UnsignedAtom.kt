@@ -14,6 +14,7 @@ class UnsignedAtom(val rawAtom: Atom) {
             is TransactionAtom -> {
                 val unsigned = rawAtom
                 return TransactionAtom(
+                    unsigned.applicationId,
                     unsigned.particles!!,
                     unsigned.destinations,
                     unsigned.encrypted,
@@ -21,19 +22,6 @@ class UnsignedAtom(val rawAtom: Atom) {
                     signatureId,
                     signature,
                     rawAtom.timestamp
-                )
-            }
-            is ApplicationPayloadAtom -> {
-                val unsigned = rawAtom
-                return ApplicationPayloadAtom(
-                    unsigned.applicationId,
-                    unsigned.particles!!,
-                    unsigned.destinations,
-                    unsigned.encrypted,
-                    unsigned.encryptor,
-                    rawAtom.timestamp,
-                    signatureId,
-                    signature
                 )
             }
             else -> throw IllegalStateException("Cannot create signed atom")

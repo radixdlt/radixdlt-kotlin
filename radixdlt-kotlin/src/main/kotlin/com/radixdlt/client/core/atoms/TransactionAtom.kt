@@ -7,6 +7,7 @@ import com.radixdlt.client.core.crypto.Encryptor
 
 class TransactionAtom : PayloadAtom {
     private val operation = "TRANSFER"
+    val applicationId: String?
 
     val consumables: List<Consumable>
         get() = particles!!.asSequence()
@@ -21,28 +22,37 @@ class TransactionAtom : PayloadAtom {
             .toList()
 
     internal constructor(
+        applicationId: String?,
         particles: List<Particle>,
         destinations: Set<EUID>,
         payload: Payload?,
         timestamp: Long
-    ) : super(destinations, payload, particles, timestamp)
+    ) : super(destinations, payload, particles, timestamp) {
+        this.applicationId = applicationId
+    }
 
     internal constructor(
+        applicationId: String?,
         particles: List<Particle>,
         destinations: Set<EUID>,
         payload: Payload?,
         encryptor: Encryptor?,
         timestamp: Long
-    ) : super(particles, destinations, payload, encryptor, timestamp)
-
-    internal constructor(particles: List<Particle>, destinations: Set<EUID>, timestamp: Long) : super(
-        destinations,
-        null,
-        particles,
-        timestamp
-    )
+    ) : super(particles, destinations, payload, encryptor, timestamp) {
+        this.applicationId = applicationId
+    }
 
     internal constructor(
+        applicationId: String?,
+        particles: List<Particle>,
+        destinations: Set<EUID>,
+        timestamp: Long
+    ) : super(destinations, null, particles, timestamp) {
+        this.applicationId = applicationId
+    }
+
+    internal constructor(
+        applicationId: String?,
         particles: List<Particle>,
         destinations: Set<EUID>,
         payload: Payload?,
@@ -50,7 +60,9 @@ class TransactionAtom : PayloadAtom {
         signatureId: EUID,
         signature: ECSignature,
         timestamp: Long
-    ) : super(particles, destinations, payload, encryptor, timestamp, signatureId, signature)
+    ) : super(particles, destinations, payload, encryptor, timestamp, signatureId, signature) {
+        this.applicationId = applicationId
+    }
 
     fun summary(): Map<Set<ECPublicKey>, Map<EUID, Long>> {
         return particles!!.asSequence()

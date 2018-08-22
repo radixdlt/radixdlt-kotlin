@@ -1,9 +1,9 @@
 package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.core.address.EUID
-import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.TransactionAtom
 import com.radixdlt.client.core.network.RadixJsonRpcClient
 import com.radixdlt.client.core.network.RadixNetwork
 import com.radixdlt.client.util.any
@@ -11,7 +11,10 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.functions.Consumer
 import org.junit.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 
 class RadixLedgerTest {
 
@@ -19,20 +22,20 @@ class RadixLedgerTest {
     @Throws(Exception::class)
     fun testFilterOutDuplicateAtoms() {
         val atom = AtomBuilder()
-                .type(ApplicationPayloadAtom::class.java)
+                .type(TransactionAtom::class.java)
                 .applicationId("Test")
                 .payload("Hello")
                 .addDestination(EUID(1))
                 .build()
                 .rawAtom
 
-        val observer = mock(Consumer::class.java) as Consumer<ApplicationPayloadAtom>
+        val observer = mock(Consumer::class.java) as Consumer<TransactionAtom>
         val client = mock(RadixJsonRpcClient::class.java)
         val network = mock(RadixNetwork::class.java)
         `when`(network.getRadixClient(any(Long::class.java))).thenReturn(Single.just(client))
         `when`(client.getAtoms<Atom>(any())).thenReturn(Observable.just(atom, atom))
         val ledger = RadixLedger(0, network)
-        ledger.getAllAtoms(EUID(1), ApplicationPayloadAtom::class.java)
+        ledger.getAllAtoms(EUID(1), TransactionAtom::class.java)
                 .subscribe(observer)
 
         verify(observer, times(1)).accept(any())
