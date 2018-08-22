@@ -51,21 +51,19 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="Gradle: kotlin-stdlib-jdk8-1.2.60" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: kotlin-stdlib-1.2.60" level="project" />
     <orderEntry type="library" exported="" name="Gradle: bcprov-jdk15on-1.60" level="project" />
     <orderEntry type="library" exported="" name="Gradle: gson-2.8.5" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: logging-interceptor-3.11.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: okhttp-3.11.0" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: rxkotlin-2.2.0" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: logging-interceptor-3.11.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: rxjava-2.2.0" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: rxkotlin-2.2.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: slf4j-simple-1.7.25" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: kotlin-stdlib-jdk7-1.2.60" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: kotlin-stdlib-1.2.60" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: kotlin-stdlib-common-1.2.60" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: annotations-13.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: okio-1.14.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: reactive-streams-1.0.2" level="project" />
     <orderEntry type="library" exported="" name="Gradle: slf4j-api-1.7.25" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: kotlin-stdlib-common-1.2.60" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: annotations-13.0" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: junit-4.12" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: mockito-inline-2.21.0" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: mockito-core-2.21.0" level="project" />
