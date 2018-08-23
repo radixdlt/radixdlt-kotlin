@@ -17,22 +17,19 @@ class AtomBuilderTest {
 
         val atomBuilder = AtomBuilder()
         val atom = atomBuilder
-                .type(PayloadAtom::class.java)
-                .addParticle(consumable)
-                .payload("Hello")
-                .build()
+            .addParticle(consumable)
+            .payload("Hello")
+            .build()
 
-        assertEquals(atom.rawAtom.javaClass, PayloadAtom::class.java)
-        assertEquals(atom.rawAtom.asTransactionAtom.payload!!.toAscii(), "Hello")
+        assertEquals(atom.rawAtom.payload!!.toAscii(), "Hello")
     }
 
     @Test
     fun testMultipleAtomPayloadBuildsShouldCreateSameAtom() {
         val atomBuilder = AtomBuilder()
-                .type(PayloadAtom::class.java)
-                .applicationId("Test")
-                .payload("Hello")
-                .addDestination(EUID(1))
+            .applicationId("Test")
+            .payload("Hello")
+            .addDestination(EUID(1))
 
         val atom1 = atomBuilder.build()
         val atom2 = atomBuilder.build()

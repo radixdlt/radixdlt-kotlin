@@ -2,9 +2,9 @@ package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.address.EUID
+import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomValidationException
 import com.radixdlt.client.core.atoms.Consumer
-import com.radixdlt.client.core.atoms.PayloadAtom
 import com.radixdlt.client.core.atoms.RadixHash
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
@@ -33,7 +33,7 @@ class RadixAtomValidatorTest {
         `when`(consumer.ownersPublicKeys).thenReturn(setOf(publicKey))
         `when`(consumer.assetId).thenReturn(Asset.XRD.id)
 
-        val atom = mock(PayloadAtom::class.java)
+        val atom = mock(Atom::class.java)
         `when`(atom.hash).thenReturn(hash)
         `when`(atom.getSignature(any())).thenReturn(null)
         `when`(atom.particles).thenReturn(Arrays.asList(consumer))
@@ -59,7 +59,7 @@ class RadixAtomValidatorTest {
         `when`(consumer.ownersPublicKeys).thenReturn(setOf(publicKey))
         `when`(consumer.assetId).thenReturn(Asset.XRD.id)
 
-        val atom = mock(PayloadAtom::class.java)
+        val atom = mock(Atom::class.java)
         `when`(atom.hash).thenReturn(hash)
         `when`(atom.getSignature(any())).thenReturn(null)
 

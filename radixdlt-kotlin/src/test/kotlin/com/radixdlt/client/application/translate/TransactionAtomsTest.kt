@@ -5,7 +5,6 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.Consumer
-import com.radixdlt.client.core.atoms.PayloadAtom
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.util.any
@@ -26,17 +25,16 @@ class TransactionAtomsTest {
 
         /* Build atom with consumer originating from nowhere */
         val unsignedAtom = AtomBuilder()
-                .type(PayloadAtom::class.java)
-                .addParticle(Consumer(100, keyPair, 1, Asset.XRD.id))
-                .addParticle(Consumable(100, keyPair, 2, Asset.XRD.id))
-                .build()
+            .addParticle(Consumer(100, keyPair, 1, Asset.XRD.id))
+            .addParticle(Consumable(100, keyPair, 2, Asset.XRD.id))
+            .build()
 
         val observer = TestObserver.create<Collection<Consumable>>()
 
         /* Make sure we don't count it unless we find the matching consumable */
         val transactionAtoms = TransactionAtoms(address, Asset.XRD.id)
-        transactionAtoms.accept(unsignedAtom.rawAtom.asTransactionAtom)
-                .getUnconsumedConsumables().subscribe(observer)
+        transactionAtoms.accept(unsignedAtom.rawAtom)
+            .getUnconsumedConsumables().subscribe(observer)
         observer.assertValueCount(0)
     }
 
@@ -58,26 +56,24 @@ class TransactionAtomsTest {
 
         /* Atom with consumer originating from nowhere */
         val unsignedAtom = AtomBuilder()
-                .type(PayloadAtom::class.java)
-                .addParticle(Consumer(100, keyPair, 1, Asset.XRD.id))
-                .addParticle(Consumable(100, keyPair, 2, Asset.XRD.id))
-                .build()
+            .addParticle(Consumer(100, keyPair, 1, Asset.XRD.id))
+            .addParticle(Consumable(100, keyPair, 2, Asset.XRD.id))
+            .build()
 
         /* Atom with consumable for previous atom's consumer */
         val unsignedAtom2 = AtomBuilder()
-                .type(PayloadAtom::class.java)
-                .addParticle(Consumer(100, otherKeyPair, 1, Asset.XRD.id))
-                .addParticle(Consumable(100, keyPair, 1, Asset.XRD.id))
-                .build()
+            .addParticle(Consumer(100, otherKeyPair, 1, Asset.XRD.id))
+            .addParticle(Consumable(100, keyPair, 1, Asset.XRD.id))
+            .build()
 
         val observer = TestObserver.create<Collection<Consumable>>()
 
         /* Make sure we don't count it unless we find the matching consumable */
         val transactionAtoms = TransactionAtoms(address, Asset.XRD.id)
-        transactionAtoms.accept(unsignedAtom.rawAtom.asTransactionAtom)
-        transactionAtoms.accept(unsignedAtom2.rawAtom.asTransactionAtom)
-                .getUnconsumedConsumables()
-                .subscribe(observer)
+        transactionAtoms.accept(unsignedAtom.rawAtom)
+        transactionAtoms.accept(unsignedAtom2.rawAtom)
+            .getUnconsumedConsumables()
+            .subscribe(observer)
 
         observer.assertValue { collection -> collection.stream().findFirst().get().nonce == 2L }
     }

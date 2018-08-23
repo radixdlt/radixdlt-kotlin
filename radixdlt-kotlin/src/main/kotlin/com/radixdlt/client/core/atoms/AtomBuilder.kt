@@ -9,7 +9,6 @@ import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import com.radixdlt.client.core.crypto.Encryptor
 import java.util.ArrayList
 import java.util.HashSet
-import java.util.Objects
 
 class AtomBuilder {
 
@@ -21,7 +20,6 @@ class AtomBuilder {
     private var sharedKey: ECKeyPair? = null
     private var applicationId: String? = null
     private var payloadRaw: ByteArray? = null
-    private var atomClass: Class<out Atom>? = null
     private var encryptor: Encryptor? = null
     private var payload: Payload? = null
 
@@ -66,11 +64,6 @@ class AtomBuilder {
         return this
     }
 
-    fun <T : Atom> type(atomClass: Class<T>): AtomBuilder {
-        this.atomClass = atomClass
-        return this
-    }
-
     fun buildWithPOWFee(magic: Int, owner: ECPublicKey): UnsignedAtom {
         // Expensive but fine for now
         val unsignedAtom = this.build()
@@ -88,8 +81,6 @@ class AtomBuilder {
     }
 
     fun build(): UnsignedAtom {
-        Objects.requireNonNull<Class<out Atom>>(atomClass)
-
         if (this.timestamp == null) {
             this.timestamp = System.currentTimeMillis()
         }
@@ -100,17 +91,10 @@ class AtomBuilder {
 
         // TODO: add this check to when payloadRaw is first set
         if (payload != null && payload!!.length() > MAX_PAYLOAD_SIZE) {
-            throw IllegalStateException("Payload must be under " + MAX_PAYLOAD_SIZE + " bytes but was " + payload!!.length())
+            throw IllegalStateException("Payload must be under $MAX_PAYLOAD_SIZE bytes but was ${payload!!.length()}")
         }
 
-        val atom: Atom
-        if (PayloadAtom::class.java.isAssignableFrom(atomClass!!)) {
-            atom = PayloadAtom(applicationId, particles, destinations, payload, encryptor, this.timestamp!!)
-        } else {
-            throw IllegalStateException("Unable to create atom with class: " + atomClass!!.simpleName)
-        }
-
-        return UnsignedAtom(atom)
+        return UnsignedAtom(Atom(applicationId, particles, destinations, payload, encryptor, this.timestamp!!))
     }
 
     companion object {

@@ -12,9 +12,9 @@ import com.radixdlt.client.application.translate.TransactionAtoms
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
+import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Consumable
-import com.radixdlt.client.core.atoms.PayloadAtom
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.ledger.RadixLedger
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
@@ -67,7 +67,7 @@ class RadixApplicationAPI private constructor(
     }
 
     fun getReadableData(address: RadixAddress): Observable<UnencryptedData> {
-        return ledger.getAllAtoms(address.getUID(), PayloadAtom::class.java)
+        return ledger.getAllAtoms(address.getUID(), Atom::class.java)
             .map { dataStoreTranslator.fromAtom(it) }
             .flatMapMaybe { data -> identity.decrypt(data).toMaybe().onErrorComplete() }
     }
@@ -103,9 +103,9 @@ class RadixApplicationAPI private constructor(
     }
 
     fun getTokenTransfers(address: RadixAddress, tokenClass: Asset): Observable<TokenTransfer> {
-        return Observables.combineLatest<TransactionAtoms, PayloadAtom, Observable<PayloadAtom>>(
+        return Observables.combineLatest<TransactionAtoms, Atom, Observable<Atom>>(
             Observable.fromCallable { TransactionAtoms(address, tokenClass.id) },
-            ledger.getAllAtoms(address.getUID(), PayloadAtom::class.java)
+            ledger.getAllAtoms(address.getUID(), Atom::class.java)
         ) { transactionAtoms, atom ->
             transactionAtoms.accept(atom).newValidTransactions
         }

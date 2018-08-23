@@ -11,7 +11,6 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Payload
-import com.radixdlt.client.core.atoms.PayloadAtom
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.CryptoException
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
@@ -37,7 +36,6 @@ class RadixApplicationAPITest {
         val identity = mock(RadixIdentity::class.java)
 
         val atomBuilder = mock(AtomBuilder::class.java)
-        `when`(atomBuilder.type(any<Class<Atom>>())).thenReturn(atomBuilder)
         `when`(atomBuilder.protectors(any())).thenReturn(atomBuilder)
         `when`(atomBuilder.payload(any(ByteArray::class.java))).thenReturn(atomBuilder)
         val atom = mock(Atom::class.java)
@@ -154,11 +152,11 @@ class RadixApplicationAPITest {
 
         val payload = mock(Payload::class.java)
 
-        val errorAtom = mock(PayloadAtom::class.java)
+        val errorAtom = mock(Atom::class.java)
         `when`(errorAtom.encryptor).thenReturn(encryptor)
         `when`(errorAtom.payload).thenReturn(payload)
 
-        val okAtom = mock(PayloadAtom::class.java)
+        val okAtom = mock(Atom::class.java)
         `when`(okAtom.encryptor).thenReturn(encryptor)
         `when`(okAtom.payload).thenReturn(payload)
 

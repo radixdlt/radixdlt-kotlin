@@ -7,7 +7,7 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Consumable
-import com.radixdlt.client.core.atoms.PayloadAtom
+import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
@@ -20,8 +20,8 @@ class TokenTransferTranslator(
     private val consumableDataSource: ConsumableDataSource
 ) {
 
-    fun fromAtom(transactionAtom: PayloadAtom): TokenTransfer {
-        val summary = transactionAtom.summary().entries.asSequence()
+    fun fromAtom(atom: Atom): TokenTransfer {
+        val summary = atom.summary().entries.asSequence()
             .filter { entry -> entry.value.containsKey(Asset.XRD.id) }
             .map { entry ->
                 SimpleImmutableEntry<ECPublicKey, Long>(
@@ -32,7 +32,7 @@ class TokenTransferTranslator(
             .toList()
 
         if (summary.isEmpty()) {
-            throw IllegalStateException("Invalid atom: $transactionAtom")
+            throw IllegalStateException("Invalid atom: $atom")
         }
 
         if (summary.size > 2) {
@@ -55,27 +55,25 @@ class TokenTransferTranslator(
         }
 
         val attachment: Data?
-        if (transactionAtom.payload != null) {
-            val protectors: List<EncryptedPrivateKey> = if (transactionAtom.encryptor?.protectors != null) {
-                transactionAtom.encryptor.protectors
+        if (atom.payload != null) {
+            val protectors: List<EncryptedPrivateKey> = if (atom.encryptor?.protectors != null) {
+                atom.encryptor.protectors
             } else {
                 emptyList()
             }
             val metaData = HashMap<String, Any>()
             metaData["encrypted"] = !protectors.isEmpty()
-            attachment = Data.raw(transactionAtom.payload.bytes, metaData, protectors)
+            attachment = Data.raw(atom.payload.bytes, metaData, protectors)
         } else {
             attachment = null
         }
 
         return TokenTransfer.create(
-            from, to, Asset.XRD, Math.abs(summary[0].value), attachment, transactionAtom.timestamp
+            from, to, Asset.XRD, Math.abs(summary[0].value), attachment, atom.timestamp
         )
     }
 
     fun translate(tokenTransfer: TokenTransfer, atomBuilder: AtomBuilder): Completable {
-        atomBuilder.type(PayloadAtom::class.java)
-
         return this.consumableDataSource.getConsumables(tokenTransfer.from!!)
             .firstOrError()
             .flatMapCompletable { unconsumedConsumables ->

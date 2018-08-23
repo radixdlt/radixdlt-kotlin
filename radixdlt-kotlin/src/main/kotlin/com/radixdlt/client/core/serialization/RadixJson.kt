@@ -1,14 +1,35 @@
 package com.radixdlt.client.core.serialization
 
-import com.google.gson.*
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonParseException
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
+import com.google.gson.TypeAdapter
+import com.google.gson.TypeAdapterFactory
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixUniverseType
-import com.radixdlt.client.core.atoms.*
+import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.AtomFeeConsumable
+import com.radixdlt.client.core.atoms.Consumable
+import com.radixdlt.client.core.atoms.Consumer
+import com.radixdlt.client.core.atoms.Emission
+import com.radixdlt.client.core.atoms.IdParticle
 import com.radixdlt.client.core.atoms.JunkParticle
-import com.radixdlt.client.core.crypto.*
+import com.radixdlt.client.core.atoms.Particle
+import com.radixdlt.client.core.atoms.Payload
+import com.radixdlt.client.core.crypto.ECKeyPair
+import com.radixdlt.client.core.crypto.ECPublicKey
+import com.radixdlt.client.core.crypto.ECSignature
+import com.radixdlt.client.core.crypto.EncryptedPrivateKey
+import com.radixdlt.client.core.crypto.Encryptor
 import com.radixdlt.client.core.network.NodeRunnerData
 import com.radixdlt.client.core.util.Base64Encoded
 import com.radixdlt.client.core.util.Int128
@@ -16,13 +37,15 @@ import org.bouncycastle.util.encoders.Base64
 import org.bouncycastle.util.encoders.Hex
 import java.io.IOException
 import java.lang.reflect.Type
-import java.util.*
+import java.util.HashMap
 
 object RadixJson {
 
-    private val BASE64_SERIALIZER = JsonSerializer<Base64Encoded> { src, _, _ -> serializedValue("BASE64", src.base64()) }
+    private val BASE64_SERIALIZER =
+        JsonSerializer<Base64Encoded> { src, _, _ -> serializedValue("BASE64", src.base64()) }
 
-    private val PAYLOAD_DESERIALIZER = JsonDeserializer<Payload> { json, _, _ -> Payload.fromBase64(json.asJsonObject.get("value").asString) }
+    private val PAYLOAD_DESERIALIZER =
+        JsonDeserializer<Payload> { json, _, _ -> Payload.fromBase64(json.asJsonObject.get("value").asString) }
 
     private val PK_DESERIALIZER = JsonDeserializer<ECPublicKey> { json, _, _ ->
         val publicKey = Base64.decode(json.asJsonObject.get("value").asString)
@@ -34,38 +57,16 @@ object RadixJson {
         EncryptedPrivateKey(encryptedPrivateKey)
     }
 
-    private val UNIVERSER_TYPE_DESERIALIZER = JsonDeserializer<RadixUniverseType> { json, _, _ -> RadixUniverseType.valueOf(json.asInt) }
+    private val UNIVERSER_TYPE_DESERIALIZER =
+        JsonDeserializer<RadixUniverseType> { json, _, _ -> RadixUniverseType.valueOf(json.asInt) }
 
     private val NODE_RUNNDER_DATA_JSON_DESERIALIZER = JsonDeserializer<NodeRunnerData> { json, _, _ ->
         NodeRunnerData(
-                if (json.asJsonObject.has("host")) json.asJsonObject.get("host").asJsonObject.get("ip").asString else null,
-                json.asJsonObject.get("system").asJsonObject.get("shards").asJsonObject.get("low").asLong,
-                json.asJsonObject.get("system").asJsonObject.get("shards").asJsonObject.get("high").asLong
+            if (json.asJsonObject.has("host")) json.asJsonObject.get("host").asJsonObject.get("ip").asString else null,
+            json.asJsonObject.get("system").asJsonObject.get("shards").asJsonObject.get("low").asLong,
+            json.asJsonObject.get("system").asJsonObject.get("shards").asJsonObject.get("high").asLong
         )
     }
-
-    private val ATOM_DESERIALIZER = JsonDeserializer<Atom> { json, _, context ->
-        val serializer = json.asJsonObject.get("serializer").asLong
-        val atomType = SerializedAtomType.valueOf(serializer)
-        return@JsonDeserializer if (atomType != null) {
-            context.deserialize(json.asJsonObject, atomType.atomClass)
-        } else {
-            UnknownAtom(json.asJsonObject)
-        }
-    }
-
-    private val ATOM_SERIALIZER = JsonSerializer<Atom> { atom, _, context ->
-        val atomType = SerializedAtomType.valueOf(atom.javaClass)
-        if (atomType != null) {
-            val jsonAtom = context.serialize(atom).asJsonObject
-            jsonAtom.addProperty("serializer", atomType.serializer)
-            jsonAtom.addProperty("version", 100)
-            return@JsonSerializer jsonAtom
-        } else {
-            throw IllegalArgumentException("Cannot serialize an atom with class: " + atom.javaClass)
-        }
-    }
-
 
     private val PARTICLE_SERIALIZER = JsonSerializer<Particle> { particle, _, context ->
         when {
@@ -125,6 +126,7 @@ object RadixJson {
     private val SERIALIZERS = HashMap<Class<*>, Int>()
 
     init {
+        SERIALIZERS[Atom::class.java] = 2019665
         SERIALIZERS[ECKeyPair::class.java] = 547221307
         SERIALIZERS[ECSignature::class.java] = -434788200
         SERIALIZERS[Encryptor::class.java] = 105401064
@@ -156,23 +158,22 @@ object RadixJson {
         }
     }
 
-    @JvmStatic val gson: Gson
+    @JvmStatic
+    val gson: Gson
 
     init {
         val gsonBuilder = GsonBuilder()
-                .registerTypeHierarchyAdapter(Base64Encoded::class.java, BASE64_SERIALIZER)
-                .registerTypeAdapterFactory(ECKEYPAIR_ADAPTER_FACTORY)
-                .registerTypeAdapter(ByteArray::class.java, ByteArraySerializer())
-                .registerTypeAdapter(Particle::class.java, PARTICLE_SERIALIZER)
-                .registerTypeAdapter(Particle::class.java, PARTICLE_DESERIALIZER)
-                .registerTypeAdapter(Atom::class.java, ATOM_SERIALIZER)
-                .registerTypeAdapter(Atom::class.java, ATOM_DESERIALIZER)
-                .registerTypeAdapter(EUID::class.java, EUIDSerializer())
-                .registerTypeAdapter(Payload::class.java, PAYLOAD_DESERIALIZER)
-                .registerTypeAdapter(EncryptedPrivateKey::class.java, PROTECTOR_DESERIALIZER)
-                .registerTypeAdapter(ECPublicKey::class.java, PK_DESERIALIZER)
-                .registerTypeAdapter(RadixUniverseType::class.java, UNIVERSER_TYPE_DESERIALIZER)
-                .registerTypeAdapter(NodeRunnerData::class.java, NODE_RUNNDER_DATA_JSON_DESERIALIZER)
+            .registerTypeHierarchyAdapter(Base64Encoded::class.java, BASE64_SERIALIZER)
+            .registerTypeAdapterFactory(ECKEYPAIR_ADAPTER_FACTORY)
+            .registerTypeAdapter(ByteArray::class.java, ByteArraySerializer())
+            .registerTypeAdapter(Particle::class.java, PARTICLE_SERIALIZER)
+            .registerTypeAdapter(Particle::class.java, PARTICLE_DESERIALIZER)
+            .registerTypeAdapter(EUID::class.java, EUIDSerializer())
+            .registerTypeAdapter(Payload::class.java, PAYLOAD_DESERIALIZER)
+            .registerTypeAdapter(EncryptedPrivateKey::class.java, PROTECTOR_DESERIALIZER)
+            .registerTypeAdapter(ECPublicKey::class.java, PK_DESERIALIZER)
+            .registerTypeAdapter(RadixUniverseType::class.java, UNIVERSER_TYPE_DESERIALIZER)
+            .registerTypeAdapter(NodeRunnerData::class.java, NODE_RUNNDER_DATA_JSON_DESERIALIZER)
 
         gson = gsonBuilder.create()
     }

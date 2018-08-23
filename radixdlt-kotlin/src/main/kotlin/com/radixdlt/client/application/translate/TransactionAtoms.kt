@@ -3,9 +3,10 @@ package com.radixdlt.client.application.translate
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AbstractConsumable
+import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.AtomFeeConsumable
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.Particle
-import com.radixdlt.client.core.atoms.PayloadAtom
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import org.slf4j.LoggerFactory
@@ -15,9 +16,9 @@ import java.util.concurrent.ConcurrentHashMap
 class TransactionAtoms(private val address: RadixAddress, private val assetId: EUID) {
 
     private val unconsumedConsumables = ConcurrentHashMap<ByteBuffer, Consumable>()
-    private val missingConsumable = ConcurrentHashMap<ByteBuffer, PayloadAtom>()
+    private val missingConsumable = ConcurrentHashMap<ByteBuffer, Atom>()
 
-    inner class TransactionAtomsUpdate internal constructor(val newValidTransactions: Observable<PayloadAtom>) {
+    inner class TransactionAtomsUpdate internal constructor(val newValidTransactions: Observable<Atom>) {
         fun getUnconsumedConsumables(): io.reactivex.Maybe<Collection<Consumable>> {
             return newValidTransactions.lastElement().map {
                 unconsumedConsumables.values
@@ -25,7 +26,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
         }
     }
 
-    private fun addConsumables(transactionAtom: PayloadAtom, emitter: ObservableEmitter<PayloadAtom>) {
+    private fun addConsumables(transactionAtom: Atom, emitter: ObservableEmitter<Atom>) {
         transactionAtom.particles!!.asSequence()
             .filter { it.isAbstractConsumable }
             .map { it.asAbstractConsumable }
@@ -52,7 +53,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
             }
     }
 
-    private fun checkConsumers(transactionAtom: PayloadAtom, emitter: ObservableEmitter<PayloadAtom>) {
+    private fun checkConsumers(transactionAtom: Atom, emitter: ObservableEmitter<Atom>) {
         val missing: ByteBuffer? = transactionAtom.particles!!.asSequence()
             .filter(Particle::isAbstractConsumable)
             .map(Particle::asAbstractConsumable)
@@ -67,7 +68,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
         if (missing != null) {
             LOGGER.info("Missing consumable for atom: $transactionAtom")
 
-            missingConsumable.computeSynchronisedFunction(missing) { _: ByteBuffer, current: PayloadAtom? ->
+            missingConsumable.computeSynchronisedFunction(missing) { _: ByteBuffer, current: Atom? ->
                 if (current == null) {
                     transactionAtom
                 } else {
@@ -75,13 +76,17 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
                 }
             }
         } else {
+            if (transactionAtom.particles!!.asSequence().all { p -> p is AtomFeeConsumable }) {
+                return
+            }
+
             emitter.onNext(transactionAtom)
             addConsumables(transactionAtom, emitter)
         }
     }
 
-    fun accept(transactionAtom: PayloadAtom): TransactionAtomsUpdate {
-        val observable = Observable.create<PayloadAtom> { emitter ->
+    fun accept(transactionAtom: Atom): TransactionAtomsUpdate {
+        val observable = Observable.create<Atom> { emitter ->
             synchronized(this@TransactionAtoms) {
                 checkConsumers(transactionAtom, emitter)
             }

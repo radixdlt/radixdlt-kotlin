@@ -5,7 +5,6 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.Atom
-import com.radixdlt.client.core.atoms.PayloadAtom
 import com.radixdlt.client.core.atoms.Shards
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
 import com.radixdlt.client.core.network.WebSocketClient.RadixClientStatus
@@ -139,7 +138,7 @@ class RadixJsonRpcClientTest {
             val id = jsonObject.get("id").asString
 
             val atoms = JsonArray()
-            val atom = PayloadAtom("Test", emptyList(), emptySet(), null, null, 1)
+            val atom = Atom("Test", emptyList(), emptySet(), null, null, 1)
             atoms.add(gson.toJsonTree(atom, Atom::class.java))
 
             val response = JsonObject()
@@ -155,7 +154,7 @@ class RadixJsonRpcClientTest {
 
         jsonRpcClient.getAtom(EUID(1)).subscribe(observer)
 
-        observer.assertValue { atom -> atom.asTransactionAtom.applicationId == "Test" }
+        observer.assertValue { atom -> atom.applicationId == "Test" }
         observer.assertComplete()
         observer.assertNoErrors()
     }
@@ -191,7 +190,7 @@ class RadixJsonRpcClientTest {
 
             val atoms = JsonArray()
             val atom = gson.toJsonTree(
-                PayloadAtom("Test", emptyList(), emptySet(), null, null, 1),
+                Atom("Test", emptyList(), emptySet(), null, null, 1),
                 Atom::class.java
             )
             atoms.add(atom)
@@ -204,13 +203,13 @@ class RadixJsonRpcClientTest {
         }.`when`(wsClient).send(any())
         val jsonRpcClient = RadixJsonRpcClient(wsClient)
 
-        val observer = TestObserver<PayloadAtom>()
+        val observer = TestObserver<Atom>()
 
-        jsonRpcClient.getAtoms(AtomQuery(EUID(1), PayloadAtom::class.java)).subscribe(observer)
+        jsonRpcClient.getAtoms(AtomQuery(EUID(1), Atom::class.java)).subscribe(observer)
 
         observer.assertNoErrors()
         observer.assertValueCount(1)
-        observer.assertValue { atom -> atom.asTransactionAtom.applicationId == "Test" }
+        observer.assertValue { atom -> atom.applicationId == "Test" }
     }
 
     @Test
@@ -246,7 +245,7 @@ class RadixJsonRpcClientTest {
                 params.addProperty("subscriberId", subscriberId)
                 val atoms = JsonArray()
                 val atom = gson.toJsonTree(
-                    PayloadAtom("Test", emptyList(), emptySet(), null, null, 1),
+                    Atom("Test", emptyList(), emptySet(), null, null, 1),
                     Atom::class.java
                 )
                 atoms.add(atom)
@@ -261,9 +260,9 @@ class RadixJsonRpcClientTest {
         }.`when`(wsClient).send(any())
         val jsonRpcClient = RadixJsonRpcClient(wsClient)
 
-        val observer = TestObserver<PayloadAtom>()
+        val observer = TestObserver<Atom>()
 
-        jsonRpcClient.getAtoms(AtomQuery(EUID(1), PayloadAtom::class.java))
+        jsonRpcClient.getAtoms(AtomQuery(EUID(1), Atom::class.java))
             .subscribe(observer)
         observer.cancel()
 
@@ -316,7 +315,7 @@ class RadixJsonRpcClientTest {
         val observer = TestObserver<AtomSubmissionUpdate>()
 
         jsonRpcClient.submitAtom(
-            PayloadAtom("Test", emptyList(), emptySet(), null, null, 1)
+            Atom("Test", emptyList(), emptySet(), null, null, 1)
         ).subscribe(observer)
 
         observer.assertNoErrors()
