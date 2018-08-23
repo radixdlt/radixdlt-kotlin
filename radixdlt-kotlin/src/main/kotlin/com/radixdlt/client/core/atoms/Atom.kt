@@ -162,6 +162,6 @@ class Atom {
     }
 
     override fun toString(): String {
-        return "Atom hid(" + hid.toString() + ") destinations(" + destinations + ") particles(" + particles!!.size + ")"
+        return "Atom hid($hid) destinations($destinations) particles(${if (particles == null) 0 else particles!!.size})"
     }
 }
