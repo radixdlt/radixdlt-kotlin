@@ -1,18 +1,25 @@
 package com.radixdlt.client.core.address
 
 import com.radixdlt.client.core.util.Int128
-import com.radixdlt.client.core.util.LONG_BYTES
 import org.bouncycastle.util.encoders.Hex
-import java.util.*
+import java.util.Arrays
 
 class EUID {
     private val value: Int128
 
     val shard: Long
-        get() = value.low
+        get() = value.high
 
     constructor(value: Int128) {
         this.value = value
+    }
+
+    constructor(bytes: ByteArray) {
+        var bytesCopy = bytes
+        if (bytesCopy.size > BYTES) {
+            bytesCopy = Arrays.copyOf(bytesCopy, BYTES)
+        }
+        this.value = Int128.from(bytesCopy)
     }
 
     constructor(value: Int) {
@@ -57,6 +64,6 @@ class EUID {
     }
 
     companion object {
-        const val BYTES = LONG_BYTES * 2
+        const val BYTES = Int128.BYTES
     }
 }

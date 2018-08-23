@@ -2,9 +2,11 @@
 
 package com.radixdlt.client.core.util
 
+import java.lang.Character
+import java.lang.System
+import java.util.Arrays
+import java.util.Objects
 import java.lang.Long as JLong
-
-import java.util.*
 
 /**
  * A 128-bit signed integer, with comparison and some basic arithmetic
@@ -501,11 +503,11 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
         /**
          * Size of this numeric type in bits.
          */
-        val SIZE = JLong.SIZE * 2
+        const val SIZE = JLong.SIZE * 2
         /**
          * Size of this numeric type in bytes.
          */
-        val BYTES = LONG_BYTES * 2
+        const val BYTES = LONG_BYTES * 2
 
         // Some commonly used values
         val ZERO = Int128(0L, 0L)
