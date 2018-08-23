@@ -205,7 +205,7 @@ class RadixJsonRpcClientTest {
 
         val observer = TestObserver<Atom>()
 
-        jsonRpcClient.getAtoms(AtomQuery(EUID(1), Atom::class.java)).subscribe(observer)
+        jsonRpcClient.getAtoms(AtomQuery(EUID(1))).subscribe(observer)
 
         observer.assertNoErrors()
         observer.assertValueCount(1)
@@ -262,7 +262,7 @@ class RadixJsonRpcClientTest {
 
         val observer = TestObserver<Atom>()
 
-        jsonRpcClient.getAtoms(AtomQuery(EUID(1), Atom::class.java))
+        jsonRpcClient.getAtoms(AtomQuery(EUID(1)))
             .subscribe(observer)
         observer.cancel()
 

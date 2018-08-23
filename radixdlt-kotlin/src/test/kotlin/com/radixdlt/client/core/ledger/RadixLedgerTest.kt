@@ -31,9 +31,9 @@ class RadixLedgerTest {
         val client = mock(RadixJsonRpcClient::class.java)
         val network = mock(RadixNetwork::class.java)
         `when`(network.getRadixClient(any(Long::class.java))).thenReturn(Single.just(client))
-        `when`(client.getAtoms<Atom>(any())).thenReturn(Observable.just(atom, atom))
+        `when`(client.getAtoms(any())).thenReturn(Observable.just(atom, atom))
         val ledger = RadixLedger(0, network)
-        ledger.getAllAtoms(EUID(1), Atom::class.java)
+        ledger.getAllAtoms(EUID(1))
             .subscribe(observer)
 
         verify(observer, times(1)).accept(any())

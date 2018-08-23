@@ -2,9 +2,7 @@ package com.radixdlt.client.core.atoms
 
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
-import com.radixdlt.client.core.crypto.ECSignature
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import com.radixdlt.client.core.crypto.Encryptor
 import java.util.ArrayList
@@ -14,14 +12,9 @@ class AtomBuilder {
 
     private val destinations = HashSet<EUID>()
     private val particles = ArrayList<Particle>()
-    private val signature: ECSignature? = null
-    private val signatureId: EUID? = null
-    private var timestamp: Long? = null
-    private var sharedKey: ECKeyPair? = null
     private var applicationId: String? = null
     private var payloadRaw: ByteArray? = null
     private var encryptor: Encryptor? = null
-    private var payload: Payload? = null
 
     fun addDestination(euid: EUID): AtomBuilder {
         this.destinations.add(euid)
@@ -65,36 +58,39 @@ class AtomBuilder {
     }
 
     fun buildWithPOWFee(magic: Int, owner: ECPublicKey): UnsignedAtom {
-        // Expensive but fine for now
-        val unsignedAtom = this.build()
-        val size = unsignedAtom.rawAtom.toDson().size
+        val timestamp = System.currentTimeMillis()
 
+        // Expensive but fine for now
+        val unsignedAtom = this.build(timestamp)
+
+        // Rebuild with atom fee
+        val size = unsignedAtom.rawAtom.toDson().size
         val fee = AtomFeeConsumableBuilder()
             .atom(unsignedAtom)
             .owner(owner)
             .pow(magic, Math.ceil(Math.log(size * 8.0)).toInt())
             .build()
-
         this.addParticle(fee)
 
-        return this.build()
+        return this.build(timestamp)
     }
 
+    fun build(timestamp: Long): UnsignedAtom {
+        val payload: Payload? = if (this.payloadRaw != null) {
+            if (payloadRaw!!.size > MAX_PAYLOAD_SIZE) {
+                throw IllegalStateException("Payload must be under $MAX_PAYLOAD_SIZE bytes but was ${payloadRaw!!.size}")
+            }
+            Payload(this.payloadRaw!!)
+        } else {
+            null
+        }
+
+        return UnsignedAtom(Atom(applicationId, particles, destinations, payload, encryptor, timestamp))
+    }
+
+    // Temporary method for testing
     fun build(): UnsignedAtom {
-        if (this.timestamp == null) {
-            this.timestamp = System.currentTimeMillis()
-        }
-
-        if (this.payloadRaw != null) {
-            this.payload = Payload(this.payloadRaw!!)
-        }
-
-        // TODO: add this check to when payloadRaw is first set
-        if (payload != null && payload!!.length() > MAX_PAYLOAD_SIZE) {
-            throw IllegalStateException("Payload must be under $MAX_PAYLOAD_SIZE bytes but was ${payload!!.length()}")
-        }
-
-        return UnsignedAtom(Atom(applicationId, particles, destinations, payload, encryptor, this.timestamp!!))
+        return this.build(System.currentTimeMillis())
     }
 
     companion object {

@@ -160,7 +160,7 @@ class RadixApplicationAPITest {
         `when`(okAtom.encryptor).thenReturn(encryptor)
         `when`(okAtom.payload).thenReturn(payload)
 
-        `when`(ledger.getAllAtoms(any(), any<Class<Atom>>())).thenReturn(Observable.just(errorAtom, okAtom))
+        `when`(ledger.getAllAtoms(any())).thenReturn(Observable.just(errorAtom, okAtom))
 
         val api = RadixApplicationAPI.create(identity, universe, ::AtomBuilder)
         val observer = TestObserver.create<Any>()
@@ -179,7 +179,7 @@ class RadixApplicationAPITest {
         `when`(universe.ledger).thenReturn(ledger)
         val api = RadixApplicationAPI.create(identity, universe, ::AtomBuilder)
 
-        `when`(ledger.getAllAtoms(any(), any<Class<Atom>>())).thenReturn(Observable.empty())
+        `when`(ledger.getAllAtoms(any())).thenReturn(Observable.empty())
 
         val observer = TestObserver.create<Long>()
 
@@ -196,7 +196,7 @@ class RadixApplicationAPITest {
         `when`(universe.ledger).thenReturn(ledger)
         val api = RadixApplicationAPI.create(identity, universe, ::AtomBuilder)
 
-        `when`(ledger.getAllAtoms(any(), any<Class<Atom>>())).thenReturn(Observable.empty())
+        `when`(ledger.getAllAtoms(any())).thenReturn(Observable.empty())
 
         val observer = TestObserver.create<Any>()
         api.transferTokens(address, address, Asset.XRD, 10).toCompletable().subscribe(observer)

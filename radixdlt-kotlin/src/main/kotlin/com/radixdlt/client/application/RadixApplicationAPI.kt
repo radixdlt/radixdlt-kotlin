@@ -67,7 +67,7 @@ class RadixApplicationAPI private constructor(
     }
 
     fun getReadableData(address: RadixAddress): Observable<UnencryptedData> {
-        return ledger.getAllAtoms(address.getUID(), Atom::class.java)
+        return ledger.getAllAtoms(address.getUID())
             .map { dataStoreTranslator.fromAtom(it) }
             .flatMapMaybe { data -> identity.decrypt(data).toMaybe().onErrorComplete() }
     }
@@ -105,7 +105,7 @@ class RadixApplicationAPI private constructor(
     fun getTokenTransfers(address: RadixAddress, tokenClass: Asset): Observable<TokenTransfer> {
         return Observables.combineLatest<TransactionAtoms, Atom, Observable<Atom>>(
             Observable.fromCallable { TransactionAtoms(address, tokenClass.id) },
-            ledger.getAllAtoms(address.getUID(), Atom::class.java)
+            ledger.getAllAtoms(address.getUID())
         ) { transactionAtoms, atom ->
             transactionAtoms.accept(atom).newValidTransactions
         }
