@@ -7,7 +7,7 @@ import com.google.gson.stream.JsonWriter
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixUniverseType
 import com.radixdlt.client.core.atoms.*
-import com.radixdlt.client.core.atoms.NullAtom.JunkParticle
+import com.radixdlt.client.core.atoms.JunkParticle
 import com.radixdlt.client.core.crypto.*
 import com.radixdlt.client.core.network.NodeRunnerData
 import com.radixdlt.client.core.util.Base64Encoded

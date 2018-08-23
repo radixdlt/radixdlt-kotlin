@@ -1,12 +1,10 @@
 package com.radixdlt.client.core.serialization
 
 import com.radixdlt.client.core.atoms.Atom
-import com.radixdlt.client.core.atoms.NullAtom
 import com.radixdlt.client.core.atoms.TransactionAtom
 
 enum class SerializedAtomType(val atomClass: Class<out Atom>, val serializer: Long) {
-    TRANSACTION(TransactionAtom::class.java, -760130L),
-    NULL(NullAtom::class.java, -1123323048L);
+    TRANSACTION(TransactionAtom::class.java, -760130L);
 
     companion object {
 
