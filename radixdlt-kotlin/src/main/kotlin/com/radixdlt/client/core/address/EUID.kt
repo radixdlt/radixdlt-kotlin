@@ -8,7 +8,7 @@ class EUID {
     private val value: Int128
 
     val shard: Long
-        get() = value.low
+        get() = value.high
 
     constructor(value: Int128) {
         this.value = value

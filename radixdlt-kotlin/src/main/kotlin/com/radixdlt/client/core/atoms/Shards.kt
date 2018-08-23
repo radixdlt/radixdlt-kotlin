@@ -9,7 +9,11 @@ class Shards private constructor(private val low: Long, private val high: Long) 
     }
 
     fun intersects(shards: Collection<Long>): Boolean {
-        return shards.asSequence().any { shard -> shard in low..high }
+        return shards.asSequence().any(this::contains)
+    }
+
+    operator fun contains(shard: Long): Boolean {
+        return shard in low..high
     }
 
     override fun toString(): String {
@@ -17,18 +21,24 @@ class Shards private constructor(private val low: Long, private val high: Long) 
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other == null || other !is Shards) {
+        if (other !is Shards) {
             return false
         }
 
-        val s = other as Shards?
-        return s!!.high == this.high && s.low == this.low
+        return other.high == this.high && other.low == this.low
     }
 
     override fun hashCode(): Int {
-        // TODO: fix HACK
-        return (low.toString() + "-" + high).hashCode()
+        return hashCode(this.high) * 31 + hashCode(this.low)
     }
+
+    /**
+     * Returns a hash code for a `long` value.
+     *
+     * @param value the value to hash
+     * @return a hash code value for a `long` value.
+     */
+    private fun hashCode(value: Long): Int = (value xor value.ushr(32)).toInt()
 
     companion object {
         @JvmStatic
