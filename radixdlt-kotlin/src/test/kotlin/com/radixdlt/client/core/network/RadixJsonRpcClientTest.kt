@@ -5,8 +5,8 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.PayloadAtom
 import com.radixdlt.client.core.atoms.Shards
-import com.radixdlt.client.core.atoms.TransactionAtom
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
 import com.radixdlt.client.core.network.WebSocketClient.RadixClientStatus
 import com.radixdlt.client.core.serialization.RadixJson
@@ -139,7 +139,7 @@ class RadixJsonRpcClientTest {
             val id = jsonObject.get("id").asString
 
             val atoms = JsonArray()
-            val atom = TransactionAtom("Test", emptyList(), emptySet(), null, null, 1)
+            val atom = PayloadAtom("Test", emptyList(), emptySet(), null, null, 1)
             atoms.add(gson.toJsonTree(atom, Atom::class.java))
 
             val response = JsonObject()
@@ -191,7 +191,7 @@ class RadixJsonRpcClientTest {
 
             val atoms = JsonArray()
             val atom = gson.toJsonTree(
-                TransactionAtom("Test", emptyList(), emptySet(), null, null, 1),
+                PayloadAtom("Test", emptyList(), emptySet(), null, null, 1),
                 Atom::class.java
             )
             atoms.add(atom)
@@ -204,9 +204,9 @@ class RadixJsonRpcClientTest {
         }.`when`(wsClient).send(any())
         val jsonRpcClient = RadixJsonRpcClient(wsClient)
 
-        val observer = TestObserver<TransactionAtom>()
+        val observer = TestObserver<PayloadAtom>()
 
-        jsonRpcClient.getAtoms(AtomQuery(EUID(1), TransactionAtom::class.java)).subscribe(observer)
+        jsonRpcClient.getAtoms(AtomQuery(EUID(1), PayloadAtom::class.java)).subscribe(observer)
 
         observer.assertNoErrors()
         observer.assertValueCount(1)
@@ -246,7 +246,7 @@ class RadixJsonRpcClientTest {
                 params.addProperty("subscriberId", subscriberId)
                 val atoms = JsonArray()
                 val atom = gson.toJsonTree(
-                    TransactionAtom("Test", emptyList(), emptySet(), null, null, 1),
+                    PayloadAtom("Test", emptyList(), emptySet(), null, null, 1),
                     Atom::class.java
                 )
                 atoms.add(atom)
@@ -261,9 +261,9 @@ class RadixJsonRpcClientTest {
         }.`when`(wsClient).send(any())
         val jsonRpcClient = RadixJsonRpcClient(wsClient)
 
-        val observer = TestObserver<TransactionAtom>()
+        val observer = TestObserver<PayloadAtom>()
 
-        jsonRpcClient.getAtoms(AtomQuery(EUID(1), TransactionAtom::class.java))
+        jsonRpcClient.getAtoms(AtomQuery(EUID(1), PayloadAtom::class.java))
             .subscribe(observer)
         observer.cancel()
 
@@ -316,7 +316,7 @@ class RadixJsonRpcClientTest {
         val observer = TestObserver<AtomSubmissionUpdate>()
 
         jsonRpcClient.submitAtom(
-            TransactionAtom("Test", emptyList(), emptySet(), null, null, 1)
+            PayloadAtom("Test", emptyList(), emptySet(), null, null, 1)
         ).subscribe(observer)
 
         observer.assertNoErrors()

@@ -11,17 +11,17 @@ class UnsignedAtom(val rawAtom: Atom) {
     fun sign(signature: ECSignature, signatureId: EUID): Atom {
         // TODO: Remove need to create a new object
         when (rawAtom) {
-            is TransactionAtom -> {
+            is PayloadAtom -> {
                 val unsigned = rawAtom
-                return TransactionAtom(
+                return PayloadAtom(
                     unsigned.applicationId,
                     unsigned.particles!!,
                     unsigned.destinations,
-                    unsigned.encrypted,
-                    unsigned.encryptor,
+                    unsigned.payload,
+                    unsigned.encryptor!!,
+                    rawAtom.timestamp,
                     signatureId,
-                    signature,
-                    rawAtom.timestamp
+                    signature
                 )
             }
             else -> throw IllegalStateException("Cannot create signed atom")

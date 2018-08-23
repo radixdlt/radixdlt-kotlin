@@ -5,7 +5,7 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.Consumer
-import com.radixdlt.client.core.atoms.TransactionAtom
+import com.radixdlt.client.core.atoms.PayloadAtom
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.util.any
@@ -26,7 +26,7 @@ class TransactionAtomsTest {
 
         /* Build atom with consumer originating from nowhere */
         val unsignedAtom = AtomBuilder()
-                .type(TransactionAtom::class.java)
+                .type(PayloadAtom::class.java)
                 .addParticle(Consumer(100, keyPair, 1, Asset.XRD.id))
                 .addParticle(Consumable(100, keyPair, 2, Asset.XRD.id))
                 .build()
@@ -58,14 +58,14 @@ class TransactionAtomsTest {
 
         /* Atom with consumer originating from nowhere */
         val unsignedAtom = AtomBuilder()
-                .type(TransactionAtom::class.java)
+                .type(PayloadAtom::class.java)
                 .addParticle(Consumer(100, keyPair, 1, Asset.XRD.id))
                 .addParticle(Consumable(100, keyPair, 2, Asset.XRD.id))
                 .build()
 
         /* Atom with consumable for previous atom's consumer */
         val unsignedAtom2 = AtomBuilder()
-                .type(TransactionAtom::class.java)
+                .type(PayloadAtom::class.java)
                 .addParticle(Consumer(100, otherKeyPair, 1, Asset.XRD.id))
                 .addParticle(Consumable(100, keyPair, 1, Asset.XRD.id))
                 .build()

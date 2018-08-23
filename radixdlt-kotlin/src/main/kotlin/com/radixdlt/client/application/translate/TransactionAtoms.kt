@@ -5,7 +5,7 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AbstractConsumable
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.Particle
-import com.radixdlt.client.core.atoms.TransactionAtom
+import com.radixdlt.client.core.atoms.PayloadAtom
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import org.slf4j.LoggerFactory
@@ -15,9 +15,9 @@ import java.util.concurrent.ConcurrentHashMap
 class TransactionAtoms(private val address: RadixAddress, private val assetId: EUID) {
 
     private val unconsumedConsumables = ConcurrentHashMap<ByteBuffer, Consumable>()
-    private val missingConsumable = ConcurrentHashMap<ByteBuffer, TransactionAtom>()
+    private val missingConsumable = ConcurrentHashMap<ByteBuffer, PayloadAtom>()
 
-    inner class TransactionAtomsUpdate internal constructor(val newValidTransactions: Observable<TransactionAtom>) {
+    inner class TransactionAtomsUpdate internal constructor(val newValidTransactions: Observable<PayloadAtom>) {
         fun getUnconsumedConsumables(): io.reactivex.Maybe<Collection<Consumable>> {
             return newValidTransactions.lastElement().map {
                 unconsumedConsumables.values
@@ -25,7 +25,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
         }
     }
 
-    private fun addConsumables(transactionAtom: TransactionAtom, emitter: ObservableEmitter<TransactionAtom>) {
+    private fun addConsumables(transactionAtom: PayloadAtom, emitter: ObservableEmitter<PayloadAtom>) {
         transactionAtom.particles!!.asSequence()
             .filter { it.isAbstractConsumable }
             .map { it.asAbstractConsumable }
@@ -34,7 +34,6 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
             .forEach { particle ->
                 val dson = ByteBuffer.wrap(particle.dson)
                 if (particle.isConsumable) {
-
                     unconsumedConsumables.computeSynchronisedFunction(dson) { _, current ->
                         if (current == null) {
                             particle.asConsumable
@@ -53,7 +52,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
             }
     }
 
-    private fun checkConsumers(transactionAtom: TransactionAtom, emitter: ObservableEmitter<TransactionAtom>) {
+    private fun checkConsumers(transactionAtom: PayloadAtom, emitter: ObservableEmitter<PayloadAtom>) {
         val missing: ByteBuffer? = transactionAtom.particles!!.asSequence()
             .filter(Particle::isAbstractConsumable)
             .map(Particle::asAbstractConsumable)
@@ -68,7 +67,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
         if (missing != null) {
             LOGGER.info("Missing consumable for atom: $transactionAtom")
 
-            missingConsumable.computeSynchronisedFunction(missing) { _: ByteBuffer, current: TransactionAtom? ->
+            missingConsumable.computeSynchronisedFunction(missing) { _: ByteBuffer, current: PayloadAtom? ->
                 if (current == null) {
                     transactionAtom
                 } else {
@@ -81,8 +80,8 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
         }
     }
 
-    fun accept(transactionAtom: TransactionAtom): TransactionAtomsUpdate {
-        val observable = Observable.create<TransactionAtom> { emitter ->
+    fun accept(transactionAtom: PayloadAtom): TransactionAtomsUpdate {
+        val observable = Observable.create<PayloadAtom> { emitter ->
             synchronized(this@TransactionAtoms) {
                 checkConsumers(transactionAtom, emitter)
             }

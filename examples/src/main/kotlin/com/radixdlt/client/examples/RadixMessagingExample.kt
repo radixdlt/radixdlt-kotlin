@@ -43,7 +43,7 @@ object RadixMessagingExample {
                 // Print out to console all received messages
                 messaging
                     .allMessages
-                    .subscribe { println(it) }
+                    .subscribe(::println, Throwable::printStackTrace)
 
             RadixMessagingExample.RadixMessagesQueryType.BY_CONVO ->
                 // Group messages by other address, useful for messaging apps
@@ -51,7 +51,7 @@ object RadixMessagingExample {
                     .allMessagesGroupedByParticipants
                     .subscribe { convo ->
                         println("New Conversation with: " + convo.key)
-                        convo.subscribe { println(it) }
+                        convo.subscribe(::println, Throwable::printStackTrace)
                     }
         }
 
@@ -59,6 +59,6 @@ object RadixMessagingExample {
         messaging
             .sendMessage(MESSAGE, toAddress)
             .toCompletable()
-            .subscribe { println("Submitted") }
+            .subscribe({ println("Submitted") }, Throwable::printStackTrace)
     }
 }

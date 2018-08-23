@@ -104,8 +104,8 @@ class AtomBuilder {
         }
 
         val atom: Atom
-        if (TransactionAtom::class.java.isAssignableFrom(atomClass!!)) {
-            atom = TransactionAtom(applicationId, particles, destinations, payload, encryptor, this.timestamp!!)
+        if (PayloadAtom::class.java.isAssignableFrom(atomClass!!)) {
+            atom = PayloadAtom(applicationId, particles, destinations, payload, encryptor, this.timestamp!!)
         } else {
             throw IllegalStateException("Unable to create atom with class: " + atomClass!!.simpleName)
         }

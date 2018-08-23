@@ -26,8 +26,8 @@ abstract class Atom {
     val shards: Set<Long>
         get() = destinations.asSequence().map(EUID::shard).toSet()
 
-    val asTransactionAtom: TransactionAtom
-        get() = this as TransactionAtom
+    val asTransactionAtom: PayloadAtom
+        get() = this as PayloadAtom
 
     val hash: RadixHash
         get() = RadixHash.of(Dson.instance.toDson(this))
@@ -122,6 +122,6 @@ abstract class Atom {
     }
 
     override fun toString(): String {
-        return "Atom hid($hid) destinations($destinations)"
+        return "Atom hid($hid) destinations($destinations) particles(${particles!!.size})"
     }
 }
