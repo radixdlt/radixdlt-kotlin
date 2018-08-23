@@ -42,11 +42,11 @@ object RadixWalletExample {
         val wallet = RadixWallet(api)
 
         // Print out all past and future transactions
-        wallet.xrdTransactions
+        wallet.getXRDTransactions()
             .subscribe { println(it) }
 
         // Subscribe to current and future total balance
-        wallet.xrdSubUnitBalance
+        wallet.getXRDSubUnitBalance()
             .subscribe { balance -> println("My Balance: " + balance / Asset.XRD.subUnits) }
 
         // If specified, send money to another address

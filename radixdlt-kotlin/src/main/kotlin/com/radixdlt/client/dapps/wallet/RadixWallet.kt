@@ -17,11 +17,9 @@ class RadixWallet(private val api: RadixApplicationAPI) {
         }
     }
 
-    val xrdSubUnitBalance: Observable<Long>
-        get() = this.getSubUnitBalance(api.address, Asset.XRD)
+    fun getXRDSubUnitBalance(): Observable<Long> = this.getSubUnitBalance(api.address, Asset.XRD)
 
-    val xrdTransactions: Observable<TokenTransfer>
-        get() = api.getTokenTransfers(api.address, Asset.XRD)
+    fun getXRDTransactions(): Observable<TokenTransfer> = api.getTokenTransfers(api.address, Asset.XRD)
 
     fun getSubUnitBalance(address: RadixAddress, tokenClass: Asset): Observable<Long> {
         return api.getSubUnitBalance(address, tokenClass)
