@@ -30,7 +30,7 @@ class DataStoreTranslator private constructor() {
         val metaData = HashMap<String, Any?>()
         metaData["timestamp"] = atom.timestamp
         metaData["signatures"] = atom.signatures
-        metaData["application"] = atom.dataParticle.application
+        metaData["application"] = atom.dataParticle.getMetaData("application")
         metaData["encrypted"] = atom.encryptor != null
 
         val encryptor: Encryptor? = if (atom.encryptor != null) {

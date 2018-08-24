@@ -7,7 +7,10 @@ import java.util.Arrays
 /**
  * Temporary class, will remove in the near future
  */
-class Payload(private val payload: ByteArray?) : Base64Encoded {
+class Payload(
+    // TODO: immutable byte array, a copy?
+    private val payload: ByteArray?
+) : Base64Encoded {
 
     val bytes: ByteArray
         get() = Arrays.copyOf(payload, payload!!.size)

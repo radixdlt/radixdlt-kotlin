@@ -7,23 +7,40 @@ import com.radixdlt.client.core.serialization.Dson
 import java.util.Collections
 import java.util.HashMap
 
+/**
+ * An atom is the fundamental atomic unit of storage on the ledger (similar to a block
+ * in a blockchain) and defines the actions that can be issued onto the ledger.
+ */
 class Atom {
 
-    val destinations: Set<EUID>
-
-    private val timestamps: Map<String, Long>
     val action: String?
 
+    /**
+     * This explicit use will be removed in the future
+     */
+    val destinations: Set<EUID>
+
+    /**
+     * This will be moved into a Chrono Particle in the future
+     */
+    private val timestamps: Map<String, Long>
+
+    /**
+     * This will be moved into a Transfer Particle in the future
+     */
     val particles: List<Particle>?
         get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
 
     val signatures: Map<String, ECSignature>?
 
-    @Transient
-    private var debug: MutableMap<String, Long>? = HashMap()
-
+    /**
+     * These will be moved into a more general particle list in the future
+     */
     val dataParticle: DataParticle?
     val encryptor: EncryptorParticle?
+
+    @Transient
+    private var debug: MutableMap<String, Long>? = HashMap()
 
     val shards: Set<Long>
         get() = destinations.asSequence().map(EUID::shard).toSet()
