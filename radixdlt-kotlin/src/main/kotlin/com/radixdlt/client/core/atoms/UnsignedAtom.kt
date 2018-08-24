@@ -12,10 +12,9 @@ class UnsignedAtom(val rawAtom: Atom) {
         // TODO: Remove need to create a new object
         val atom = rawAtom
         return Atom(
-            atom.applicationId!!,
+            atom.dataParticle,
             atom.particles!!,
             atom.destinations,
-            atom.payload,
             atom.encryptor!!,
             rawAtom.timestamp!!,
             signatureId,

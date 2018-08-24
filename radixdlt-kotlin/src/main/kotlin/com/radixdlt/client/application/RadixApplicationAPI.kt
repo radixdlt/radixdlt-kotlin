@@ -20,6 +20,7 @@ import com.radixdlt.client.core.ledger.RadixLedger
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
 import io.reactivex.Completable
+import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.observables.ConnectableObservable
@@ -49,7 +50,7 @@ class RadixApplicationAPI private constructor(
             this.completable = updates.filter { it.isComplete }
                 .firstOrError()
                 .flatMapCompletable { update ->
-                    if (update.getState() === AtomSubmissionState.STORED) {
+                    if (update.getState() == AtomSubmissionState.STORED) {
                         return@flatMapCompletable Completable.complete()
                     } else {
                         return@flatMapCompletable Completable.error(RuntimeException(update.message))
@@ -68,7 +69,8 @@ class RadixApplicationAPI private constructor(
 
     fun getReadableData(address: RadixAddress): Observable<UnencryptedData> {
         return ledger.getAllAtoms(address.getUID())
-            .map { dataStoreTranslator.fromAtom(it) }
+            .map(dataStoreTranslator::fromAtom)
+            .flatMapMaybe { data -> if (data is Data) Maybe.just(data) else Maybe.empty() }
             .flatMapMaybe { data -> identity.decrypt(data).toMaybe().onErrorComplete() }
     }
 

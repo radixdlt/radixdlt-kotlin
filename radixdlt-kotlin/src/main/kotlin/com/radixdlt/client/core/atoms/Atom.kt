@@ -23,8 +23,7 @@ class Atom {
     @Transient
     private var debug: MutableMap<String, Long>? = HashMap()
 
-    val applicationId: String?
-    val payload: Payload?
+    val dataParticle: DataParticle?
     val encryptor: Encryptor?
 
     val shards: Set<Long>
@@ -64,17 +63,15 @@ class Atom {
             .toList()
 
     constructor(
-        applicationId: String?,
+        dataParticle: DataParticle?,
         particles: List<Particle>,
         destinations: Set<EUID>,
-        bytes: Payload?,
         encryptor: Encryptor?,
         timestamp: Long
     ) {
-        this.applicationId = applicationId
+        this.dataParticle = dataParticle
         this.particles = particles
         this.destinations = destinations
-        this.payload = bytes
         this.encryptor = encryptor
         this.timestamps = Collections.singletonMap("default", timestamp)
         this.signatures = null
@@ -82,19 +79,17 @@ class Atom {
     }
 
     constructor(
-        applicationId: String,
+        dataParticle: DataParticle?,
         particles: List<Particle>,
         destinations: Set<EUID>,
-        bytes: Payload?,
         encryptor: Encryptor?,
         timestamp: Long,
         signatureId: EUID,
         signature: ECSignature
     ) {
-        this.applicationId = applicationId
+        this.dataParticle = dataParticle
         this.particles = particles
         this.destinations = destinations
-        this.payload = bytes
         this.encryptor = encryptor
         this.timestamps = Collections.singletonMap("default", timestamp)
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)

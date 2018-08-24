@@ -4,13 +4,16 @@ import com.radixdlt.client.core.util.Base64Encoded
 import org.bouncycastle.util.encoders.Base64
 import java.util.Arrays
 
-class Payload internal constructor(private val payload: ByteArray) : Base64Encoded {
+/**
+ * Temporary class, will remove in the near future
+ */
+class Payload(private val payload: ByteArray?) : Base64Encoded {
 
     val bytes: ByteArray
-        get() = Arrays.copyOf(payload, payload.size)
+        get() = Arrays.copyOf(payload, payload!!.size)
 
     fun length(): Int {
-        return payload.size
+        return payload!!.size
     }
 
     override fun base64(): String {
@@ -18,11 +21,11 @@ class Payload internal constructor(private val payload: ByteArray) : Base64Encod
     }
 
     override fun toByteArray(): ByteArray {
-        return Arrays.copyOf(payload, payload.size)
+        return Arrays.copyOf(payload, payload!!.size)
     }
 
     fun toAscii(): String {
-        return String(payload)
+        return String(payload!!)
     }
 
     companion object {

@@ -20,6 +20,7 @@ import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomFeeConsumable
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.Consumer
+import com.radixdlt.client.core.atoms.DataParticle
 import com.radixdlt.client.core.atoms.Emission
 import com.radixdlt.client.core.atoms.IdParticle
 import com.radixdlt.client.core.atoms.JunkParticle
@@ -130,6 +131,7 @@ object RadixJson {
         SERIALIZERS[ECKeyPair::class.java] = 547221307
         SERIALIZERS[ECSignature::class.java] = -434788200
         SERIALIZERS[Encryptor::class.java] = 105401064
+        SERIALIZERS[DataParticle::class.java] = 473758768
     }
 
     private val ECKEYPAIR_ADAPTER_FACTORY = object : TypeAdapterFactory {

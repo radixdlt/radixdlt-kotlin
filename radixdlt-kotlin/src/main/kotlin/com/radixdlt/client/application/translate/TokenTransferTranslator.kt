@@ -5,9 +5,11 @@ import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
+import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Consumable
-import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.DataParticle
+import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
@@ -55,7 +57,7 @@ class TokenTransferTranslator(
         }
 
         val attachment: Data?
-        if (atom.payload != null) {
+        if (atom.dataParticle != null) {
             val protectors: List<EncryptedPrivateKey> = if (atom.encryptor?.protectors != null) {
                 atom.encryptor.protectors
             } else {
@@ -63,7 +65,7 @@ class TokenTransferTranslator(
             }
             val metaData = HashMap<String, Any>()
             metaData["encrypted"] = !protectors.isEmpty()
-            attachment = Data.raw(atom.payload.bytes, metaData, protectors)
+            attachment = Data.raw(atom.dataParticle.bytes.bytes, metaData, protectors)
         } else {
             attachment = null
         }
@@ -79,7 +81,7 @@ class TokenTransferTranslator(
             .flatMapCompletable { unconsumedConsumables ->
 
                 if (tokenTransfer.attachment != null) {
-                    atomBuilder.payload(tokenTransfer.attachment.bytes!!)
+                    atomBuilder.setDataParticle(DataParticle(Payload(tokenTransfer.attachment.bytes!!), null))
                     if (!tokenTransfer.attachment.protectors.isEmpty()) {
                         atomBuilder.protectors(tokenTransfer.attachment.protectors)
                     }

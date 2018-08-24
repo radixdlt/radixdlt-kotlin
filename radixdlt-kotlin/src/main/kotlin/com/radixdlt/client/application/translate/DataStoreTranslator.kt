@@ -4,6 +4,8 @@ import com.radixdlt.client.application.actions.DataStore
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.DataParticle
+import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import io.reactivex.Completable
 import java.util.HashMap
@@ -11,22 +13,19 @@ import java.util.HashMap
 class DataStoreTranslator private constructor() {
 
     fun translate(dataStore: DataStore, atomBuilder: AtomBuilder): Completable {
-        atomBuilder.payload(dataStore.data.bytes)
+        val payload = Payload(dataStore.data.bytes)
+        val application = dataStore.data.getMetaData()["application"] as String?
 
-        if (!dataStore.data.protectors.isEmpty()) {
-            atomBuilder.protectors(dataStore.data.protectors)
-        }
-
-        if (dataStore.data.getMetaData().containsKey("application")) {
-            atomBuilder.applicationId(dataStore.data.getMetaData()["application"] as String)
-        }
-
+        atomBuilder.setDataParticle(DataParticle(payload, application))
         dataStore.getAddresses().forEach { atomBuilder.addDestination(it) }
 
         return Completable.complete()
     }
 
-    fun fromAtom(atom: Atom): Data {
+    fun fromAtom(atom: Atom): Any {
+        if (atom.dataParticle == null) {
+            return Any()
+        }
         val protectors: List<EncryptedPrivateKey> = if (atom.encryptor?.protectors != null) {
             atom.encryptor.protectors
         } else {
@@ -35,11 +34,11 @@ class DataStoreTranslator private constructor() {
 
         val metaData = HashMap<String, Any?>()
         metaData["timestamp"] = atom.timestamp
-        metaData["signatures"] = atom.signatures!!
-        metaData["application"] = atom.applicationId
+        metaData["signatures"] = atom.signatures
+        metaData["application"] = atom.dataParticle.application
         metaData["encrypted"] = protectors.isNotEmpty()
 
-        return Data.raw(atom.payload?.bytes, metaData, protectors)
+        return Data.raw(atom.dataParticle.bytes.bytes, metaData, protectors)
     }
 
     companion object {
