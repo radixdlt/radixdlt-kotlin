@@ -7,7 +7,7 @@ class DataParticle(
     /**
      * Arbitrary data, possibly encrypted
      */
-    val bytes: Payload,
+    val bytes: Payload?,
     /**
      * Temporary property specifying the application this data particle
      * was meant for. Will change into some kind of metaData in the future.

@@ -3,7 +3,6 @@ package com.radixdlt.client.core.atoms
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
-import com.radixdlt.client.core.crypto.Encryptor
 import com.radixdlt.client.core.serialization.Dson
 import java.util.Collections
 import java.util.HashMap
@@ -24,7 +23,7 @@ class Atom {
     private var debug: MutableMap<String, Long>? = HashMap()
 
     val dataParticle: DataParticle?
-    val encryptor: Encryptor?
+    val encryptor: EncryptorParticle?
 
     val shards: Set<Long>
         get() = destinations.asSequence().map(EUID::shard).toSet()
@@ -66,7 +65,7 @@ class Atom {
         dataParticle: DataParticle?,
         particles: List<Particle>,
         destinations: Set<EUID>,
-        encryptor: Encryptor?,
+        encryptor: EncryptorParticle?,
         timestamp: Long
     ) {
         this.dataParticle = dataParticle
@@ -82,7 +81,7 @@ class Atom {
         dataParticle: DataParticle?,
         particles: List<Particle>,
         destinations: Set<EUID>,
-        encryptor: Encryptor?,
+        encryptor: EncryptorParticle?,
         timestamp: Long,
         signatureId: EUID,
         signature: ECSignature

@@ -22,6 +22,7 @@ import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.Consumer
 import com.radixdlt.client.core.atoms.DataParticle
 import com.radixdlt.client.core.atoms.Emission
+import com.radixdlt.client.core.atoms.EncryptorParticle
 import com.radixdlt.client.core.atoms.IdParticle
 import com.radixdlt.client.core.atoms.JunkParticle
 import com.radixdlt.client.core.atoms.Particle
@@ -30,7 +31,6 @@ import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
-import com.radixdlt.client.core.crypto.Encryptor
 import com.radixdlt.client.core.network.NodeRunnerData
 import com.radixdlt.client.core.util.Base64Encoded
 import com.radixdlt.client.core.util.Int128
@@ -130,7 +130,7 @@ object RadixJson {
         SERIALIZERS[Atom::class.java] = 2019665
         SERIALIZERS[ECKeyPair::class.java] = 547221307
         SERIALIZERS[ECSignature::class.java] = -434788200
-        SERIALIZERS[Encryptor::class.java] = 105401064
+        SERIALIZERS[EncryptorParticle::class.java] = 105401064
         SERIALIZERS[DataParticle::class.java] = 473758768
     }
 

@@ -6,7 +6,7 @@ import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.DataParticle
 import com.radixdlt.client.core.atoms.Payload
-import com.radixdlt.client.core.crypto.EncryptedPrivateKey
+import com.radixdlt.client.core.crypto.Encryptor
 import io.reactivex.Completable
 import java.util.HashMap
 
@@ -26,19 +26,20 @@ class DataStoreTranslator private constructor() {
         if (atom.dataParticle == null) {
             return Any()
         }
-        val protectors: List<EncryptedPrivateKey> = if (atom.encryptor?.protectors != null) {
-            atom.encryptor.protectors
-        } else {
-            emptyList()
-        }
 
         val metaData = HashMap<String, Any?>()
         metaData["timestamp"] = atom.timestamp
         metaData["signatures"] = atom.signatures
         metaData["application"] = atom.dataParticle.application
-        metaData["encrypted"] = protectors.isNotEmpty()
+        metaData["encrypted"] = atom.encryptor != null
 
-        return Data.raw(atom.dataParticle.bytes.bytes, metaData, protectors)
+        val encryptor: Encryptor? = if (atom.encryptor != null) {
+            Encryptor(atom.encryptor.protectors)
+        } else {
+            null
+        }
+
+        return Data.raw(atom.dataParticle.bytes?.bytes, metaData, encryptor)
     }
 
     companion object {

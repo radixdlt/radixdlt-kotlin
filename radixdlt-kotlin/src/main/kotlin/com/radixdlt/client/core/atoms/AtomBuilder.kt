@@ -3,8 +3,6 @@ package com.radixdlt.client.core.atoms
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.crypto.ECPublicKey
-import com.radixdlt.client.core.crypto.EncryptedPrivateKey
-import com.radixdlt.client.core.crypto.Encryptor
 import java.util.ArrayList
 import java.util.HashSet
 
@@ -12,7 +10,7 @@ class AtomBuilder {
 
     private val destinations = HashSet<EUID>()
     private val particles = ArrayList<Particle>()
-    private var encryptor: Encryptor? = null
+    private var encryptor: EncryptorParticle? = null
     private var dataParticle: DataParticle? = null
 
     fun addDestination(euid: EUID): AtomBuilder {
@@ -29,8 +27,8 @@ class AtomBuilder {
         return this
     }
 
-    fun protectors(protectors: List<EncryptedPrivateKey>): AtomBuilder {
-        this.encryptor = Encryptor(protectors)
+    fun setEncryptorParticle(encryptor: EncryptorParticle): AtomBuilder {
+        this.encryptor = encryptor
         return this
     }
 

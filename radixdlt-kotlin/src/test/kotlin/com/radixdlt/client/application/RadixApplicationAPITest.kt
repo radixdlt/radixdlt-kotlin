@@ -11,11 +11,11 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.DataParticle
+import com.radixdlt.client.core.atoms.EncryptorParticle
 import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.CryptoException
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
-import com.radixdlt.client.core.crypto.Encryptor
 import com.radixdlt.client.core.ledger.RadixLedger
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
@@ -37,7 +37,7 @@ class RadixApplicationAPITest {
         val identity = mock(RadixIdentity::class.java)
 
         val atomBuilder = mock(AtomBuilder::class.java)
-        `when`(atomBuilder.protectors(any())).thenReturn(atomBuilder)
+        `when`(atomBuilder.setEncryptorParticle(any())).thenReturn(atomBuilder)
         `when`(atomBuilder.setDataParticle(any())).thenReturn(atomBuilder)
         val atom = mock(Atom::class.java)
         `when`(identity.sign(any())).thenReturn(Single.just(atom))
@@ -167,7 +167,7 @@ class RadixApplicationAPITest {
             .thenReturn(Single.error(CryptoException("Can't decrypt")))
             .thenReturn(Single.just(unencryptedData))
 
-        val encryptor = mock(Encryptor::class.java)
+        val encryptor = mock(EncryptorParticle::class.java)
         val protector = mock(EncryptedPrivateKey::class.java)
         `when`(encryptor.protectors).thenReturn(listOf(protector))
 
