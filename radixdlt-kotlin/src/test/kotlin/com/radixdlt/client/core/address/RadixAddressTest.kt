@@ -7,8 +7,6 @@ import org.bouncycastle.util.encoders.DecoderException
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.math.BigInteger
-import java.util.*
 
 class RadixAddressTest {
 
@@ -39,7 +37,7 @@ class RadixAddressTest {
 
     @Test
     fun testAddresses() {
-        val addresses = Arrays.asList(
+        val addresses = listOf(
                 "JHB89drvftPj6zVCNjnaijURk8D8AMFw4mVja19aoBGmRXWchnJ"
         )
 

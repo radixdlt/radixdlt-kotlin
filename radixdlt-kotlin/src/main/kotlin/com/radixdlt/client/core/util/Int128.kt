@@ -240,7 +240,7 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
      * Compares `this` and `n` numerically treating the values
      * as unsigned.
      *
-     * @param  n the second [Int128] to compare.
+     * @param n the second [Int128] to compare.
      * @return the value `0` if `this == n`; a value less
      * than `0` if `this < n` as unsigned values; and
      * a value greater than `0` if `this > n` as
@@ -258,8 +258,8 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
      * Compares two `long` values numerically treating the values
      * as unsigned.
      *
-     * @param  x the first `long` to compare
-     * @param  y the second `long` to compare
+     * @param x the first `long` to compare
+     * @param y the second `long` to compare
      * @return the value `0` if `x == y`; a value less
      * than `0` if `x < y` as unsigned values; and
      * a value greater than `0` if `x > y` as
@@ -485,8 +485,7 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
     private fun hashCode(value: Long): Int = (value xor value.ushr(32)).toInt()
 
     private fun unsignedLong(mostSignificantBits: Long, leastSignificantBits: Long) =
-            (mostSignificantBits shl 32) or leastSignificantBits
-
+        (mostSignificantBits shl 32) or leastSignificantBits
 
     companion object {
         private val serialVersionUID = 8627474700385282074L
@@ -565,7 +564,7 @@ class Int128 private constructor(val high: Long, val low: Long) : Number(), Comp
          * significant.
          *
          * @param high The most significant word of the 128 bit value.
-         * @param low  The least significant word of the 128 bit value.
+         * @param low The least significant word of the 128 bit value.
          * @return `(high << 64) | low` as an [Int128] type.
          */
         fun from(high: Long, low: Long): Int128 {
