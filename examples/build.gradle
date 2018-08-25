@@ -1,4 +1,4 @@
-version 'unspecified'
+version = rootProject.version
 
 buildscript {
     ext.kotlin_version = '1.2.60'

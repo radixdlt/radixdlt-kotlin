@@ -4,17 +4,20 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.radixdlt.client.application.RadixApplicationAPI
 import com.radixdlt.client.application.RadixApplicationAPI.Result
+import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.crypto.ECSignature
-import com.radixdlt.client.application.identity.RadixIdentity
 import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.observables.GroupedObservable
 import org.slf4j.LoggerFactory
 import java.util.Objects
 
+/**
+ * High Level API for Instant Messaging. Currently being used by the Radix Android Mobile Wallet.
+ */
 class RadixMessaging(private val api: RadixApplicationAPI) {
 
     private val identity: RadixIdentity = api.identity
