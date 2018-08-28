@@ -18,6 +18,7 @@ import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.TransactionAtom
 import com.radixdlt.client.core.atoms.UnsignedAtom
+import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.ledger.RadixLedger
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
@@ -47,6 +48,9 @@ class RadixApplicationAPI private constructor(
 
     val myAddress: RadixAddress
         get() = ledger.getAddressFromPublicKey(myIdentity.getPublicKey())
+
+    val myPublicKey: ECPublicKey
+        get() = myIdentity.getPublicKey()
 
     class Result internal constructor(private val updates: Observable<AtomSubmissionUpdate>) {
         private val completable: Completable
