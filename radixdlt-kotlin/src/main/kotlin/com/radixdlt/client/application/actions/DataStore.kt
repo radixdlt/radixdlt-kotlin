@@ -6,7 +6,7 @@ import java.util.Arrays
 import java.util.Collections
 
 /**
- * An Application Layer Action object which stores data into an address or multiple addresses.
+ * An Application Layer Action object which stores data into an myAddress or multiple addresses.
  */
 class DataStore {
     val data: Data

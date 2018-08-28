@@ -24,7 +24,7 @@ class ConsumableDataSource(private val ledger: RadixLedger) {
         return cache.computeIfAbsentSynchronisedFunction(address) { addr ->
             Observable.just<Collection<Consumable>>(emptySet()).concatWith(
                 Observables.combineLatest<TransactionAtoms, TransactionAtom, Maybe<Collection<Consumable>>>(
-                    Observable.fromCallable { TransactionAtoms(address, Asset.XRD.id) },
+                    Observable.fromCallable { TransactionAtoms(address, Asset.TEST.id) },
                     ledger.getAllAtoms(address.getUID(), TransactionAtom::class.java)
                 ) { transactionAtoms, atom ->
                     transactionAtoms.accept(atom)

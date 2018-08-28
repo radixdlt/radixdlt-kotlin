@@ -1,13 +1,15 @@
 package com.radixdlt.client.application.translate
 
+import com.radixdlt.client.assets.Amount
 import com.radixdlt.client.assets.Asset
-import com.radixdlt.client.assets.AssetAmount
 
 class InsufficientFundsException(
     private val asset: Asset,
     val available: Long,
     val requestedAmount: Long
-) : Exception("Requested ${AssetAmount(asset, requestedAmount)} but only ${AssetAmount(asset, available)} available.") {
+) : Exception(
+    "Requested ${Amount.subUnitsOf(requestedAmount, asset)} but only ${Amount.subUnitsOf(available, asset)} available."
+) {
 
     override fun equals(other: Any?): Boolean {
         if (other !is InsufficientFundsException) {

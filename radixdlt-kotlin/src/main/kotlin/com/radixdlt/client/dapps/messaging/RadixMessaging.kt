@@ -20,8 +20,8 @@ import java.util.Objects
  */
 class RadixMessaging(private val api: RadixApplicationAPI) {
 
-    private val identity: RadixIdentity = api.identity
-    private val myAddress: RadixAddress = api.address
+    private val identity: RadixIdentity = api.myIdentity
+    private val myAddress: RadixAddress = api.myAddress
     private val parser = JsonParser()
 
     val allMessages: Observable<RadixMessage>

@@ -4,8 +4,8 @@
 //import com.radixdlt.client.core.Bootstrap
 //import com.radixdlt.client.core.RadixUniverse
 //import com.radixdlt.client.core.address.RadixAddress
-//import com.radixdlt.client.application.identity.RadixIdentity
-//import com.radixdlt.client.application.identity.SimpleRadixIdentity
+//import com.radixdlt.client.application.myIdentity.RadixIdentity
+//import com.radixdlt.client.application.myIdentity.SimpleRadixIdentity
 //import com.radixdlt.client.core.network.AtomSubmissionUpdate
 //import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
 //import com.radixdlt.client.dapps.messaging.RadixMessage
@@ -27,7 +27,7 @@
 ///**
 // * A faucet created on the default universe
 // *
-// * @param radixIdentity identity to load faucet off of
+// * @param radixIdentity myIdentity to load faucet off of
 // */
 //private constructor(
 //    /**
@@ -75,7 +75,7 @@
 //        val address = message.from
 //        val timestamp = System.currentTimeMillis()
 //
-//        if (this.recipientTimestamps.containsKey(address) && timestamp - this.recipientTimestamps[address]!! < DELAY) {
+//        if (this.recipientTimestamps.containsKey(myAddress) && timestamp - this.recipientTimestamps[myAddress]!! < DELAY) {
 //            val timeSince = timestamp - this.recipientTimestamps[address]!!
 //            if (timeSince < DELAY) {
 //                val secondsTimeLeft = (DELAY - timeSince) / 1000 % 60

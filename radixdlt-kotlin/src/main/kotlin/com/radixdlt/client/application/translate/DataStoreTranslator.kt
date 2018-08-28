@@ -44,6 +44,7 @@ class DataStoreTranslator private constructor() {
     }
 
     companion object {
+        @JvmStatic
         val instance = DataStoreTranslator()
     }
 }
