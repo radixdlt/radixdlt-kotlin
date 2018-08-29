@@ -17,6 +17,7 @@ import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.Arrays
+import java.util.HashMap
 
 class Dson private constructor() {
 
@@ -145,8 +146,12 @@ class Dson private constructor() {
             raw = o
             type = 4
         } else if (o is Map<*, *>) {
-
             val map = o as Map<*, *>?
+
+            if (map is HashMap<*, *>) {
+                throw IllegalStateException("Cannot DSON serialize HashMap. Must be a predictably ordered map.")
+            }
+
             val fieldStream: Sequence<DsonField> = map!!.keys.asSequence().map { key ->
                 object : DsonField {
                     override val name: String
