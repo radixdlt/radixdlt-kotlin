@@ -29,7 +29,7 @@ repositories {
 ```
 ```
 dependencies {
-    implementation 'com.radixdlt:radixdlt-kotlin:v0.9.4' // NEED TO SETUP
+    implementation 'com.radixdlt:radixdlt-kotlin:v0.10.0' // NEED TO SETUP
 }
 ```
 
@@ -65,7 +65,7 @@ DAPP creation easier.
 
 To initialize the API:
 ```
-RadixUniverse.bootstrap(Bootstrap.ALPHANET) // This must be called before api create()
+RadixUniverse.bootstrap(Bootstrap.ALPHANET) // This must be called before RadixApplicationAPI.create()
 val api: RadixApplicationAPI = RadixApplicationAPI.create(identity)
 ```
 
