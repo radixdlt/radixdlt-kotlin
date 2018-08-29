@@ -21,8 +21,6 @@ class RadixLedgerTest {
     @Throws(Exception::class)
     fun testFilterOutDuplicateAtoms() {
         val atom = AtomBuilder()
-            .applicationId("Test")
-            .payload("Hello")
             .addDestination(EUID(1))
             .build()
             .rawAtom

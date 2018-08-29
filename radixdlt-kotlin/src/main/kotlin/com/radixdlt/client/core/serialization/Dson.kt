@@ -148,7 +148,7 @@ class Dson private constructor() {
         } else if (o is Map<*, *>) {
             val map = o as Map<*, *>?
 
-            if (map is HashMap<*, *>) {
+            if (HashMap::class.java == o.javaClass) {
                 throw IllegalStateException("Cannot DSON serialize HashMap. Must be a predictably ordered map.")
             }
 

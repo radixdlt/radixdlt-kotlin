@@ -2,9 +2,8 @@ package com.radixdlt.client.application.objects
 
 import com.radixdlt.client.core.crypto.ECKeyPairGenerator
 import com.radixdlt.client.core.crypto.ECPublicKey
-import com.radixdlt.client.core.crypto.EncryptedPrivateKey
+import com.radixdlt.client.core.crypto.Encryptor
 import org.bouncycastle.util.encoders.Base64
-import java.util.ArrayList
 import java.util.Collections
 import java.util.LinkedHashMap
 
@@ -15,13 +14,13 @@ class Data private constructor(
     val bytes: ByteArray?,
     private val metaData: Map<String, Any?>,
     // TODO: make unmodifiable
-    val protectors: List<EncryptedPrivateKey>
+    val encryptor: Encryptor?
 ) {
 
     class DataBuilder {
         private val metaData = LinkedHashMap<String, Any?>()
         private var bytes: ByteArray? = null
-        private val readers = ArrayList<ECPublicKey>()
+        private val encryptorBuilder = Encryptor.EncryptorBuilder()
         private var isPublicReadable: Boolean = false
 
         fun metaData(key: String, value: Any): DataBuilder {
@@ -35,7 +34,7 @@ class Data private constructor(
         }
 
         fun addReader(reader: ECPublicKey): DataBuilder {
-            readers.add(reader)
+            encryptorBuilder.addReader(reader)
             return this
         }
 
@@ -46,26 +45,25 @@ class Data private constructor(
 
         fun build(): Data {
             val bytes: ByteArray?
-            val protectors: List<EncryptedPrivateKey>
+            val encryptor: Encryptor?
 
             if (isPublicReadable) {
-                protectors = emptyList()
+                encryptor = null
                 bytes = this.bytes
                 metaData["encrypted"] = false
             } else {
-                if (readers.isEmpty()) {
+                if (encryptorBuilder.numReaders == 0) {
                     throw IllegalStateException("Must either be publicReadable or have at least one reader.")
                 }
 
                 val sharedKey = ECKeyPairGenerator.newInstance().generateKeyPair()
-                protectors = readers.asSequence().map {
-                    sharedKey.encryptPrivateKey(it)
-                }.toList()
+                encryptorBuilder.sharedKey(sharedKey)
+                encryptor = encryptorBuilder.build()
                 bytes = sharedKey.getPublicKey().encrypt(this.bytes!!)
                 metaData["encrypted"] = true
             }
 
-            return Data(bytes!!, metaData, protectors)
+            return Data(bytes!!, metaData, encryptor)
         }
     }
 
@@ -83,8 +81,8 @@ class Data private constructor(
 
         // TODO: Cleanup this interface
         @JvmStatic
-        fun raw(bytes: ByteArray?, metaData: Map<String, Any?>, protectors: List<EncryptedPrivateKey>): Data {
-            return Data(bytes, metaData, protectors)
+        fun raw(bytes: ByteArray?, metaData: Map<String, Any?>, encryptor: Encryptor?): Data {
+            return Data(bytes, metaData, encryptor)
         }
     }
 }

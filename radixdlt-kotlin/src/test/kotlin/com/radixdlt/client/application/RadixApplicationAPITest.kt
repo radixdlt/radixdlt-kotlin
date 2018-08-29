@@ -10,11 +10,12 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.DataParticle
+import com.radixdlt.client.core.atoms.EncryptorParticle
 import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.CryptoException
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
-import com.radixdlt.client.core.crypto.Encryptor
 import com.radixdlt.client.core.ledger.RadixLedger
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
@@ -36,8 +37,8 @@ class RadixApplicationAPITest {
         val identity = mock(RadixIdentity::class.java)
 
         val atomBuilder = mock(AtomBuilder::class.java)
-        `when`(atomBuilder.protectors(any())).thenReturn(atomBuilder)
-        `when`(atomBuilder.payload(any(ByteArray::class.java))).thenReturn(atomBuilder)
+        `when`(atomBuilder.setEncryptorParticle(any())).thenReturn(atomBuilder)
+        `when`(atomBuilder.setDataParticle(any())).thenReturn(atomBuilder)
         val atom = mock(Atom::class.java)
         `when`(identity.sign(any())).thenReturn(Single.just(atom))
 
@@ -134,6 +135,26 @@ class RadixApplicationAPITest {
     }
 
     @Test
+    fun testZeroAtomsWithData() {
+        val identity = mock(RadixIdentity::class.java)
+        val ledger = mock(RadixLedger::class.java)
+        val universe = mock(RadixUniverse::class.java)
+        `when`(universe.ledger).thenReturn(ledger)
+        val address = mock(RadixAddress::class.java)
+        val atom = mock(Atom::class.java)
+        `when`(atom.dataParticle).thenReturn(null)
+
+        `when`(ledger.getAllAtoms(any())).thenReturn(Observable.just(atom, atom, atom))
+
+        val api = RadixApplicationAPI.create(identity, universe) { AtomBuilder() }
+        val observer = TestObserver.create<UnencryptedData>()
+        api.getReadableData(address).subscribe(observer)
+        observer.assertValueCount(0)
+        observer.assertComplete()
+        observer.assertNoErrors()
+    }
+
+    @Test
     fun testUndecryptableData() {
         val identity = mock(RadixIdentity::class.java)
         val ledger = mock(RadixLedger::class.java)
@@ -146,19 +167,21 @@ class RadixApplicationAPITest {
             .thenReturn(Single.error(CryptoException("Can't decrypt")))
             .thenReturn(Single.just(unencryptedData))
 
-        val encryptor = mock(Encryptor::class.java)
+        val encryptor = mock(EncryptorParticle::class.java)
         val protector = mock(EncryptedPrivateKey::class.java)
         `when`(encryptor.protectors).thenReturn(listOf(protector))
 
         val payload = mock(Payload::class.java)
+        val dataParticle = mock(DataParticle::class.java)
+        `when`(dataParticle.bytes).thenReturn(payload)
 
         val errorAtom = mock(Atom::class.java)
         `when`(errorAtom.encryptor).thenReturn(encryptor)
-        `when`(errorAtom.payload).thenReturn(payload)
+        `when`(errorAtom.dataParticle).thenReturn(dataParticle)
 
         val okAtom = mock(Atom::class.java)
         `when`(okAtom.encryptor).thenReturn(encryptor)
-        `when`(okAtom.payload).thenReturn(payload)
+        `when`(okAtom.dataParticle).thenReturn(dataParticle)
 
         `when`(ledger.getAllAtoms(any())).thenReturn(Observable.just(errorAtom, okAtom))
 

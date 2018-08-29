@@ -41,7 +41,7 @@ constructor(myKeyFile: File) : RadixIdentity {
     override fun decrypt(data: Data): Single<UnencryptedData> {
         val encrypted = data.getMetaData()["encrypted"] as Boolean
         if (encrypted) {
-            for (protector in data.protectors) {
+            for (protector in data.encryptor!!.protectors) {
                 // TODO: remove exception catching
                 try {
                     val bytes = myKey.decrypt(data.bytes!!, protector)

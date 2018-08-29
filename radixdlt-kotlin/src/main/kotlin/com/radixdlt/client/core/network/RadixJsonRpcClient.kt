@@ -265,7 +265,9 @@ class RadixJsonRpcClient(
                         } else {
                             message = null
                         }
-                        AtomSubmissionUpdate.now(atom.hid, state, message)
+                        val update = AtomSubmissionUpdate.create(atom.hid, state, message)
+                        update.putMetaData("jsonRpcParams", params)
+                        return@map update
                     }
                     .takeUntil { it.isComplete }
                     .subscribe(
@@ -276,12 +278,12 @@ class RadixJsonRpcClient(
 
                 val methodDisposable = this.jsonRpcCall("Universe.submitAtomAndSubscribe", params)
                     .doOnSubscribe {
-                        emitter.onNext(AtomSubmissionUpdate.now(atom.hid, AtomSubmissionState.SUBMITTING))
+                        emitter.onNext(AtomSubmissionUpdate.create(atom.hid, AtomSubmissionState.SUBMITTING))
                     }
                     .subscribe(
                         {
                             emitter.onNext(
-                                AtomSubmissionUpdate.now(
+                                AtomSubmissionUpdate.create(
                                     atom.hid,
                                     AtomSubmissionState.SUBMITTED
                                 )
@@ -289,7 +291,7 @@ class RadixJsonRpcClient(
                         },
                         {
                             emitter.onNext(
-                                AtomSubmissionUpdate.now(
+                                AtomSubmissionUpdate.create(
                                     atom.hid,
                                     AtomSubmissionState.FAILED,
                                     it.message

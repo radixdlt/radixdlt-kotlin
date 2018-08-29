@@ -3,8 +3,6 @@ package com.radixdlt.client.core.atoms
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.crypto.ECPublicKey
-import com.radixdlt.client.core.crypto.EncryptedPrivateKey
-import com.radixdlt.client.core.crypto.Encryptor
 import java.util.ArrayList
 import java.util.HashSet
 
@@ -12,9 +10,8 @@ class AtomBuilder {
 
     private val destinations = HashSet<EUID>()
     private val particles = ArrayList<Particle>()
-    private var applicationId: String? = null
-    private var payloadRaw: ByteArray? = null
-    private var encryptor: Encryptor? = null
+    private var encryptor: EncryptorParticle? = null
+    private var dataParticle: DataParticle? = null
 
     fun addDestination(euid: EUID): AtomBuilder {
         this.destinations.add(euid)
@@ -25,22 +22,13 @@ class AtomBuilder {
         return this.addDestination(address.getUID())
     }
 
-    fun applicationId(applicationId: String): AtomBuilder {
-        this.applicationId = applicationId
+    fun setDataParticle(dataParticle: DataParticle): AtomBuilder {
+        this.dataParticle = dataParticle
         return this
     }
 
-    fun payload(payloadRaw: ByteArray?): AtomBuilder {
-        this.payloadRaw = payloadRaw
-        return this
-    }
-
-    fun payload(payloadRaw: String): AtomBuilder {
-        return this.payload(payloadRaw.toByteArray())
-    }
-
-    fun protectors(protectors: List<EncryptedPrivateKey>): AtomBuilder {
-        this.encryptor = Encryptor(protectors)
+    fun setEncryptorParticle(encryptor: EncryptorParticle): AtomBuilder {
+        this.encryptor = encryptor
         return this
     }
 
@@ -76,24 +64,11 @@ class AtomBuilder {
     }
 
     fun build(timestamp: Long): UnsignedAtom {
-        val payload: Payload? = if (this.payloadRaw != null) {
-            if (payloadRaw!!.size > MAX_PAYLOAD_SIZE) {
-                throw IllegalStateException("Payload must be under $MAX_PAYLOAD_SIZE bytes but was ${payloadRaw!!.size}")
-            }
-            Payload(this.payloadRaw!!)
-        } else {
-            null
-        }
-
-        return UnsignedAtom(Atom(applicationId, particles, destinations, payload, encryptor, timestamp))
+        return UnsignedAtom(Atom(dataParticle, particles, destinations, encryptor, timestamp))
     }
 
     // Temporary method for testing
     fun build(): UnsignedAtom {
         return this.build(System.currentTimeMillis())
-    }
-
-    companion object {
-        private const val MAX_PAYLOAD_SIZE = 1028
     }
 }

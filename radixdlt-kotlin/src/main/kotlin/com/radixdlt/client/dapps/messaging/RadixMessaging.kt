@@ -42,6 +42,7 @@ class RadixMessaging(private val api: RadixApplicationAPI) {
                     )
                 } catch (e: Exception) {
                     LOGGER.warn(e.message)
+                    LOGGER.warn(String(data.data))
                     return@flatMapMaybe Maybe.empty<RadixMessage>()
                 }
             }

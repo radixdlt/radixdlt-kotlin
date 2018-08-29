@@ -3,29 +3,44 @@ package com.radixdlt.client.core.atoms
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
-import com.radixdlt.client.core.crypto.Encryptor
 import com.radixdlt.client.core.serialization.Dson
 import java.util.Collections
 import java.util.HashMap
 
+/**
+ * An atom is the fundamental atomic unit of storage on the ledger (similar to a block
+ * in a blockchain) and defines the actions that can be issued onto the ledger.
+ */
 class Atom {
 
-    val destinations: Set<EUID>
-
-    private val timestamps: Map<String, Long>
     val action: String?
 
+    /**
+     * This explicit use will be removed in the future
+     */
+    val destinations: Set<EUID>
+
+    /**
+     * This will be moved into a Chrono Particle in the future
+     */
+    private val timestamps: Map<String, Long>
+
+    /**
+     * This will be moved into a Transfer Particle in the future
+     */
     val particles: List<Particle>?
         get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
 
     val signatures: Map<String, ECSignature>?
 
+    /**
+     * These will be moved into a more general particle list in the future
+     */
+    val dataParticle: DataParticle?
+    val encryptor: EncryptorParticle?
+
     @Transient
     private var debug: MutableMap<String, Long>? = HashMap()
-
-    val applicationId: String?
-    val payload: Payload?
-    val encryptor: Encryptor?
 
     val shards: Set<Long>
         get() = destinations.asSequence().map(EUID::shard).toSet()
@@ -64,17 +79,15 @@ class Atom {
             .toList()
 
     constructor(
-        applicationId: String?,
+        dataParticle: DataParticle?,
         particles: List<Particle>,
         destinations: Set<EUID>,
-        bytes: Payload?,
-        encryptor: Encryptor?,
+        encryptor: EncryptorParticle?,
         timestamp: Long
     ) {
-        this.applicationId = applicationId
+        this.dataParticle = dataParticle
         this.particles = particles
         this.destinations = destinations
-        this.payload = bytes
         this.encryptor = encryptor
         this.timestamps = Collections.singletonMap("default", timestamp)
         this.signatures = null
@@ -82,19 +95,17 @@ class Atom {
     }
 
     constructor(
-        applicationId: String,
+        dataParticle: DataParticle?,
         particles: List<Particle>,
         destinations: Set<EUID>,
-        bytes: Payload?,
-        encryptor: Encryptor?,
+        encryptor: EncryptorParticle?,
         timestamp: Long,
         signatureId: EUID,
         signature: ECSignature
     ) {
-        this.applicationId = applicationId
+        this.dataParticle = dataParticle
         this.particles = particles
         this.destinations = destinations
-        this.payload = bytes
         this.encryptor = encryptor
         this.timestamps = Collections.singletonMap("default", timestamp)
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)
