@@ -4,7 +4,6 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.radixdlt.client.application.RadixApplicationAPI
 import com.radixdlt.client.application.RadixApplicationAPI.Result
-import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
@@ -20,8 +19,7 @@ import java.util.Objects
  */
 class RadixMessaging(private val api: RadixApplicationAPI) {
 
-    private val identity: RadixIdentity = api.identity
-    private val myAddress: RadixAddress = api.address
+    private val myAddress: RadixAddress = api.myAddress
     private val parser = JsonParser()
 
     val allMessages: Observable<RadixMessage>
@@ -48,7 +46,7 @@ class RadixMessaging(private val api: RadixApplicationAPI) {
 
     val allMessagesGroupedByParticipants: Observable<GroupedObservable<RadixAddress, RadixMessage>>
         get() = this.allMessages
-            .groupBy { msg -> if (msg.from.publicKey == identity.getPublicKey()) msg.to else msg.from }
+            .groupBy { msg -> if (msg.from.publicKey == api.myPublicKey) msg.to else msg.from }
 
     fun sendMessage(message: String, toAddress: RadixAddress, uniqueId: EUID?): Result {
         Objects.requireNonNull(message)

@@ -22,7 +22,7 @@ class Data private constructor(
         private val metaData = HashMap<String, Any>()
         private var bytes: ByteArray? = null
         private val readers = ArrayList<ECPublicKey>()
-        private var isPublicReadable: Boolean = false
+        private var unencrypted: Boolean = false
 
         fun metaData(key: String, value: Any): DataBuilder {
             metaData[key] = value
@@ -39,8 +39,8 @@ class Data private constructor(
             return this
         }
 
-        fun publicReadable(isPublicReadable: Boolean): DataBuilder {
-            this.isPublicReadable = isPublicReadable
+        fun unencrypted(): DataBuilder {
+            this.unencrypted = true
             return this
         }
 
@@ -48,13 +48,13 @@ class Data private constructor(
             val bytes: ByteArray?
             val protectors: List<EncryptedPrivateKey>
 
-            if (isPublicReadable) {
+            if (unencrypted) {
                 protectors = emptyList()
                 bytes = this.bytes
                 metaData["encrypted"] = false
             } else {
                 if (readers.isEmpty()) {
-                    throw IllegalStateException("Must either be publicReadable or have at least one reader.")
+                    throw IllegalStateException("Must either be unencrypted or have at least one reader.")
                 }
 
                 val sharedKey = ECKeyPairGenerator.newInstance().generateKeyPair()
@@ -62,7 +62,7 @@ class Data private constructor(
                     sharedKey.encryptPrivateKey(it)
                 }.toList()
                 bytes = sharedKey.getPublicKey().encrypt(this.bytes!!)
-                metaData["encrypted"] = true
+                metaData["encrypted"] = unencrypted
             }
 
             return Data(bytes!!, metaData, protectors)

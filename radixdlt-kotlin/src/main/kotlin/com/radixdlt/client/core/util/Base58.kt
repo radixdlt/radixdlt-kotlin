@@ -75,7 +75,7 @@ object Base58 {
 
             return result
         } catch (e: ArrayIndexOutOfBoundsException) {
-            throw IllegalArgumentException("Invalid character in address")
+            throw IllegalArgumentException("Invalid character in myAddress")
         } catch (e: Exception) {
             throw IllegalArgumentException(e)
         }

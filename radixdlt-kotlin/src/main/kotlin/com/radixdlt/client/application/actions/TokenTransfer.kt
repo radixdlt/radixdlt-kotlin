@@ -1,8 +1,8 @@
 package com.radixdlt.client.application.actions
 
 import com.radixdlt.client.application.objects.Data
+import com.radixdlt.client.assets.Amount
 import com.radixdlt.client.assets.Asset
-import com.radixdlt.client.assets.AssetAmount
 import com.radixdlt.client.core.address.RadixAddress
 import java.util.Collections
 import java.util.HashMap
@@ -22,10 +22,8 @@ class TokenTransfer private constructor(
 
     override fun toString(): String {
         val timestamp = metaData["timestamp"] as Long
-        return ("$timestamp $from -> $to ${AssetAmount(
-            tokenClass,
-            subUnitAmount
-        )}${if (attachment == null) "" else " $attachment"}")
+        return ("$timestamp $from -> $to ${Amount.subUnitsOf(
+            subUnitAmount, tokenClass)}${if (attachment == null) "" else " $attachment"}")
     }
 
     companion object {

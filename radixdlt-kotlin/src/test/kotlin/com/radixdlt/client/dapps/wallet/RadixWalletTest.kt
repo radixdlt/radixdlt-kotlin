@@ -9,7 +9,7 @@ class RadixWalletTest {
 //    fun nullTest() {
 //        val api = mock(RadixApplicationAPI::class.java)
 //        val radixWallet = RadixWallet(api)
-//        assertThatThrownBy { radixWallet.getXRDSubUnitBalance(null) }
+//        assertThatThrownBy { radixWallet.getXRDBalance(null) }
 //            .isInstanceOf(NullPointerException::class.java)
 //        assertThatThrownBy { radixWallet.getXRDTransactions(null) }
 //            .isInstanceOf(NullPointerException::class.java)

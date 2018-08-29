@@ -15,13 +15,12 @@ class Asset(val iso: String, val subUnits: Int, val id: EUID) {
         }
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o == null || o !is Asset) {
+    override fun equals(other: Any?): Boolean {
+        if (other !is Asset) {
             return false
         }
 
-        val asset = o as Asset?
-        return this.iso == asset!!.iso
+        return this.iso == other.iso
     }
 
     override fun hashCode(): Int {
@@ -34,7 +33,7 @@ class Asset(val iso: String, val subUnits: Int, val id: EUID) {
          * Radix Token asset. TODO: Read from universe file. Hardcode for now.
          */
         @JvmField
-        val XRD = Asset("TEST", 100000, EUID(BigInteger.valueOf("TEST".hashCode().toLong())))
+        val TEST = Asset("TEST", 100000, EUID(BigInteger.valueOf("TEST".hashCode().toLong())))
         @JvmField
         val POW = Asset("POW", 1, EUID(BigInteger.valueOf(79416)))
     }

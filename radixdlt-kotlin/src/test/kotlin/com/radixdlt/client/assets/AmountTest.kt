@@ -1,0 +1,37 @@
+package com.radixdlt.client.assets
+
+import com.radixdlt.client.core.address.EUID
+import org.junit.Assert.assertEquals
+import org.junit.Test
+import java.math.BigInteger
+
+class AmountTest {
+
+    @Test
+    fun testXRD() {
+        assertEquals("0 TEST", Amount.subUnitsOf(0, Asset.TEST).toString())
+        assertEquals("0.00001 TEST", Amount.subUnitsOf(1, Asset.TEST).toString())
+        assertEquals("0.1 TEST", Amount.subUnitsOf(10000, Asset.TEST).toString())
+        assertEquals("1.1 TEST", Amount.subUnitsOf(110000, Asset.TEST).toString())
+        assertEquals("1.23456 TEST", Amount.subUnitsOf(123456, Asset.TEST).toString())
+    }
+
+    @Test
+    fun testPOW() {
+        assertEquals("0 POW", Amount.subUnitsOf(0, Asset.POW).toString())
+        assertEquals("11 POW", Amount.subUnitsOf(11, Asset.POW).toString())
+        assertEquals("12345 POW", Amount.subUnitsOf(12345, Asset.POW).toString())
+    }
+
+    @Test
+    fun testUnusualSubUnits() {
+        // 1 foot = 12 inches
+        val foot = Asset("FOOT", 12, EUID(BigInteger.valueOf("FOOT".hashCode().toLong())))
+        assertEquals("0 FOOT", Amount.subUnitsOf(0, foot).toString())
+        assertEquals("1/12 FOOT", Amount.subUnitsOf(1, foot).toString())
+        assertEquals("6/12 FOOT", Amount.subUnitsOf(6, foot).toString())
+        assertEquals("1 FOOT", Amount.subUnitsOf(12, foot).toString())
+        assertEquals("1 and 6/12 FOOT", Amount.subUnitsOf(18, foot).toString())
+        assertEquals("1 and 8/12 FOOT", Amount.subUnitsOf(20, foot).toString())
+    }
+}
