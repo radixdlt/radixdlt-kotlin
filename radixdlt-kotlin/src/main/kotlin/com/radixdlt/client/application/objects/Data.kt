@@ -48,9 +48,8 @@ class Data private constructor(
             val encryptor: Encryptor?
 
             if (unencrypted) {
-                protectors = emptyList()
+                encryptor = null
                 bytes = this.bytes
-                metaData["encrypted"] = false
             } else {
                 if (encryptorBuilder.numReaders == 0) {
                     throw IllegalStateException("Must either be unencrypted or have at least one reader.")

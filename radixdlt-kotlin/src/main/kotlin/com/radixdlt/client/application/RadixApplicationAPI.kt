@@ -80,7 +80,7 @@ class RadixApplicationAPI private constructor(
         return ledger.getAllAtoms(address.getUID())
             .map(dataStoreTranslator::fromAtom)
             .flatMapMaybe { data -> if (data is Data) Maybe.just(data) else Maybe.empty() }
-            .flatMapMaybe { data -> identity.decrypt(data).toMaybe().onErrorComplete() }
+            .flatMapMaybe { data -> myIdentity.decrypt(data).toMaybe().onErrorComplete() }
     }
 
     fun storeData(data: Data, address: RadixAddress): Result {

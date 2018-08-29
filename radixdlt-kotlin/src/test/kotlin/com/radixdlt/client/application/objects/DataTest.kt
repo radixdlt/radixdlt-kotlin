@@ -3,7 +3,7 @@ package com.radixdlt.client.application.objects
 import com.radixdlt.client.application.objects.Data.DataBuilder
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class DataTest {
@@ -17,7 +17,7 @@ class DataTest {
     fun builderUnencryptedTest() {
         val data = DataBuilder().bytes(byteArrayOf()).unencrypted().build()
         assertEquals(0, data.bytes!!.size.toLong())
-        assertTrue(data.protectors.isEmpty())
+        assertNull(data.encryptor)
     }
 
     @Test

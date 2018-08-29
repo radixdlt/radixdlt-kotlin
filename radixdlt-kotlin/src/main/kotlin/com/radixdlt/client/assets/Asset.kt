@@ -16,6 +16,8 @@ class Asset private constructor(val iso: String, val subUnits: Int, val id: EUID
         }
     }
 
+    constructor(iso: String, subUnits: Int) : this(iso, subUnits, calcEUID(iso))
+
     override fun equals(other: Any?): Boolean {
         if (other !is Asset) {
             return false
@@ -39,8 +41,12 @@ class Asset private constructor(val iso: String, val subUnits: Int, val id: EUID
          * Radix Token asset. TODO: Read from universe file. Hardcode for now.
          */
         @JvmField
-        val TEST = Asset("TEST", 100000, EUID(BigInteger.valueOf("TEST".hashCode().toLong())))
+        val TEST = Asset("TEST", 100000)
         @JvmField
-        val POW = Asset("POW", 1, EUID(BigInteger.valueOf(79416)))
+        val POW = Asset("POW", 1)
+
+        private fun calcEUID(isoCode: String): EUID {
+            return RadixHash.of(isoCode.toByteArray(CHARSET)).toEUID()
+        }
     }
 }

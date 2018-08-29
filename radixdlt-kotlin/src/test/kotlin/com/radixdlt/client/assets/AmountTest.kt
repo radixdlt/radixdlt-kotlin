@@ -1,9 +1,7 @@
 package com.radixdlt.client.assets
 
-import com.radixdlt.client.core.address.EUID
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.math.BigInteger
 
 class AmountTest {
 
@@ -26,7 +24,7 @@ class AmountTest {
     @Test
     fun testUnusualSubUnits() {
         // 1 foot = 12 inches
-        val foot = Asset("FOOT", 12, EUID(BigInteger.valueOf("FOOT".hashCode().toLong())))
+        val foot = Asset("FOOT", 12)
         assertEquals("0 FOOT", Amount.subUnitsOf(0, foot).toString())
         assertEquals("1/12 FOOT", Amount.subUnitsOf(1, foot).toString())
         assertEquals("6/12 FOOT", Amount.subUnitsOf(6, foot).toString())
