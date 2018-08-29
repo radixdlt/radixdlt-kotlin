@@ -1,6 +1,6 @@
 package com.radixdlt.client.core.atoms
 
-import java.util.HashMap
+import java.util.LinkedHashMap
 import java.util.Objects
 
 /**
@@ -22,7 +22,7 @@ class DataParticle(
     init {
         Objects.requireNonNull(bytes) // Not needed in Kotlin but for now keep as close to java and pass unit tests
         if (application != null) {
-            this.metaData = HashMap()
+            this.metaData = LinkedHashMap()
             this.metaData["application"] = application
         } else {
             this.metaData = null

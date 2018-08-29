@@ -4,11 +4,11 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.radixdlt.client.application.RadixApplicationAPI
 import com.radixdlt.client.application.RadixApplicationAPI.Result
+import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.crypto.ECSignature
-import com.radixdlt.client.application.identity.RadixIdentity
 import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.observables.GroupedObservable
@@ -39,6 +39,7 @@ class RadixMessaging(private val api: RadixApplicationAPI) {
                     )
                 } catch (e: Exception) {
                     LOGGER.warn(e.message)
+                    LOGGER.warn(String(data.data))
                     return@flatMapMaybe Maybe.empty<RadixMessage>()
                 }
             }

@@ -5,7 +5,7 @@ import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.Encryptor
 import org.bouncycastle.util.encoders.Base64
 import java.util.Collections
-import java.util.HashMap
+import java.util.LinkedHashMap
 
 /**
  * Application layer bytes bytes object. Can be stored and retrieved from a RadixAddress.
@@ -18,7 +18,7 @@ class Data private constructor(
 ) {
 
     class DataBuilder {
-        private val metaData = HashMap<String, Any?>()
+        private val metaData = LinkedHashMap<String, Any?>()
         private var bytes: ByteArray? = null
         private val encryptorBuilder = Encryptor.EncryptorBuilder()
         private var isPublicReadable: Boolean = false
