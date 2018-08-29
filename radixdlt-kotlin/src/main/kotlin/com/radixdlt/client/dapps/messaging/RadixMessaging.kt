@@ -15,6 +15,9 @@ import io.reactivex.observables.GroupedObservable
 import org.slf4j.LoggerFactory
 import java.util.Objects
 
+/**
+ * High Level API for Instant Messaging. Currently being used by the Radix Android Mobile Wallet.
+ */
 class RadixMessaging(private val api: RadixApplicationAPI) {
 
     private val identity: RadixIdentity = api.identity

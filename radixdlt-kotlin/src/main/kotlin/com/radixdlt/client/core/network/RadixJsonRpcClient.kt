@@ -59,12 +59,10 @@ class RadixJsonRpcClient(
         get() = this.jsonRpcCall("Network.getLivePeers")
             .map { result ->
                 RadixJson.gson.fromJson<List<NodeRunnerData>>(result, object : TypeToken<List<NodeRunnerData>>() {
-
                 }.type)
             }
 
     init {
-
         val parser = JsonParser()
         this.messages = this.wsClient.getMessages()
             .map { msg -> parser.parse(msg).asJsonObject }
@@ -149,7 +147,6 @@ class RadixJsonRpcClient(
         return this.jsonRpcCall("Ledger.getAtoms", params)
             .map { result ->
                 RadixJson.gson.fromJson<List<Atom>>(result, object : TypeToken<List<Atom>>() {
-
                 }.type)
             }
             .flatMapMaybe { list -> if (list.isEmpty()) Maybe.empty() else Maybe.just(list[0]) }
@@ -278,7 +275,6 @@ class RadixJsonRpcClient(
                         { emitter.onError(it) },
                         { emitter.onComplete() }
                     )
-
 
                 val methodDisposable = this.jsonRpcCall("Universe.submitAtomAndSubscribe", params)
                     .doOnSubscribe {
