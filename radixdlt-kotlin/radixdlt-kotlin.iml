@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.linked.project.id=":radixdlt-kotlin" external.linked.project.path="$MODULE_DIR$" external.root.project.path="$MODULE_DIR$/../../../Radix/Development/Android/RadixApp" external.system.id="GRADLE" type="JAVA_MODULE" version="4">
+<module external.linked.project.id=":radixdlt-kotlin" external.linked.project.path="$MODULE_DIR$" external.root.project.path="$MODULE_DIR$/../../../Android/RadixApp" external.system.id="GRADLE" type="JAVA_MODULE" version="4">
   <component name="FacetManager">
     <facet type="android-gradle" name="Android-Gradle">
       <configuration>
@@ -67,9 +67,18 @@
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: junit-4.12" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: mockito-inline-2.21.0" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: mockito-core-2.21.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="Gradle: assertj-core-3.11.0" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: hamcrest-core-1.3" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: byte-buddy-1.8.15" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: byte-buddy-agent-1.8.15" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: objenesis-2.6" level="project" />
+    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-0.9.4" level="project" />
+    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-0.9.4" level="project" />
+    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-0.9.4" level="project" />
+    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-0.9.4" level="project" />
+    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-0.9.4" level="project" />
+    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-0.9.4" level="project" />
+    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-0.9.4" level="project" />
+    <orderEntry type="library" exported="" name="radixdlt-kotlin.radixdlt-kotlin-0.9.4" level="project" />
   </component>
 </module>

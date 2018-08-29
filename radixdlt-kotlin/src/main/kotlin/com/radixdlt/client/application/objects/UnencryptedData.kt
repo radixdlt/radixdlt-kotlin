@@ -1,6 +1,6 @@
 package com.radixdlt.client.application.objects
 
-class UnencryptedData constructor(
+class UnencryptedData(
 
     // TODO: make immutable
     val data: ByteArray,

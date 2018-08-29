@@ -5,7 +5,11 @@ import java.math.BigDecimal
 /**
  * Class mainly for formatting amounts in error messages and other English text.
  */
-class AssetAmount(private val asset: Asset, private val amountInSubunits: Long) {
+class Amount(val asset: Asset, val amountInSubunits: Long) {
+
+    fun getTokenClass(): Asset {
+        return asset
+    }
 
     override fun toString(): String {
         return "${formattedAmount()} ${asset.iso}"
@@ -38,5 +42,15 @@ class AssetAmount(private val asset: Asset, private val amountInSubunits: Long) 
             valueCalculation /= 10
         }
         return valueCalculation == 1
+    }
+
+    companion object {
+        fun subUnitsOf(amountInSubunits: Long, tokenClass: Asset): Amount {
+            return Amount(tokenClass, amountInSubunits)
+        }
+
+        fun of(amount: Long, tokenClass: Asset): Amount {
+            return Amount(tokenClass, tokenClass.subUnits * amount)
+        }
     }
 }

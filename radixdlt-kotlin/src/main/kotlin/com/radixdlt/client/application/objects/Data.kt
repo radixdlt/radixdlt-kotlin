@@ -21,7 +21,7 @@ class Data private constructor(
         private val metaData = LinkedHashMap<String, Any?>()
         private var bytes: ByteArray? = null
         private val encryptorBuilder = Encryptor.EncryptorBuilder()
-        private var isPublicReadable: Boolean = false
+        private var unencrypted: Boolean = false
 
         fun metaData(key: String, value: Any): DataBuilder {
             metaData[key] = value
@@ -38,8 +38,8 @@ class Data private constructor(
             return this
         }
 
-        fun publicReadable(isPublicReadable: Boolean): DataBuilder {
-            this.isPublicReadable = isPublicReadable
+        fun unencrypted(): DataBuilder {
+            this.unencrypted = true
             return this
         }
 
@@ -47,20 +47,20 @@ class Data private constructor(
             val bytes: ByteArray?
             val encryptor: Encryptor?
 
-            if (isPublicReadable) {
-                encryptor = null
+            if (unencrypted) {
+                protectors = emptyList()
                 bytes = this.bytes
                 metaData["encrypted"] = false
             } else {
                 if (encryptorBuilder.numReaders == 0) {
-                    throw IllegalStateException("Must either be publicReadable or have at least one reader.")
+                    throw IllegalStateException("Must either be unencrypted or have at least one reader.")
                 }
 
                 val sharedKey = ECKeyPairGenerator.newInstance().generateKeyPair()
                 encryptorBuilder.sharedKey(sharedKey)
                 encryptor = encryptorBuilder.build()
                 bytes = sharedKey.getPublicKey().encrypt(this.bytes!!)
-                metaData["encrypted"] = true
+                metaData["encrypted"] = unencrypted
             }
 
             return Data(bytes!!, metaData, encryptor)

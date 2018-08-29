@@ -25,11 +25,11 @@ class TokenTransferTranslator(
 
     fun fromAtom(atom: Atom): TokenTransfer {
         val summary = atom.summary().entries.asSequence()
-            .filter { entry -> entry.value.containsKey(Asset.XRD.id) }
+            .filter { entry -> entry.value.containsKey(Asset.TEST.id) }
             .map { entry ->
                 SimpleImmutableEntry<ECPublicKey, Long>(
                     entry.key.iterator().next(),
-                    entry.value[Asset.XRD.id]
+                    entry.value[Asset.TEST.id]
                 )
             }
             .toList()
@@ -72,7 +72,7 @@ class TokenTransferTranslator(
         }
 
         return TokenTransfer.create(
-            from, to, Asset.XRD, Math.abs(summary[0].value), attachment, atom.timestamp
+            from, to, Asset.TEST, Math.abs(summary[0].value), attachment, atom.timestamp
         )
     }
 
@@ -123,7 +123,7 @@ class TokenTransferTranslator(
                 }
 
                 val consumables = consumerQuantities.entries.asSequence()
-                    .map { entry -> Consumable(entry.value, entry.key, System.nanoTime(), Asset.XRD.id) }
+                    .map { entry -> Consumable(entry.value, entry.key, System.nanoTime(), Asset.TEST.id) }
                     .toList()
                 atomBuilder.addParticles(consumables)
 

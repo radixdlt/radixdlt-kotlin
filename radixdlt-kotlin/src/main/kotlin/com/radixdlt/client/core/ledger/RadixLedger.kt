@@ -33,11 +33,11 @@ class RadixLedger(val magic: Int, val radixNetwork: RadixNetwork) {
     }
 
     /**
-     * Maps a public key to it's corresponding Radix address in this universe.
-     * Within a universe, a public key has a one to one bijective relationship to an address
+     * Maps a public key to it's corresponding Radix myAddress in this universe.
+     * Within a universe, a public key has a one to one bijective relationship to an myAddress
      *
-     * @param publicKey the key to get an address from
-     * @return the corresponding address to the key for this universe
+     * @param publicKey the key to get an myAddress from
+     * @return the corresponding myAddress to the key for this universe
      */
     fun getAddressFromPublicKey(publicKey: ECPublicKey): RadixAddress {
         return RadixAddress(magic, publicKey)

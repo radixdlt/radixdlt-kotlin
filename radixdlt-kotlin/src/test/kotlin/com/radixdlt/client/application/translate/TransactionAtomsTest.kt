@@ -25,14 +25,14 @@ class TransactionAtomsTest {
 
         /* Build atom with consumer originating from nowhere */
         val unsignedAtom = AtomBuilder()
-            .addParticle(Consumer(100, keyPair, 1, Asset.XRD.id))
-            .addParticle(Consumable(100, keyPair, 2, Asset.XRD.id))
+            .addParticle(Consumer(100, keyPair, 1, Asset.TEST.id))
+            .addParticle(Consumable(100, keyPair, 2, Asset.TEST.id))
             .build()
 
         val observer = TestObserver.create<Collection<Consumable>>()
 
         /* Make sure we don't count it unless we find the matching consumable */
-        val transactionAtoms = TransactionAtoms(address, Asset.XRD.id)
+        val transactionAtoms = TransactionAtoms(address, Asset.TEST.id)
         transactionAtoms.accept(unsignedAtom.rawAtom)
             .getUnconsumedConsumables().subscribe(observer)
         observer.assertValueCount(0)
@@ -56,20 +56,20 @@ class TransactionAtomsTest {
 
         /* Atom with consumer originating from nowhere */
         val unsignedAtom = AtomBuilder()
-            .addParticle(Consumer(100, keyPair, 1, Asset.XRD.id))
-            .addParticle(Consumable(100, keyPair, 2, Asset.XRD.id))
+            .addParticle(Consumer(100, keyPair, 1, Asset.TEST.id))
+            .addParticle(Consumable(100, keyPair, 2, Asset.TEST.id))
             .build()
 
         /* Atom with consumable for previous atom's consumer */
         val unsignedAtom2 = AtomBuilder()
-            .addParticle(Consumer(100, otherKeyPair, 1, Asset.XRD.id))
-            .addParticle(Consumable(100, keyPair, 1, Asset.XRD.id))
+            .addParticle(Consumer(100, otherKeyPair, 1, Asset.TEST.id))
+            .addParticle(Consumable(100, keyPair, 1, Asset.TEST.id))
             .build()
 
         val observer = TestObserver.create<Collection<Consumable>>()
 
         /* Make sure we don't count it unless we find the matching consumable */
-        val transactionAtoms = TransactionAtoms(address, Asset.XRD.id)
+        val transactionAtoms = TransactionAtoms(address, Asset.TEST.id)
         transactionAtoms.accept(unsignedAtom.rawAtom)
         transactionAtoms.accept(unsignedAtom2.rawAtom)
             .getUnconsumedConsumables()

@@ -46,8 +46,8 @@ class RadixMessagingTest {
 
         val api = mock(RadixApplicationAPI::class.java)
         val address = mock(RadixAddress::class.java)
-        `when`(api.address).thenReturn(address)
-        `when`(api.identity).thenReturn(myIdentity)
+        `when`(api.myAddress).thenReturn(address)
+        `when`(api.myIdentity).thenReturn(myIdentity)
         `when`(api.getReadableData(any())).thenReturn(Observable.just(undecryptableData, decryptableData))
 
         val messaging = RadixMessaging(api)

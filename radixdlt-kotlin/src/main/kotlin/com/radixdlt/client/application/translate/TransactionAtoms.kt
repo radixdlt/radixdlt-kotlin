@@ -109,10 +109,9 @@ fun <K, V> ConcurrentHashMap<K, V>.computeFunction(key: K, remappingFunction: (t
     return value
 }
 
-fun <K, V> ConcurrentHashMap<K, V>.computeSynchronisedFunction(key: K, remappingFunction: (t: K, u: V?) -> V): V? {
+fun <K, V> ConcurrentHashMap<K, V>.computeSynchronisedFunction(key: K, remappingFunction: (t: K, u: V?) -> V) {
     return synchronized(this) {
         val valueSynchronized = remappingFunction(key, this[key])
         this[key] = valueSynchronized
-        valueSynchronized
     }
 }

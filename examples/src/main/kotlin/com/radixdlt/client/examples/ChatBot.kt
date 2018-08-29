@@ -29,7 +29,7 @@ class ChatBot(
      * Connect to the network and begin running the service
      */
     fun run() {
-        println("Chatbot address: " + api.address)
+        println("Chatbot myAddress: " + api.myAddress)
 
         // Subscribe/Decrypt messages
         messaging
@@ -37,7 +37,7 @@ class ChatBot(
             .flatMapCompletable { convo ->
                 convo
                     .doOnNext { message -> println("Received at " + Timestamp(System.currentTimeMillis()) + ": " + message) } // Print messages
-                    .filter { message -> message.from != api.address } // Don't reply to ourselves!
+                    .filter { message -> message.from != api.myAddress } // Don't reply to ourselves!
                     .filter { message -> Math.abs(message.timestamp - System.currentTimeMillis()) < 60000 } // Only reply to recent messages
                     .flatMapCompletable(object : io.reactivex.functions.Function<RadixMessage, Completable> {
                         var chatBotAlgorithm = chatBotAlgorithmSupplier()
