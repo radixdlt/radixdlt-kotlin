@@ -94,12 +94,6 @@ object RadixJson {
                 jsonParticle.addProperty("version", 100)
                 return@JsonSerializer jsonParticle
             }
-            particle.javaClass == UniqueParticle::class.java -> {
-                val jsonParticle = context.serialize(particle).asJsonObject
-                jsonParticle.addProperty("serializer", "UNIQUEPARTICLE".hashCode())
-                jsonParticle.addProperty("version", 100)
-                return@JsonSerializer jsonParticle
-            }
             else -> throw RuntimeException("Unknown Particle: " + particle.javaClass)
         }
     }
@@ -111,7 +105,6 @@ object RadixJson {
             318720611L -> context.deserialize(json.asJsonObject, Consumable::class.java)
             214856694L -> context.deserialize(json.asJsonObject, Consumer::class.java)
             1782261127L -> context.deserialize(json.asJsonObject, Emission::class.java)
-            "UNIQUEPARTICLE".hashCode().toLong() -> context.deserialize(json.asJsonObject, UniqueParticle::class.java)
             else -> throw RuntimeException("Unknown particle serializer: $serializer")
         }
     }
@@ -124,6 +117,7 @@ object RadixJson {
         SERIALIZERS[ECSignature::class.java] = -434788200
         SERIALIZERS[EncryptorParticle::class.java] = 105401064
         SERIALIZERS[DataParticle::class.java] = 473758768
+        SERIALIZERS[UniqueParticle::class.java] = "UNIQUEPARTICLE".hashCode()
     }
 
     private val ECKEYPAIR_ADAPTER_FACTORY = object : TypeAdapterFactory {

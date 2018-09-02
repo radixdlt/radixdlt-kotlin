@@ -4,8 +4,12 @@ import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 
-class UniqueParticle(private val unique: Payload, destinations: Set<EUID>, owners: Set<ECKeyPair>) :
-    Particle(destinations, owners) {
+class UniqueParticle(
+    // TODO: make immutable
+    private val unique: Payload,
+    private val destinations: Set<EUID>,
+    private val owners: Set<ECKeyPair>
+) {
 
     companion object {
         @JvmStatic
