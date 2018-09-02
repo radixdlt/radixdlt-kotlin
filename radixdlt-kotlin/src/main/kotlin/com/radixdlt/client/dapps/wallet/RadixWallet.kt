@@ -7,7 +7,9 @@ import com.radixdlt.client.assets.Amount
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
+import io.reactivex.Completable
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.annotations.NonNull
 import io.reactivex.annotations.Nullable
 
@@ -16,10 +18,23 @@ import io.reactivex.annotations.Nullable
  */
 class RadixWallet(private val api: RadixApplicationAPI) {
     // TODO: add cancel option
-    class TransferResult internal constructor(private val updates: Observable<AtomSubmissionUpdate>) {
+    class TransferResult {
+        private val result: Single<RadixApplicationAPI.Result>
+
+        internal constructor(result: RadixApplicationAPI.Result) {
+            this.result = Single.just(result)
+        }
+
+        internal constructor(result: Single<RadixApplicationAPI.Result>) {
+            this.result = result
+        }
 
         fun toObservable(): Observable<AtomSubmissionUpdate> {
-            return updates
+            return result.flatMapObservable(RadixApplicationAPI.Result::toObservable)
+        }
+
+        fun toCompletable(): Completable {
+            return result.flatMapCompletable(RadixApplicationAPI.Result::toCompletable)
         }
     }
 
@@ -89,15 +104,8 @@ class RadixWallet(private val api: RadixApplicationAPI) {
             null
         }
 
-        val updates =
-            api.transferTokens(
-                api.myAddress,
-                toAddress,
-                Amount.subUnitsOf(amountInSubUnits, Asset.TEST),
-                attachment
-            ).toObservable().replay()
-        updates.connect()
-        return TransferResult(updates)
+        val result = api.sendTokens(toAddress, Amount.subUnitsOf(amountInSubUnits, Asset.TEST), attachment)
+        return TransferResult(result)
     }
 
     /**
@@ -156,8 +164,8 @@ class RadixWallet(private val api: RadixApplicationAPI) {
 
         val uniqueBytes = unique?.toByteArray()
 
-        val updates = api.getMyBalance(Asset.TEST)
-            .filter { amount -> amount.amountInSubunits > amountInSubUnits }
+        val result = api.getMyBalance(Asset.TEST)
+            .filter { amount -> amount.amountInSubunits >= amountInSubUnits }
             .firstOrError()
             .map { balance ->
                 api.sendTokens(
@@ -167,11 +175,9 @@ class RadixWallet(private val api: RadixApplicationAPI) {
                     uniqueBytes
                 )
             }
-            .flatMapObservable { it.toObservable() }
-            .replay()
+            .cache()
+        result.subscribe()
 
-        updates.connect()
-
-        return TransferResult(updates)
+        return TransferResult(result)
     }
 }
