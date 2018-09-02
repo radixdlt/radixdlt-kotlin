@@ -1,9 +1,9 @@
 package com.radixdlt.client.application.translate
 
 import com.radixdlt.client.application.actions.UniqueProperty
-import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.IdParticle
+import com.radixdlt.client.core.atoms.Payload
+import com.radixdlt.client.core.atoms.UniqueParticle
 import io.reactivex.Completable
 import java.util.Objects
 
@@ -18,9 +18,10 @@ class UniquePropertyTranslator {
             return Completable.complete()
         }
 
+        val payload = Payload(uniqueProperty.unique)
         val ecPublicKey = uniqueProperty.address.publicKey
-        val particle = IdParticle.create("test", EUID(uniqueProperty.unique), ecPublicKey)
-        atomBuilder.addParticle(particle)
+        val uniqueParticle = UniqueParticle.create(payload, ecPublicKey)
+        atomBuilder.setUniqueParticle(uniqueParticle)
         return Completable.complete()
     }
 }
