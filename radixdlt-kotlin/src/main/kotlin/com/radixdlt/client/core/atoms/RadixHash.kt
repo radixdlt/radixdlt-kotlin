@@ -4,6 +4,7 @@ import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
 import com.radixdlt.client.core.util.Hash
+import org.bouncycastle.util.encoders.Base64
 
 import java.math.BigInteger
 import java.nio.ByteBuffer
@@ -44,6 +45,10 @@ class RadixHash private constructor(private val hash: ByteArray) {
 
     override fun hashCode(): Int {
         return BigInteger(hash).hashCode()
+    }
+
+    override fun toString(): String {
+        return Base64.toBase64String(hash)
     }
 
     companion object {

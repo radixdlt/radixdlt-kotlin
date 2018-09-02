@@ -8,6 +8,8 @@ import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import io.reactivex.Observable
+import io.reactivex.annotations.NonNull
+import io.reactivex.annotations.Nullable
 
 /**
  * High Level API for Wallet type actions. Currently being used by the Radix Android Mobile Wallet.
@@ -53,7 +55,8 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      * @param address myAddress to get transfers from
      * @return an unending Observable of transfers
      */
-    fun getXRDTransactions(address: RadixAddress): Observable<TokenTransfer> = api.getTokenTransfers(address, Asset.TEST)
+    fun getXRDTransactions(address: RadixAddress): Observable<TokenTransfer> =
+        api.getTokenTransfers(address, Asset.TEST)
 
     /**
      * Immediately try and transfer TEST from user's account to another myAddress. If there is
@@ -106,7 +109,24 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      * @return The result of the transaction.
      */
     fun transferXRDWhenAvailable(amountInSubUnits: Long, toAddress: RadixAddress): TransferResult {
-        return this.transferXRDWhenAvailable(amountInSubUnits, toAddress, null)
+        return this.transferXRDWhenAvailable(amountInSubUnits, toAddress, null, null)
+    }
+
+    /**
+     * Block indefinitely until there are enough funds in the account, then immediately transfer
+     * amount with an encrypted message (readable by sender and receiver) to a specified account.
+     *
+     * @param amountInSubUnits The amount of TEST to transfer.
+     * @param toAddress The address to send to.
+     * @param message The message to send as an attachment.
+     * @return The result of the transaction.
+     */
+    fun transferXRDWhenAvailable(
+        amountInSubUnits: Long,
+        @NonNull toAddress: RadixAddress,
+        @Nullable message: String
+    ): TransferResult {
+        return transferXRDWhenAvailable(amountInSubUnits, toAddress, message, null)
     }
 
     /**
@@ -116,23 +136,36 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      * @param amountInSubUnits The amount of TEST to transfer.
      * @param toAddress The myAddress to send to.
      * @param message The message to send as an attachment.
+     * @param unique The unique id for this transaction.
      * @return The result of the transaction.
      */
-    fun transferXRDWhenAvailable(amountInSubUnits: Long, toAddress: RadixAddress, message: String?): TransferResult {
+    fun transferXRDWhenAvailable(
+        amountInSubUnits: Long,
+        toAddress: RadixAddress,
+        message: String?,
+        unique: String?
+    ): TransferResult {
         val attachment: Data? = if (message != null) {
             Data.DataBuilder()
                 .addReader(toAddress.publicKey)
-                .addReader(api.myAddress.publicKey)
+                .addReader(api.myPublicKey)
                 .bytes(message.toByteArray()).build()
         } else {
             null
         }
 
-        val updates = api.getBalance(api.myAddress, Asset.TEST)
+        val uniqueBytes = unique?.toByteArray()
+
+        val updates = api.getMyBalance(Asset.TEST)
             .filter { amount -> amount.amountInSubunits > amountInSubUnits }
             .firstOrError()
-            .map {
-                api.transferTokens(api.myAddress, toAddress, Amount.subUnitsOf(amountInSubUnits, Asset.TEST), attachment)
+            .map { balance ->
+                api.sendTokens(
+                    toAddress,
+                    Amount.subUnitsOf(amountInSubUnits, Asset.TEST),
+                    attachment,
+                    uniqueBytes
+                )
             }
             .flatMapObservable { it.toObservable() }
             .replay()
