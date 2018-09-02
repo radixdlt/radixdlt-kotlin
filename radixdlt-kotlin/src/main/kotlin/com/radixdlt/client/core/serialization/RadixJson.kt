@@ -23,10 +23,9 @@ import com.radixdlt.client.core.atoms.Consumer
 import com.radixdlt.client.core.atoms.DataParticle
 import com.radixdlt.client.core.atoms.Emission
 import com.radixdlt.client.core.atoms.EncryptorParticle
-import com.radixdlt.client.core.atoms.IdParticle
-import com.radixdlt.client.core.atoms.JunkParticle
 import com.radixdlt.client.core.atoms.Particle
 import com.radixdlt.client.core.atoms.Payload
+import com.radixdlt.client.core.atoms.UniqueParticle
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
@@ -77,12 +76,6 @@ object RadixJson {
                 jsonParticle.addProperty("version", 100)
                 return@JsonSerializer jsonParticle
             }
-            particle.javaClass == JunkParticle::class.java -> {
-                val jsonParticle = context.serialize(particle).asJsonObject
-                jsonParticle.addProperty("serializer", -1123054001)
-                jsonParticle.addProperty("version", 100)
-                return@JsonSerializer jsonParticle
-            }
             particle.javaClass == Consumable::class.java -> {
                 val jsonParticle = context.serialize(particle).asJsonObject
                 jsonParticle.addProperty("serializer", 318720611)
@@ -101,9 +94,9 @@ object RadixJson {
                 jsonParticle.addProperty("version", 100)
                 return@JsonSerializer jsonParticle
             }
-            particle.javaClass == IdParticle::class.java -> {
+            particle.javaClass == UniqueParticle::class.java -> {
                 val jsonParticle = context.serialize(particle).asJsonObject
-                jsonParticle.addProperty("serializer", "IDPARTICLE".hashCode())
+                jsonParticle.addProperty("serializer", "UNIQUEPARTICLE".hashCode())
                 jsonParticle.addProperty("version", 100)
                 return@JsonSerializer jsonParticle
             }
@@ -118,8 +111,7 @@ object RadixJson {
             318720611L -> context.deserialize(json.asJsonObject, Consumable::class.java)
             214856694L -> context.deserialize(json.asJsonObject, Consumer::class.java)
             1782261127L -> context.deserialize(json.asJsonObject, Emission::class.java)
-            -1123054001L -> context.deserialize(json.asJsonObject, JunkParticle::class.java)
-            "IDPARTICLE".hashCode().toLong() -> context.deserialize(json.asJsonObject, IdParticle::class.java)
+            "UNIQUEPARTICLE".hashCode().toLong() -> context.deserialize(json.asJsonObject, UniqueParticle::class.java)
             else -> throw RuntimeException("Unknown particle serializer: $serializer")
         }
     }
