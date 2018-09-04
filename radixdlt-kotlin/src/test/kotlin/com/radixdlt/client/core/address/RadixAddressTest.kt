@@ -3,12 +3,10 @@ package com.radixdlt.client.core.address
 import com.radixdlt.client.core.crypto.ECPublicKey
 import org.bouncycastle.util.encoders.Base64
 import org.bouncycastle.util.encoders.DecoderException
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
 import java.math.BigInteger
 import java.util.Arrays
-
-import org.junit.Assert.assertEquals
 
 class RadixAddressTest {
 

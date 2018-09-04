@@ -40,7 +40,7 @@ class RadixJsonRpcClientTest {
         jsonRpcClient.self.subscribe(observer)
 
         observer.assertValueCount(0)
-        observer.assertError { t -> true }
+        observer.assertError { true }
     }
 
     @Test

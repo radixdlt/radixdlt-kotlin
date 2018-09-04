@@ -53,14 +53,14 @@ class TokenTransferTranslator(
         val attachment: Data?
         if (transactionAtom.encrypted != null) {
             val protectors: List<EncryptedPrivateKey>
-            if (transactionAtom.encryptor != null && transactionAtom.encryptor.protectors != null) {
+            if (transactionAtom.encryptor?.protectors != null) {
                 protectors = transactionAtom.encryptor.protectors
             } else {
                 protectors = emptyList()
             }
             val metaData = HashMap<String, Any>()
             metaData["encrypted"] = !protectors.isEmpty()
-            attachment = Data.raw(transactionAtom.encrypted.bytes!!, metaData, protectors)
+            attachment = Data.raw(transactionAtom.encrypted.bytes, metaData, protectors)
         } else {
             attachment = null
         }

@@ -21,7 +21,7 @@ class ConsumableDataSource(private val ledger: RadixLedger) {
 
     fun getConsumables(address: RadixAddress): Observable<Collection<Consumable>> {
         // TODO: use https://github.com/JakeWharton/RxReplayingShare to disconnect when unsubscribed
-        return cache.computeIfAbsentSynchronisedFunction(address) { addr ->
+        return cache.computeIfAbsentSynchronisedFunction(address) { _ ->
             Observable.just<Collection<Consumable>>(emptySet()).concatWith(
                 Observables.combineLatest<TransactionAtoms, TransactionAtom, Maybe<Collection<Consumable>>>(
                     Observable.fromCallable { TransactionAtoms(address, Asset.TEST.id) },
