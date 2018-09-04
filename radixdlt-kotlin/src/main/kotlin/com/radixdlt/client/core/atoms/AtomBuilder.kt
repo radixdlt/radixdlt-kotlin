@@ -10,6 +10,7 @@ import com.radixdlt.client.core.crypto.Encryptor
 import java.util.ArrayList
 import java.util.HashSet
 import java.util.Objects
+import java.util.UUID
 
 class AtomBuilder {
 
@@ -107,7 +108,10 @@ class AtomBuilder {
         if (TransactionAtom::class.java.isAssignableFrom(atomClass!!)) {
             atom = TransactionAtom(particles, destinations, payload, encryptor, this.timestamp!!)
         } else if (ApplicationPayloadAtom::class.java.isAssignableFrom(atomClass!!)) {
-            Objects.requireNonNull<String>(applicationId, "Payload Atom must have an application id")
+            // Temporary fix to allow payload atoms with no applicationId to still be submitted to network
+            if (applicationId == null) {
+                applicationId = UUID.randomUUID().toString()
+            }
             atom =
                 ApplicationPayloadAtom(applicationId!!, particles, destinations, payload!!, encryptor, this.timestamp!!)
         } else {
