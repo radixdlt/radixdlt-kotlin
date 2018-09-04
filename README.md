@@ -29,7 +29,7 @@ repositories {
 ```
 ```
 dependencies {
-    implementation 'com.radixdlt:radixdlt-kotlin:v0.10.0' // NEED TO SETUP
+    implementation 'com.radixdlt:radixdlt-kotlin:v0.10.1'
 }
 ```
 
