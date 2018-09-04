@@ -69,7 +69,7 @@ class RadixNetwork(peerDiscovery: PeerDiscovery) {
             .flatMapMaybe { client ->
                 client.status
                     .filter { status -> status != RadixClientStatus.FAILURE }
-                    .map { status -> client }
+                    .map { client }
                     .firstOrError()
                     .toMaybe()
             }

@@ -1,8 +1,7 @@
 package com.radixdlt.client.core
 
-import org.junit.Test
-
 import org.junit.Assert.assertNotNull
+import org.junit.Test
 
 class RadixUniverseTest {
 

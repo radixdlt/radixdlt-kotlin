@@ -35,17 +35,15 @@ class RadixAtomValidator private constructor() : AtomValidator {
 
                 if (particle is Consumer) {
                     val consumerException: AtomValidationException? =
-                        particle.ownersPublicKeys.asSequence().map { owner ->
-                            val signature: ECSignature? = atom.getSignature(owner.getUID())
-                            if (signature == null) {
-                                return@map AtomValidationException("Missing signature")
-                            }
+                        particle.ownersPublicKeys.asSequence().map keyMap@{ owner ->
+                            val signature: ECSignature = atom.getSignature(owner.getUID())
+                                ?: return@keyMap AtomValidationException("Missing signature")
 
                             if (!hash.verifySelf(owner, signature)) {
-                                return@map AtomValidationException("Bad signature")
+                                return@keyMap AtomValidationException("Bad signature")
                             }
 
-                            null
+                            return@keyMap null
                         }.filter {
                             it != null
                         }.firstOrNull() // In java it findsAny() from Optional
@@ -66,7 +64,7 @@ class RadixAtomValidator private constructor() : AtomValidator {
     @Throws(AtomValidationException::class)
     override fun validate(atom: Atom) {
         // TODO: check with universe genesis timestamp
-        if (atom.timestamp == null || atom.timestamp == 0L) {
+        if (atom.timestamp == 0L) {
             throw AtomValidationException("Null or Zero Timestamp")
         }
 

@@ -32,6 +32,7 @@ class RadixMessaging(private val api: RadixApplicationAPI) {
                     val to = RadixAddress(jsonObject.get("to").asString)
                     val content = jsonObject.get("content").asString
                     val signaturesUnchecked = data.metaData["signatures"]
+                    @Suppress("UNCHECKED_CAST")
                     val signatures = signaturesUnchecked as Map<String, ECSignature>
                     signatures[from.getUID().toString()] ?: throw RuntimeException("Unsigned message")
                     val timestamp = data.metaData["timestamp"] as Long

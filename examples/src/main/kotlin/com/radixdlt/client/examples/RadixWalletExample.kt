@@ -50,6 +50,7 @@ object RadixWalletExample {
             .subscribe { balance -> println("My Balance: $balance") }
 
         // If specified, send money to another myAddress
+        @Suppress("SENSELESS_COMPARISON")
         if (TO_ADDRESS_BASE58 != null) {
             val toAddress = RadixAddress.fromString(TO_ADDRESS_BASE58)
             wallet.transferXRDWhenAvailable(AMOUNT * Asset.TEST.subUnits, toAddress, MESSAGE)
