@@ -10,7 +10,7 @@ To check code style - `gradle ktlint` (it's also bound to `gradle check`).
 
 ## Features
 * Connection to the Alphanet test network 
-* Fee-less transactions for the time being
+* Fee-less transactions for testnets
 * Identity Creation
 * Native token transfers
 * Immutable data storage
@@ -90,15 +90,19 @@ selected identities can read the data.
 To store the encrypted string `Hello` which only I can read into an account:
 ```
 val myPublicKey: ECPublicKey = api.myPublicKey
-val data: Data = Data.DataBuilder().bytes("Hello".toByteArray()).addReader(myPublicKey)
-			                  .build()
+val data: Data = Data.DataBuilder()
+    .bytes("Hello".toByteArray())
+    .addReader(myPublicKey)
+    .build()
 result: Result = api.storeData(data, <address>)
 ```
 
 To store unencrypted data:
 ```
-val data: Data = Data.DataBuilder().bytes("Hello World".toByteArray()).unencrypted()
-			                  .build()
+val data: Data = Data.DataBuilder()
+    .bytes("Hello World".toByteArray())
+    .unencrypted()
+    .build()
 val result: Result = api.storeData(data, <address>)
 ```
 
@@ -112,7 +116,7 @@ result.toCompletable().subscribe(<on-success>, <on-error>)
 To then read (and decrypt if necessary) all the readable data at an address:
 ```
 val readable: Observable<UnencryptedData> = api.getReadableData(<address>)
-readable.map(data -> { ... })
+readable.subscribe { data ->  ...  }
 ```
 
 NOTE: data which is not decryptable by the user's key is simply ignored
@@ -126,12 +130,12 @@ val result: Result = api.sendTokens(<to-address>, Amount.of(10, Asset.TEST))
 To retrieve all of the token transfers which have occurred in my account:
 ```
 val transfers: Observable<TokenTransfer> = api.getMyTokenTransfers(Asset.TEST)
-transfers.subscribe(tx -> { ... })
+transfers.subscribe { tx -> ... }
 ```
 
 To get a stream of the balance of TEST tokens in my account:
 ```
 val balance: Observable<Amount> = api.getMyBalance(Asset.TEST)
-balance.subscribe(bal -> { ... })
+balance.subscribe { bal -> ... }
 ```
 

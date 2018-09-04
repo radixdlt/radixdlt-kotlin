@@ -12,6 +12,7 @@ class AtomBuilder {
     private val particles = ArrayList<Particle>()
     private var encryptor: EncryptorParticle? = null
     private var dataParticle: DataParticle? = null
+    private var uniqueParticle: UniqueParticle? = null
 
     fun addDestination(euid: EUID): AtomBuilder {
         this.destinations.add(euid)
@@ -20,6 +21,11 @@ class AtomBuilder {
 
     fun addDestination(address: RadixAddress): AtomBuilder {
         return this.addDestination(address.getUID())
+    }
+
+    fun setUniqueParticle(uniqueParticle: UniqueParticle): AtomBuilder {
+        this.uniqueParticle = uniqueParticle
+        return this
     }
 
     fun setDataParticle(dataParticle: DataParticle): AtomBuilder {
@@ -64,7 +70,7 @@ class AtomBuilder {
     }
 
     fun build(timestamp: Long): UnsignedAtom {
-        return UnsignedAtom(Atom(dataParticle, particles, destinations, encryptor, timestamp))
+        return UnsignedAtom(Atom(dataParticle, particles, destinations, encryptor, uniqueParticle, timestamp))
     }
 
     // Temporary method for testing

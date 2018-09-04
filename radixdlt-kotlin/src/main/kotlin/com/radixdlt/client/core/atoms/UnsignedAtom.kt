@@ -15,7 +15,8 @@ class UnsignedAtom(val rawAtom: Atom) {
             atom.dataParticle,
             atom.particles!!,
             atom.destinations,
-            atom.encryptor!!,
+            atom.encryptor,
+            atom.uniqueParticle,
             rawAtom.timestamp!!,
             signatureId,
             signature

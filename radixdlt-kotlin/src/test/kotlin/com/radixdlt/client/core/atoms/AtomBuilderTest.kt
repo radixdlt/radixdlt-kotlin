@@ -11,8 +11,8 @@ class AtomBuilderTest {
             .setDataParticle(DataParticle(Payload("Hello".toByteArray()), "Test"))
             .addDestination(EUID(1))
 
-        val atom1 = atomBuilder.build()
-        val atom2 = atomBuilder.build()
+        val atom1 = atomBuilder.build(0)
+        val atom2 = atomBuilder.build(0)
 
         assertEquals(atom1.hash, atom2.hash)
     }

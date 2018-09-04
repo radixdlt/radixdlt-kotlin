@@ -38,6 +38,7 @@ class Atom {
      */
     val dataParticle: DataParticle?
     val encryptor: EncryptorParticle?
+    val uniqueParticle: UniqueParticle?
 
     @Transient
     private var debug: MutableMap<String, Long>? = HashMap()
@@ -83,12 +84,14 @@ class Atom {
         particles: List<Particle>,
         destinations: Set<EUID>,
         encryptor: EncryptorParticle?,
+        uniqueParticle: UniqueParticle?,
         timestamp: Long
     ) {
         this.dataParticle = dataParticle
         this.particles = particles
         this.destinations = destinations
         this.encryptor = encryptor
+        this.uniqueParticle = uniqueParticle
         this.timestamps = Collections.singletonMap("default", timestamp)
         this.signatures = null
         this.action = "STORE"
@@ -99,6 +102,7 @@ class Atom {
         particles: List<Particle>,
         destinations: Set<EUID>,
         encryptor: EncryptorParticle?,
+        uniqueParticle: UniqueParticle?,
         timestamp: Long,
         signatureId: EUID,
         signature: ECSignature
@@ -107,6 +111,7 @@ class Atom {
         this.particles = particles
         this.destinations = destinations
         this.encryptor = encryptor
+        this.uniqueParticle = uniqueParticle
         this.timestamps = Collections.singletonMap("default", timestamp)
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)
         this.action = "STORE"

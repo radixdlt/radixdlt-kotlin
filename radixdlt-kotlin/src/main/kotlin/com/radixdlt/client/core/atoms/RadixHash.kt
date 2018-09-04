@@ -7,6 +7,7 @@ import com.radixdlt.client.core.util.Hash
 import com.radixdlt.client.core.util.Int128
 import java.math.BigInteger
 import java.nio.ByteBuffer
+import org.bouncycastle.util.encoders.Base64
 
 class RadixHash private constructor(private val hash: ByteArray) {
 
@@ -44,6 +45,10 @@ class RadixHash private constructor(private val hash: ByteArray) {
 
     override fun hashCode(): Int {
         return BigInteger(hash).hashCode()
+    }
+
+    override fun toString(): String {
+        return Base64.toBase64String(hash)
     }
 
     companion object {
