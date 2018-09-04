@@ -167,7 +167,7 @@ class RadixWallet(private val api: RadixApplicationAPI) {
         val result = api.getMyBalance(Asset.TEST)
             .filter { amount -> amount.amountInSubunits >= amountInSubUnits }
             .firstOrError()
-            .map { balance ->
+            .map {
                 api.sendTokens(
                     toAddress,
                     Amount.subUnitsOf(amountInSubUnits, Asset.TEST),
