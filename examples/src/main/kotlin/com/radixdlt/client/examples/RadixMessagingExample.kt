@@ -25,7 +25,7 @@ object RadixMessagingExample {
     @JvmStatic
     fun main(args: Array<String>) {
         // Display network connectivity
-        RadixUniverse.instance
+        RadixUniverse.getInstance()
             .network
             .getStatusUpdates()
             .subscribe { println(it) }

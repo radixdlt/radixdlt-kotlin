@@ -25,7 +25,7 @@ object RadixWalletExample {
     @JvmStatic
     fun main(args: Array<String>) {
         // Network updates
-        RadixUniverse.instance
+        RadixUniverse.getInstance()
             .network
             .getStatusUpdates()
             .subscribe { println(it) }

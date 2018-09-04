@@ -8,13 +8,13 @@ class RadixUniverseTest {
 
     @Test(expected = IllegalStateException::class)
     fun testRadixUniverseCreationWithoutInitialization() {
-        RadixUniverse.instance
+        RadixUniverse.getInstance()
     }
 
     @Test
     fun testRadixUniverseCreation() {
         RadixUniverse.bootstrap(Bootstrap.BETANET)
-        val universe = RadixUniverse.instance
+        val universe = RadixUniverse.getInstance()
         assertNotNull(universe)
         assertNotNull(universe.systemPublicKey)
     }
