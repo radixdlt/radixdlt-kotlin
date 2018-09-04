@@ -87,7 +87,7 @@ val anotherAddress: RadixAddress = RadixAddress.fromString("JHB89drvftPj6zVCNjna
 Immutable data can be stored on the ledger. The data can be encrypted so that only
 selected identities can read the data.
 
-To store the encrypted string `Hello` which only I can read into an account:
+To store the encrypted string `Hello` which only the user can read:
 ```
 val myPublicKey: ECPublicKey = api.myPublicKey
 val data: Data = Data.DataBuilder()

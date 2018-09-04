@@ -1,11 +1,11 @@
 package com.radixdlt.client.core
 
+import com.radixdlt.client.application.identity.RadixIdentity
+import com.radixdlt.client.application.identity.SimpleRadixIdentity
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.address.RadixUniverseConfig
 import com.radixdlt.client.core.address.RadixUniverseConfigs
 import com.radixdlt.client.core.crypto.ECPublicKey
-import com.radixdlt.client.application.identity.RadixIdentity
-import com.radixdlt.client.application.identity.SimpleRadixIdentity
 import com.radixdlt.client.core.ledger.RadixLedger
 import com.radixdlt.client.core.network.PeerDiscovery
 import com.radixdlt.client.core.network.RadixNetwork
@@ -147,12 +147,13 @@ class RadixUniverse private constructor(
          * @return the default RadixUniverse instance
          */
         @JvmStatic
-        val instance: RadixUniverse
-            get() = synchronized(lock) {
+        fun getInstance(): RadixUniverse {
+            synchronized(lock) {
                 if (defaultUniverse == null) {
                     throw IllegalStateException("Default Universe was not initialized via RadixUniverse.bootstrap()")
                 }
                 return defaultUniverse!!
             }
+        }
     }
 }

@@ -60,7 +60,7 @@ class ChatBot(
         fun main(args: Array<String>) {
             RadixUniverse.bootstrap(Bootstrap.WINTERFELL)
 
-            RadixUniverse.instance
+            RadixUniverse.getInstance()
                 .network
                 .getStatusUpdates()
                 .subscribe { println(it) }

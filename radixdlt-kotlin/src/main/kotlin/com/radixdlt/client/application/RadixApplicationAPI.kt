@@ -259,7 +259,7 @@ class RadixApplicationAPI private constructor(
         @JvmStatic
         fun create(identity: RadixIdentity): RadixApplicationAPI {
             Objects.requireNonNull(identity)
-            return RadixApplicationAPI(identity, RadixUniverse.instance, ::AtomBuilder)
+            return RadixApplicationAPI(identity, RadixUniverse.getInstance(), ::AtomBuilder)
         }
 
         @JvmStatic
