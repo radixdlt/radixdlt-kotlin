@@ -1,3 +1,6 @@
+[![License MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/radixdlt/radixdlt-kotlin/blob/master/LICENSE)
+[![](https://jitpack.io/v/com.radixdlt/radixdlt-kotlin.svg)](https://jitpack.io/#com.radixdlt/radixdlt-kotlin)
+
 # radixdlt-kotlin
 A Kotlin Client library for interacting with a [Radix](https://www.radixdlt.com) Distributed Ledger compatible with Kotlin/Java projects and maximising compatibility with all versions of Android.
 
