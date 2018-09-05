@@ -1,8 +1,5 @@
 import org.eclipse.jgit.api.Git
 
-group = 'com.radixdlt'
-version = '0.9.4'
-
 buildscript {
     repositories {
         jcenter()
@@ -12,6 +9,9 @@ buildscript {
     }
 }
 
+group = 'com.radixdlt'
+version = '0.10.1'
+
 // Do NOT override project version from CLI, gradle.properties, etc.
 if (version == 'unspecified') {
     // Add the -SNAPSHOT suffix so that we do not clash with artifacts published by jitpack
@@ -19,6 +19,7 @@ if (version == 'unspecified') {
 }
 
 allprojects {
+    version = rootProject.version
     
     configurations.all {
         //noinspection GroovyAssignabilityCheck
