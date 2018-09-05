@@ -26,7 +26,7 @@ class RadixLedgerTest {
             .rawAtom
 
         @Suppress("UNCHECKED_CAST")
-        val observer = mock(Consumer::class.java) as Consumer<ApplicationPayloadAtom>
+        val observer = mock(Consumer::class.java) as Consumer<Atom>
         val client = mock(RadixJsonRpcClient::class.java)
         val network = mock(RadixNetwork::class.java)
         `when`(network.getRadixClient(any(Long::class.java))).thenReturn(Single.just(client))
