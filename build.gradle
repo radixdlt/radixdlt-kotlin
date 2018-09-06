@@ -10,7 +10,7 @@ buildscript {
 }
 
 group = 'com.radixdlt'
-version = '0.10.1'
+version = '0.10.2'
 
 // Do NOT override project version from CLI, gradle.properties, etc.
 if (version == 'unspecified') {
