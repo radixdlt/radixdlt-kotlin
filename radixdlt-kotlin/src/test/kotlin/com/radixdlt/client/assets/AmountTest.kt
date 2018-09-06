@@ -1,11 +1,22 @@
 package com.radixdlt.client.assets
 
 import com.radixdlt.client.core.address.EUID
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import java.math.BigDecimal
 import java.math.BigInteger
 
 class AmountTest {
+    @Test
+    fun testBigDecimal() {
+        val asset = mock(Asset::class.java)
+        `when`<Int>(asset.subUnits).thenReturn(1)
+        assertThatThrownBy { Amount.of(BigDecimal("1.1"), asset) }.isInstanceOf(IllegalArgumentException::class.java)
+        assertEquals(Amount.of(BigDecimal("1.00"), asset), Amount.of(1, asset))
+    }
 
     @Test
     fun testXRD() {

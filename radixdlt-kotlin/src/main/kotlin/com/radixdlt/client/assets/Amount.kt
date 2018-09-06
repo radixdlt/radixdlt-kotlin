@@ -15,6 +15,19 @@ class Amount(val asset: Asset, val amountInSubunits: Long) {
         return "${formattedAmount()} ${asset.iso}"
     }
 
+    override fun hashCode(): Int {
+        // Hackish but good for now
+        return this.toString().hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other is Amount) {
+            return other.amountInSubunits == this.amountInSubunits && other.asset == this.asset
+        }
+
+        return false
+    }
+
     private fun formattedAmount(): String {
         val remainder = amountInSubunits % asset.subUnits
 
@@ -51,6 +64,17 @@ class Amount(val asset: Asset, val amountInSubunits: Long) {
 
         fun of(amount: Long, tokenClass: Asset): Amount {
             return Amount(tokenClass, tokenClass.subUnits * amount)
+        }
+
+        fun of(amount: BigDecimal, tokenClass: Asset): Amount {
+            val subUnitAmount = amount.multiply(BigDecimal.valueOf(tokenClass.subUnits.toLong())).stripTrailingZeros()
+            if (subUnitAmount.scale() > 0) {
+                throw IllegalArgumentException(
+                    "Amount $amount cannot be used for $tokenClass which has a subunit value of ${tokenClass.subUnits}"
+                )
+            }
+
+            return Amount(tokenClass, subUnitAmount.longValueExact())
         }
     }
 }
