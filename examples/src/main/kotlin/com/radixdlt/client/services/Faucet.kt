@@ -87,7 +87,7 @@
 //            }
 //        }
 //
-//        return RadixWallet.instance.transferXRD((10 * Asset.XRD.subUnits).toLong(), radixIdentity, message.from)
+//        return RadixWallet.instance.send((10 * Asset.XRD.subUnits).toLong(), radixIdentity, message.from)
 //                .doOnNext { state -> println("Transaction: $state") }
 //                .filter { it.isComplete }
 //                .firstOrError()

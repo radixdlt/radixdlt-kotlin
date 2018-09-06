@@ -11,8 +11,20 @@ class Amount(val asset: Asset, val amountInSubunits: Long) {
         return asset
     }
 
-    override fun toString(): String {
-        return "${formattedAmount()} ${asset.iso}"
+    fun lte(amount: Amount): Boolean {
+        if (amount.getTokenClass() != this.getTokenClass()) {
+            throw IllegalArgumentException("Only amounts with the same token class can be compared.")
+        }
+
+        return this.amountInSubunits <= amount.amountInSubunits
+    }
+
+    fun gte(amount: Amount): Boolean {
+        if (amount.getTokenClass() != this.getTokenClass()) {
+            throw IllegalArgumentException("Only amounts with the same token class can be compared.")
+        }
+
+        return this.amountInSubunits >= amount.amountInSubunits
     }
 
     override fun hashCode(): Int {
@@ -26,6 +38,10 @@ class Amount(val asset: Asset, val amountInSubunits: Long) {
         }
 
         return false
+    }
+
+    override fun toString(): String {
+        return "${formattedAmount()} ${asset.iso}"
     }
 
     private fun formattedAmount(): String {

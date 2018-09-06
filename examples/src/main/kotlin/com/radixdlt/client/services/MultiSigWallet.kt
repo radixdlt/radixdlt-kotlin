@@ -93,7 +93,7 @@
 //        signedFromA
 //                .flatMapSingle { txA -> signedFromB.filter { txB -> txA.hash() == txB.hash() }.firstOrError() }
 //                .doOnSubscribe { x -> signedFromB.connect() }
-//                .subscribe { tx -> wallet.transferXRD(tx.amount, radixIdentity, tx.to, uniqueId(tx.hash())) }
+//                .subscribe { tx -> wallet.send(tx.amount, radixIdentity, tx.to, uniqueId(tx.hash())) }
 //    }
 //
 //    companion object {
