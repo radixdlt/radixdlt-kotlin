@@ -28,8 +28,7 @@ class Atom {
     /**
      * This will be moved into a Transfer Particle in the future
      */
-    val particles: List<Particle>?
-        get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
+    private val consumables: List<Particle>?
 
     val signatures: Map<String, ECSignature>?
 
@@ -46,10 +45,13 @@ class Atom {
     val shards: Set<Long>
         get() = destinations.asSequence().map(EUID::shard).toSet()
 
+    val abstractConsumables: List<Particle>
+        get() = if (consumables == null) emptyList() else Collections.unmodifiableList(consumables)
+
     // HACK
     val requiredFirstShard: Set<Long>
-        get() = if (this.particles != null && this.particles!!.asSequence().any(Particle::isConsumer)) {
-            particles!!.asSequence()
+        get() = if (this.consumables != null && this.consumables.asSequence().any(Particle::isConsumer)) {
+            consumables.asSequence()
                 .filter(Particle::isConsumer)
                 .flatMap { it.destinations!!.asSequence() }
                 .map(EUID::shard)
@@ -67,28 +69,30 @@ class Atom {
     val hid: EUID
         get() = hash.toEUID()
 
-    val consumables: List<Consumable>
-        get() = particles!!.asSequence()
+    fun getConsumables(): List<Consumable> {
+        return abstractConsumables.asSequence()
             .filter(Particle::isConsumable)
             .map(Particle::asConsumable)
             .toList()
+    }
 
-    val consumers: List<Consumer>
-        get() = particles!!.asSequence()
+    fun getConsumers(): List<Consumer> {
+        return abstractConsumables.asSequence()
             .filter(Particle::isConsumer)
             .map(Particle::asConsumer)
             .toList()
+    }
 
     constructor(
         dataParticle: DataParticle?,
-        particles: List<Particle>,
+        consumables: List<Particle>,
         destinations: Set<EUID>,
         encryptor: EncryptorParticle?,
         uniqueParticle: UniqueParticle?,
         timestamp: Long
     ) {
         this.dataParticle = dataParticle
-        this.particles = particles
+        this.consumables = consumables
         this.destinations = destinations
         this.encryptor = encryptor
         this.uniqueParticle = uniqueParticle
@@ -99,7 +103,7 @@ class Atom {
 
     constructor(
         dataParticle: DataParticle?,
-        particles: List<Particle>,
+        consumables: List<Particle>,
         destinations: Set<EUID>,
         encryptor: EncryptorParticle?,
         uniqueParticle: UniqueParticle?,
@@ -108,7 +112,7 @@ class Atom {
         signature: ECSignature
     ) {
         this.dataParticle = dataParticle
-        this.particles = particles
+        this.consumables = consumables
         this.destinations = destinations
         this.encryptor = encryptor
         this.uniqueParticle = uniqueParticle
@@ -126,7 +130,7 @@ class Atom {
     }
 
     fun summary(): Map<Set<ECPublicKey>, Map<EUID, Long>> {
-        return particles!!.asSequence()
+        return abstractConsumables.asSequence()
             .filter(Particle::isAbstractConsumable)
             .map(Particle::asAbstractConsumable)
             .groupBy(AbstractConsumable::ownersPublicKeys)
@@ -140,7 +144,7 @@ class Atom {
     }
 
     fun consumableSummary(): Map<Set<ECPublicKey>, Map<EUID, List<Long>>> {
-        return particles!!.asSequence()
+        return abstractConsumables.asSequence()
             .filter(Particle::isAbstractConsumable)
             .map(Particle::asAbstractConsumable)
             .groupBy(AbstractConsumable::ownersPublicKeys)
@@ -178,6 +182,6 @@ class Atom {
     }
 
     override fun toString(): String {
-        return "Atom hid($hid) destinations($destinations) particles(${if (particles == null) 0 else particles!!.size})"
+        return "Atom hid($hid) destinations($destinations) consumables(${if (consumables == null) 0 else consumables.size})"
     }
 }

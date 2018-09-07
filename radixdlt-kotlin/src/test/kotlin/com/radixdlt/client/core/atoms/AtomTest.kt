@@ -10,9 +10,9 @@ class AtomTest {
     fun testNullAtom() {
         val atom = Atom(null, emptyList(), emptySet(), null, null, 0)
         assertNull(atom.dataParticle)
-        assertEquals(0, atom.particles!!.size.toLong())
-        assertEquals(0, atom.consumables.size.toLong())
-        assertEquals(0, atom.consumers.size.toLong())
+        assertEquals(0, atom.abstractConsumables.size.toLong())
+        assertEquals(0, atom.getConsumables().size.toLong())
+        assertEquals(0, atom.getConsumers().size.toLong())
         assertNotNull(atom.hash)
         assertNotNull(atom.hid)
         assertNotNull(atom.summary())

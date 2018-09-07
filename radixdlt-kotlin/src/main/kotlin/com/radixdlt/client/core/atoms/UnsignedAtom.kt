@@ -13,7 +13,7 @@ class UnsignedAtom(val rawAtom: Atom) {
         val atom = rawAtom
         return Atom(
             atom.dataParticle,
-            atom.particles!!,
+            atom.abstractConsumables,
             atom.destinations,
             atom.encryptor,
             atom.uniqueParticle,

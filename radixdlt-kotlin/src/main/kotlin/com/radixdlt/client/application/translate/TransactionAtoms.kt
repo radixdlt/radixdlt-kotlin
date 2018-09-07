@@ -27,7 +27,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
     }
 
     private fun addConsumables(transactionAtom: Atom, emitter: ObservableEmitter<Atom>) {
-        transactionAtom.particles!!.asSequence()
+        transactionAtom.abstractConsumables.asSequence()
             .filter { it.isAbstractConsumable }
             .map { it.asAbstractConsumable }
             .filter { particle -> particle.ownersPublicKeys.asSequence().all { address.ownsKey(it) } }
@@ -54,7 +54,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
     }
 
     private fun checkConsumers(transactionAtom: Atom, emitter: ObservableEmitter<Atom>) {
-        val missing: ByteBuffer? = transactionAtom.particles!!.asSequence()
+        val missing: ByteBuffer? = transactionAtom.abstractConsumables.asSequence()
             .filter(Particle::isAbstractConsumable)
             .map(Particle::asAbstractConsumable)
             .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
@@ -76,7 +76,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
                 }
             }
         } else {
-            if (transactionAtom.particles!!.asSequence().all { p -> p is AtomFeeConsumable }) {
+            if (transactionAtom.abstractConsumables.asSequence().all { p -> p is AtomFeeConsumable }) {
                 return
             }
 

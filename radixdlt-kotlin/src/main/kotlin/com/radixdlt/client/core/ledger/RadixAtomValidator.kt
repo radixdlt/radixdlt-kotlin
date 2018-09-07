@@ -21,7 +21,7 @@ class RadixAtomValidator private constructor() : AtomValidator {
     fun validateSignatures(atom: Atom) {
         val hash = atom.hash
 
-        val exception = atom.particles!!.asSequence()
+        val exception = atom.abstractConsumables.asSequence()
             .filter(Particle::isAbstractConsumable)
             .map(Particle::asAbstractConsumable)
             .map { particle ->
