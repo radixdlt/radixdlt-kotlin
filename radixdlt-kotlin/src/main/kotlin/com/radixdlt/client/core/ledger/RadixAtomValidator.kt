@@ -4,8 +4,6 @@ import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomValidationException
 import com.radixdlt.client.core.atoms.AtomValidator
-import com.radixdlt.client.core.atoms.Consumer
-import com.radixdlt.client.core.atoms.Particle
 import com.radixdlt.client.core.crypto.ECSignature
 
 class RadixAtomValidator private constructor() : AtomValidator {
@@ -21,36 +19,32 @@ class RadixAtomValidator private constructor() : AtomValidator {
     fun validateSignatures(atom: Atom) {
         val hash = atom.hash
 
-        val exception = atom.abstractConsumables.asSequence()
-            .filter(Particle::isAbstractConsumable)
-            .map(Particle::asAbstractConsumable)
-            .map { particle ->
-                if (particle.ownersPublicKeys.isEmpty()) {
+        val exception = atom.consumers!!.asSequence()
+            .map { consumer ->
+                if (consumer.ownersPublicKeys.isEmpty()) {
                     return@map AtomValidationException("No owners in particle")
                 }
 
-                if (particle.assetId == Asset.POW.id) {
+                if (consumer.assetId == Asset.POW.id) {
                     return@map null
                 }
 
-                if (particle is Consumer) {
-                    val consumerException: AtomValidationException? =
-                        particle.ownersPublicKeys.asSequence().map keyMap@{ owner ->
-                            val signature: ECSignature = atom.getSignature(owner.getUID())
-                                ?: return@keyMap AtomValidationException("Missing signature")
+                val consumerException: AtomValidationException? =
+                    consumer.ownersPublicKeys.asSequence().map keyMap@{ owner ->
+                        val signature: ECSignature = atom.getSignature(owner.getUID())
+                            ?: return@keyMap AtomValidationException("Missing signature")
 
-                            if (!hash.verifySelf(owner, signature)) {
-                                return@keyMap AtomValidationException("Bad signature")
-                            }
+                        if (!hash.verifySelf(owner, signature)) {
+                            return@keyMap AtomValidationException("Bad signature")
+                        }
 
-                            return@keyMap null
-                        }.filter {
-                            it != null
-                        }.firstOrNull() // In java it findsAny() from Optional
+                        return@keyMap null
+                    }.filter {
+                        it != null
+                    }.firstOrNull() // In java it findsAny() from Optional
 
-                    if (consumerException != null) {
-                        return@map consumerException
-                    }
+                if (consumerException != null) {
+                    return@map consumerException
                 }
 
                 null

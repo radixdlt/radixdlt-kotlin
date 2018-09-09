@@ -14,6 +14,7 @@ import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.Encryptor
+import com.radixdlt.client.core.serialization.RadixJson
 import io.reactivex.Completable
 import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.HashMap
@@ -35,7 +36,7 @@ class TokenTransferTranslator(
             .toList()
 
         if (summary.isEmpty()) {
-            throw IllegalStateException("Invalid atom: $atom")
+            throw IllegalStateException("Invalid atom: ${RadixJson.gson.toJson(atom)}")
         }
 
         if (summary.size > 2) {
@@ -111,7 +112,7 @@ class TokenTransferTranslator(
                         consumerQuantities
                     )
 
-                    atomBuilder.addParticle(newConsumer)
+                    atomBuilder.addConsumer(newConsumer)
                 }
 
                 if (consumerTotal < tokenTransfer.subUnitAmount) {
@@ -125,7 +126,7 @@ class TokenTransferTranslator(
                 val consumables = consumerQuantities.entries.asSequence()
                     .map { entry -> Consumable(entry.value, entry.key, System.nanoTime(), Asset.TEST.id) }
                     .toList()
-                atomBuilder.addParticles(consumables)
+                atomBuilder.addConsumables(consumables)
 
                 return@flatMapCompletable Completable.complete()
 

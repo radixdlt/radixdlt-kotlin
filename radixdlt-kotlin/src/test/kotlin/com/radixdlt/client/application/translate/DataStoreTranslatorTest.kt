@@ -1,6 +1,5 @@
 package com.radixdlt.client.application.translate
 
-
 import com.radixdlt.client.application.actions.DataStore
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.atoms.AtomBuilder

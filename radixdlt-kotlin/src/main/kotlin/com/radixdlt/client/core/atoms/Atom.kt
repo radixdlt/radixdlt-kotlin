@@ -12,32 +12,28 @@ import java.util.HashMap
  * in a blockchain) and defines the actions that can be issued onto the ledger.
  */
 class Atom {
-
+    // TODO: Remove as action should be outside of Atom structure
     val action: String?
 
-    /**
-     * This explicit use will be removed in the future
-     */
+    // TODO: Remove when particles define destinations
     val destinations: Set<EUID>
 
-    /**
-     * This will be moved into a Chrono Particle in the future
-     */
+    // TODO: This will be moved into a Chrono Particle in the future
     private val timestamps: Map<String, Long>
 
-    /**
-     * This will be moved into a Transfer Particle in the future
-     */
-    private val consumables: List<Particle>?
+    // TODO: These will be turned into a list of DeleteParticles in the future
+    val consumers: List<Consumer>?
+        get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
 
-    val signatures: Map<String, ECSignature>?
+    // TODO: These will be turned into a list of CreateParticles in the future
+    val consumables: List<AbstractConsumable>?
+        get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
 
-    /**
-     * These will be moved into a more general particle list in the future
-     */
     val dataParticle: DataParticle?
     val encryptor: EncryptorParticle?
     val uniqueParticle: UniqueParticle?
+
+    val signatures: Map<String, ECSignature>?
 
     @Transient
     private var debug: MutableMap<String, Long>? = HashMap()
@@ -45,14 +41,10 @@ class Atom {
     val shards: Set<Long>
         get() = destinations.asSequence().map(EUID::shard).toSet()
 
-    val abstractConsumables: List<Particle>
-        get() = if (consumables == null) emptyList() else Collections.unmodifiableList(consumables)
-
     // HACK
     val requiredFirstShard: Set<Long>
-        get() = if (this.consumables != null && this.consumables.asSequence().any(Particle::isConsumer)) {
-            consumables.asSequence()
-                .filter(Particle::isConsumer)
+        get() = if (this.consumables != null && this.consumers!!.isNotEmpty()) {
+            consumers!!.asSequence()
                 .flatMap { it.destinations!!.asSequence() }
                 .map(EUID::shard)
                 .toSet()
@@ -69,29 +61,17 @@ class Atom {
     val hid: EUID
         get() = hash.toEUID()
 
-    fun getConsumables(): List<Consumable> {
-        return abstractConsumables.asSequence()
-            .filter(Particle::isConsumable)
-            .map(Particle::asConsumable)
-            .toList()
-    }
-
-    fun getConsumers(): List<Consumer> {
-        return abstractConsumables.asSequence()
-            .filter(Particle::isConsumer)
-            .map(Particle::asConsumer)
-            .toList()
-    }
-
     constructor(
         dataParticle: DataParticle?,
-        consumables: List<Particle>,
+        consumers: List<Consumer>?,
+        consumables: List<AbstractConsumable>?,
         destinations: Set<EUID>,
         encryptor: EncryptorParticle?,
         uniqueParticle: UniqueParticle?,
         timestamp: Long
     ) {
         this.dataParticle = dataParticle
+        this.consumers = consumers
         this.consumables = consumables
         this.destinations = destinations
         this.encryptor = encryptor
@@ -101,9 +81,10 @@ class Atom {
         this.action = "STORE"
     }
 
-    constructor(
+    private constructor(
         dataParticle: DataParticle?,
-        consumables: List<Particle>,
+        consumers: List<Consumer>?,
+        consumables: List<AbstractConsumable>?,
         destinations: Set<EUID>,
         encryptor: EncryptorParticle?,
         uniqueParticle: UniqueParticle?,
@@ -112,6 +93,7 @@ class Atom {
         signature: ECSignature
     ) {
         this.dataParticle = dataParticle
+        this.consumers = consumers
         this.consumables = consumables
         this.destinations = destinations
         this.encryptor = encryptor
@@ -119,6 +101,20 @@ class Atom {
         this.timestamps = Collections.singletonMap("default", timestamp)
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)
         this.action = "STORE"
+    }
+
+    fun withSignature(signature: ECSignature, signatureId: EUID): Atom {
+        return Atom(
+            dataParticle,
+            consumers,
+            consumables,
+            destinations,
+            encryptor,
+            uniqueParticle,
+            timestamp!!,
+            signatureId,
+            signature
+        )
     }
 
     fun getSignature(uid: EUID): ECSignature? {
@@ -130,9 +126,7 @@ class Atom {
     }
 
     fun summary(): Map<Set<ECPublicKey>, Map<EUID, Long>> {
-        return abstractConsumables.asSequence()
-            .filter(Particle::isAbstractConsumable)
-            .map(Particle::asAbstractConsumable)
+        return consumers!!.asSequence().plus(consumables!!.asSequence())
             .groupBy(AbstractConsumable::ownersPublicKeys)
             .mapValues { it ->
                 it.value.asSequence().groupBy(AbstractConsumable::assetId) {
@@ -144,9 +138,7 @@ class Atom {
     }
 
     fun consumableSummary(): Map<Set<ECPublicKey>, Map<EUID, List<Long>>> {
-        return abstractConsumables.asSequence()
-            .filter(Particle::isAbstractConsumable)
-            .map(Particle::asAbstractConsumable)
+        return consumers!!.asSequence().plus(consumables!!.asSequence())
             .groupBy(AbstractConsumable::ownersPublicKeys)
             .mapValues { it: Map.Entry<Set<ECPublicKey>, List<AbstractConsumable>> ->
                 it.value.asSequence().groupBy(AbstractConsumable::assetId) {
@@ -182,6 +174,7 @@ class Atom {
     }
 
     override fun toString(): String {
-        return "Atom hid($hid) destinations($destinations) consumables(${if (consumables == null) 0 else consumables.size})"
+        return ("Atom hid($hid) destinations($destinations) consumables(${consumables?.size}) " +
+            "consumers(${consumers?.size})")
     }
 }

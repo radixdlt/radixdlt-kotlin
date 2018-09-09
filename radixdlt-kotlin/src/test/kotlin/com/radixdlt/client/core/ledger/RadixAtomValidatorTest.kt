@@ -37,7 +37,7 @@ class RadixAtomValidatorTest {
         val atom = mock(Atom::class.java)
         `when`(atom.hash).thenReturn(hash)
         `when`(atom.getSignature(any())).thenReturn(null)
-        `when`(atom.abstractConsumables).thenReturn(Arrays.asList(consumer))
+        `when`(atom.consumers).thenReturn(Arrays.asList(consumer))
 
         val validator = RadixAtomValidator.getInstance()
         assertThatThrownBy { validator.validateSignatures(atom) }

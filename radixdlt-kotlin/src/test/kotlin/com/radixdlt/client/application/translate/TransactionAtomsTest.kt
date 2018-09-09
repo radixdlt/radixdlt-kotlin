@@ -25,8 +25,8 @@ class TransactionAtomsTest {
 
         /* Build atom with consumer originating from nowhere */
         val unsignedAtom = AtomBuilder()
-            .addParticle(Consumer(100, keyPair, 1, Asset.TEST.id))
-            .addParticle(Consumable(100, keyPair, 2, Asset.TEST.id))
+            .addConsumer(Consumer(100, keyPair, 1, Asset.TEST.id))
+            .addConsumable(Consumable(100, keyPair, 2, Asset.TEST.id))
             .build()
 
         val observer = TestObserver.create<Collection<Consumable>>()
@@ -56,14 +56,14 @@ class TransactionAtomsTest {
 
         /* Atom with consumer originating from nowhere */
         val unsignedAtom = AtomBuilder()
-            .addParticle(Consumer(100, keyPair, 1, Asset.TEST.id))
-            .addParticle(Consumable(100, keyPair, 2, Asset.TEST.id))
+            .addConsumer(Consumer(100, keyPair, 1, Asset.TEST.id))
+            .addConsumable(Consumable(100, keyPair, 2, Asset.TEST.id))
             .build()
 
         /* Atom with consumable for previous atom's consumer */
         val unsignedAtom2 = AtomBuilder()
-            .addParticle(Consumer(100, otherKeyPair, 1, Asset.TEST.id))
-            .addParticle(Consumable(100, keyPair, 1, Asset.TEST.id))
+            .addConsumer(Consumer(100, otherKeyPair, 1, Asset.TEST.id))
+            .addConsumable(Consumable(100, keyPair, 1, Asset.TEST.id))
             .build()
 
         val observer = TestObserver.create<Collection<Consumable>>()
@@ -75,6 +75,6 @@ class TransactionAtomsTest {
             .getUnconsumedConsumables()
             .subscribe(observer)
 
-        observer.assertValue { collection -> collection.stream().findFirst().get().nonce == 2L }
+        observer.assertValue { collection -> collection.first().nonce == 2L }
     }
 }
