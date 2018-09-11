@@ -19,6 +19,7 @@ import com.radixdlt.client.core.address.RadixUniverseType
 import com.radixdlt.client.core.atoms.AbstractConsumable
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomFeeConsumable
+import com.radixdlt.client.core.atoms.ChronoParticle
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.Consumer
 import com.radixdlt.client.core.atoms.DataParticle
@@ -112,6 +113,7 @@ object RadixJson {
         SERIALIZERS[EncryptorParticle::class.java] = 105401064
         SERIALIZERS[DataParticle::class.java] = 473758768
         SERIALIZERS[UniqueParticle::class.java] = "UNIQUEPARTICLE".hashCode()
+        SERIALIZERS[ChronoParticle::class.java] = "CHRONOPARTICLE".hashCode()
         SERIALIZERS[Consumer::class.java] = 214856694
     }
 
