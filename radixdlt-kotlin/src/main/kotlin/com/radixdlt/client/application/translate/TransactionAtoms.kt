@@ -31,7 +31,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
             .filter { particle -> particle.assetId == assetId }
             .forEach { consumer ->
                 val dson = ByteBuffer.wrap(consumer.dson)
-                unconsumedConsumables.remove(dson) ?: throw IllegalStateException()
+                unconsumedConsumables.remove(dson) ?: throw IllegalStateException("Missing consumable for consumer.")
             }
 
         atom.consumables!!.asSequence()
@@ -43,7 +43,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
                     if (current == null) {
                         particle.asConsumable
                     } else {
-                        throw IllegalStateException()
+                        throw IllegalStateException("Consumable already exists.")
                     }
                 }
                 val reanalyzeAtom = missingConsumable.remove(dson)
