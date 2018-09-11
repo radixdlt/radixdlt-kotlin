@@ -1,16 +1,11 @@
 package com.radixdlt.client.core
 
-import com.radixdlt.client.application.identity.RadixIdentity
-import com.radixdlt.client.application.identity.SimpleRadixIdentity
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.address.RadixUniverseConfig
-import com.radixdlt.client.core.address.RadixUniverseConfigs
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.ledger.RadixLedger
 import com.radixdlt.client.core.network.PeerDiscovery
 import com.radixdlt.client.core.network.RadixNetwork
-import java.io.File
-import java.io.IOException
 
 /**
  * A RadixUniverse represents the interface through which a client can interact
@@ -48,33 +43,6 @@ class RadixUniverse private constructor(
 
     val magic: Int
         get() = config.magic
-
-    /**
-     * Returns a RadixIdentity capable of signing system transactions if private key
-     * exists in universe.key and matches the Universe configuration's public key
-     *
-     * @return Identity capable of signing system transactions if exists
-     */
-    val systemIdentity: RadixIdentity?
-        get() {
-            val classLoader = RadixUniverseConfigs::class.java.classLoader
-            val systemIdentity: RadixIdentity?
-            val resource = classLoader.getResource("universe.key")
-            try {
-                if (resource != null) {
-                    val universeKeyFile = File(resource.file)
-                    systemIdentity = SimpleRadixIdentity(universeKeyFile)
-                    if (!systemIdentity.getPublicKey().equals(config.creator)) {
-                        throw RuntimeException("Bad Universe Key")
-                    }
-
-                    return systemIdentity
-                }
-            } catch (e: IOException) {
-            }
-
-            return null
-        }
 
     /**
      * Returns the system public key, also defined as the creator of this Universe

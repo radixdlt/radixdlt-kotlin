@@ -6,14 +6,11 @@ import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.CryptoException
 import com.radixdlt.client.core.crypto.ECKeyPair
-import com.radixdlt.client.core.crypto.ECKeyPairGenerator
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.MacMismatchException
 import io.reactivex.Single
 
-// Simply generate a key pair and don't worry about saving it
-class OneTimeUseIdentity : RadixIdentity {
-    private val myKey: ECKeyPair = ECKeyPairGenerator.newInstance().generateKeyPair()
+class BaseRadixIdentity(private val myKey: ECKeyPair) : RadixIdentity {
 
     override fun sign(atom: UnsignedAtom): Single<Atom> {
         return Single.create { emitter ->
