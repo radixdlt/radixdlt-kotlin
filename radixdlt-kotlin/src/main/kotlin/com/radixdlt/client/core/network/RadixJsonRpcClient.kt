@@ -33,6 +33,11 @@ class RadixJsonRpcClient(
     private val messages: Observable<JsonObject>
 
     /**
+     * Cached API version of Server
+     */
+    private val serverApiVersion: Single<Int>
+
+    /**
      * @return URL which websocket is connected to
      */
     val location: String
@@ -69,6 +74,10 @@ class RadixJsonRpcClient(
             .map { msg -> parser.parse(msg).asJsonObject }
             .publish()
             .refCount()
+
+        this.serverApiVersion = jsonRpcCall("Api.getVersion")
+            .map { result -> result.asJsonObject.get("version").asInt }
+            .cache()
     }
 
     /**
@@ -133,6 +142,14 @@ class RadixJsonRpcClient(
      */
     private fun jsonRpcCall(method: String): Single<JsonElement> {
         return this.jsonRpcCall(method, JsonObject())
+    }
+
+    fun getAPIVersion(): Single<Int> {
+        return serverApiVersion
+    }
+
+    fun checkAPIVersion(): Single<Boolean> {
+        return this.getAPIVersion().map(API_VERSION::equals)
     }
 
     /**
@@ -312,5 +329,10 @@ class RadixJsonRpcClient(
 
     companion object {
         private val LOGGER = LoggerFactory.getLogger(RadixJsonRpcClient::class.java)
+
+        /**
+         * API version of Client, must match with Server
+         */
+        private val API_VERSION = 1
     }
 }

@@ -73,6 +73,7 @@ class RadixNetwork(peerDiscovery: PeerDiscovery) {
                     .firstOrError()
                     .toMaybe()
             }
+            .flatMapMaybe { client -> client.checkAPIVersion().filter { b -> b }.map { client } }
             .firstOrError()
     }
 
