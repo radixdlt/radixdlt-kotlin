@@ -18,9 +18,6 @@ class Atom {
     // TODO: Remove when particles define destinations
     val destinations: Set<EUID>
 
-    // TODO: This will be moved into a Chrono Particle in the future
-    private val timestamps: Map<String, Long>
-
     // TODO: These will be turned into a list of DeleteParticles in the future
     val consumers: List<Consumer>?
         get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
@@ -32,6 +29,7 @@ class Atom {
     val dataParticle: DataParticle?
     val encryptor: EncryptorParticle?
     val uniqueParticle: UniqueParticle?
+    val chronoParticle: ChronoParticle
 
     val signatures: Map<String, ECSignature>?
 
@@ -52,8 +50,8 @@ class Atom {
             shards
         }
 
-    val timestamp: Long?
-        get() = timestamps["default"]
+    val timestamp: Long
+        get() = chronoParticle.timestamp
 
     val hash: RadixHash
         get() = RadixHash.of(Dson.instance.toDson(this))
@@ -71,12 +69,12 @@ class Atom {
         timestamp: Long
     ) {
         this.dataParticle = dataParticle
+        this.chronoParticle = ChronoParticle(timestamp)
         this.consumers = consumers
         this.consumables = consumables
         this.destinations = destinations
         this.encryptor = encryptor
         this.uniqueParticle = uniqueParticle
-        this.timestamps = Collections.singletonMap("default", timestamp)
         this.signatures = null
         this.action = "STORE"
     }
@@ -98,7 +96,7 @@ class Atom {
         this.destinations = destinations
         this.encryptor = encryptor
         this.uniqueParticle = uniqueParticle
-        this.timestamps = Collections.singletonMap("default", timestamp)
+        this.chronoParticle = ChronoParticle(timestamp)
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)
         this.action = "STORE"
     }
@@ -111,7 +109,7 @@ class Atom {
             destinations,
             encryptor,
             uniqueParticle,
-            timestamp!!,
+            timestamp,
             signatureId,
             signature
         )
