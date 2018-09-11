@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/radixdlt/radixdlt-kotlin.svg?branch=master)](https://travis-ci.com/radixdlt/radixdlt-kotlin)
 [![License MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/radixdlt/radixdlt-kotlin/blob/master/LICENSE)
 [![](https://jitpack.io/v/com.radixdlt/radixdlt-kotlin.svg)](https://jitpack.io/#com.radixdlt/radixdlt-kotlin)
 
@@ -32,7 +33,7 @@ repositories {
 ```
 ```
 dependencies {
-    implementation 'com.radixdlt:radixdlt-kotlin:0.10.1'
+    implementation 'com.radixdlt:radixdlt-kotlin:0.10.2'
 }
 ```
 
