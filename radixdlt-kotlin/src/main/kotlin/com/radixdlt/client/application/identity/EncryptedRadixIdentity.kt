@@ -10,26 +10,45 @@ import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.MacMismatchException
 import io.reactivex.Single
 import java.io.File
+import java.io.FileReader
+import java.io.IOException
+import java.io.Reader
+import java.io.StringReader
+import java.io.Writer
+import java.security.GeneralSecurityException
 
-class EncryptedRadixIdentity @Throws(Exception::class)
-constructor(password: String, myKeyFile: File) : RadixIdentity {
+class EncryptedRadixIdentity : RadixIdentity {
+
     private val myKey: ECKeyPair
 
-    init {
-        myKey = if (myKeyFile.exists()) {
-            getECKeyPair(password, myKeyFile)
-        } else {
+    @Throws(IOException::class, GeneralSecurityException::class)
+    constructor(password: String, myKeyFile: File) {
+        if (!myKeyFile.exists()) {
             PrivateKeyEncrypter.createEncryptedPrivateKeyFile(password, myKeyFile.path)
-            getECKeyPair(password, myKeyFile)
         }
+        myKey = getECKeyPair(password, FileReader(myKeyFile.path))
     }
 
-    @Throws(Exception::class)
-    @JvmOverloads constructor(password: String, fileName: String = "my_encrypted.key") : this(password, File(fileName))
 
-    @Throws(Exception::class)
-    private fun getECKeyPair(password: String, myKeyfile: File): ECKeyPair {
-        return ECKeyPair(PrivateKeyEncrypter.decryptPrivateKeyFile(password, myKeyfile.path))
+    @Throws(IOException::class, GeneralSecurityException::class)
+    @JvmOverloads
+    constructor(password: String, fileName: String = "my_encrypted.key") : this(password, File(fileName))
+
+    @Throws(IOException::class, GeneralSecurityException::class)
+    constructor(password: String, writer: Writer) {
+        val encryptedKey = PrivateKeyEncrypter.createEncryptedPrivateKey(password)
+        writer.write(encryptedKey)
+        myKey = getECKeyPair(password, StringReader(encryptedKey))
+    }
+
+    @Throws(IOException::class, GeneralSecurityException::class)
+    constructor(password: String, reader: Reader) {
+        myKey = getECKeyPair(password, reader)
+    }
+
+    @Throws(IOException::class, GeneralSecurityException::class)
+    private fun getECKeyPair(password: String, reader: Reader): ECKeyPair {
+        return ECKeyPair(PrivateKeyEncrypter.decryptPrivateKey(password, reader))
     }
 
     override fun sign(atom: UnsignedAtom): Single<Atom> {

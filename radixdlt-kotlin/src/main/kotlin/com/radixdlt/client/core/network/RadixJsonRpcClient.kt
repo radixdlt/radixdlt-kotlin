@@ -75,9 +75,13 @@ class RadixJsonRpcClient(
             .publish()
             .refCount()
 
-        this.serverApiVersion = jsonRpcCall("Api.getVersion")
-            .map { result -> result.asJsonObject.get("version").asInt }
-            .cache()
+        if (!CHECK_API_VERSION) {
+            this.serverApiVersion = Single.just(API_VERSION)
+        } else {
+            this.serverApiVersion = jsonRpcCall("Api.getVersion")
+                .map { result -> result.asJsonObject.get("version").asInt }
+                .cache()
+        }
     }
 
     /**
@@ -329,6 +333,12 @@ class RadixJsonRpcClient(
 
     companion object {
         private val LOGGER = LoggerFactory.getLogger(RadixJsonRpcClient::class.java)
+
+        /**
+         * Betanet does not yet support version checking
+         * TODO: this is temporary, remove once supported everywhere
+         */
+        private val CHECK_API_VERSION = false
 
         /**
          * API version of Client, must match with Server

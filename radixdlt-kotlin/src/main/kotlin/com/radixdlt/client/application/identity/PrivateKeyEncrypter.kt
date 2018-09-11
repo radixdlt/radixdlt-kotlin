@@ -3,23 +3,24 @@ package com.radixdlt.client.application.identity
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.stream.JsonReader
-import com.radixdlt.client.core.atoms.RadixHash
-import com.radixdlt.client.core.crypto.ECKeyPair
-import com.radixdlt.client.core.crypto.ECKeyPairGenerator
-import com.radixdlt.client.core.crypto.LinuxSecureRandom
 import com.radixdlt.client.application.identity.model.Cipherparams
 import com.radixdlt.client.application.identity.model.Crypto
 import com.radixdlt.client.application.identity.model.Keystore
 import com.radixdlt.client.application.identity.model.Pbkdfparams
+import com.radixdlt.client.core.atoms.RadixHash
+import com.radixdlt.client.core.crypto.ECKeyPair
+import com.radixdlt.client.core.crypto.ECKeyPairGenerator
+import com.radixdlt.client.core.crypto.LinuxSecureRandom
+import com.radixdlt.client.core.crypto.MacMismatchException
 import com.radixdlt.client.core.util.AndroidUtil
 import okio.ByteString
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.io.FileReader
 import java.io.FileWriter
 import java.io.IOException
-import java.io.UnsupportedEncodingException
+import java.io.Reader
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import java.security.GeneralSecurityException
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.security.Security
@@ -61,8 +62,14 @@ object PrivateKeyEncrypter {
         secureRandom = SecureRandom()
     }
 
-    @Throws(Exception::class)
+    @Throws(IOException::class, GeneralSecurityException::class)
     fun createEncryptedPrivateKeyFile(password: String, filePath: String) {
+        val strJson = createEncryptedPrivateKey(password)
+        createFile(strJson, filePath)
+    }
+
+    @Throws(GeneralSecurityException::class)
+    fun createEncryptedPrivateKey(password: String): String {
         val ecKeyPair = ECKeyPairGenerator.newInstance().generateKeyPair()
         val privateKey = ByteString.of(*ecKeyPair.getPrivateKey()).hex()
         val salt = salt.toByteArray(StandardCharsets.UTF_8)
@@ -79,19 +86,17 @@ object PrivateKeyEncrypter {
         val keystore = createKeystore(ecKeyPair, cipherText, mac, iv, salt)
 
         val gson = GsonBuilder().setPrettyPrinting().create()
-        val strJson = gson.toJson(keystore)
-
-        createFile(strJson, filePath)
+        return gson.toJson(keystore)
     }
 
-    @Throws(Exception::class)
-    fun decryptPrivateKeyFile(password: String, filePath: String): ByteArray {
-        val keystore = getKeystore(filePath)
+    @Throws(IOException::class, GeneralSecurityException::class)
+    fun decryptPrivateKey(password: String, keyReader: Reader): ByteArray {
+        val keystore = getKeystore(keyReader)
         val salt = keystore.crypto!!.pbkdfparams!!.salt.toByteArray()
         val iterations = keystore.crypto!!.pbkdfparams!!.iterations
         val keyLen = keystore.crypto!!.pbkdfparams!!.keylen
         val iv = ByteString.decodeHex(keystore.crypto?.cipherparams!!.iv).toByteArray()
-        val mac = keystore.crypto!!.mac
+        val mac = ByteString.decodeHex(keystore.crypto!!.mac).toByteArray()
         val cipherText = ByteString.decodeHex(keystore.crypto!!.ciphertext).toByteArray()
 
         val derivedKey = getSecretKey(password, salt, iterations, keyLen)
@@ -101,8 +106,8 @@ object PrivateKeyEncrypter {
 
         val computedMac = generateMac(derivedKey.encoded, cipherText)
 
-        if (!Arrays.equals(computedMac, ByteString.decodeHex(mac).toByteArray())) {
-            throw Exception("MAC mismatch")
+        if (!Arrays.equals(computedMac, mac)) {
+            throw MacMismatchException(computedMac, mac)
         }
 
         val privateKey = decrypt(cipher, cipherText)
@@ -119,10 +124,10 @@ object PrivateKeyEncrypter {
         return SecretKeySpec(key.encoded, "AES")
     }
 
-    @Throws(Exception::class)
-    private fun getKeystore(filePath: String): Keystore {
-        JsonReader(FileReader(filePath)).use { reader ->
-            return Gson().fromJson<Keystore>(reader, Keystore::class.java)
+    @Throws(IOException::class)
+    private fun getKeystore(keyReader: Reader): Keystore {
+        JsonReader(keyReader).use { jsonReader ->
+            return Gson().fromJson(jsonReader, Keystore::class.java)
         }
     }
 
@@ -133,7 +138,6 @@ object PrivateKeyEncrypter {
         }
     }
 
-    @Throws(UnsupportedEncodingException::class)
     private fun createKeystore(
         ecKeyPair: ECKeyPair,
         cipherText: String,
@@ -167,14 +171,14 @@ object PrivateKeyEncrypter {
         }
     }
 
-    @Throws(Exception::class)
+    @Throws(GeneralSecurityException::class)
     private fun encrypt(cipher: Cipher, encrypt: String): String {
         val bytes = encrypt.toByteArray(StandardCharsets.UTF_8)
         val encrypted = cipher.doFinal(bytes)
         return ByteString.of(*encrypted).hex()
     }
 
-    @Throws(Exception::class)
+    @Throws(GeneralSecurityException::class)
     private fun decrypt(cipher: Cipher, encrypted: ByteArray): String {
         val decrypted = cipher.doFinal(encrypted)
         return String(decrypted, StandardCharsets.UTF_8)
