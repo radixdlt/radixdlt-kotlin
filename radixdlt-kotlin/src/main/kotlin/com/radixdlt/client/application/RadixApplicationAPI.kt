@@ -80,10 +80,15 @@ class RadixApplicationAPI private constructor(
         }
     }
 
-    fun getReadableData(address: RadixAddress): Observable<UnencryptedData> {
+    fun getData(address: RadixAddress): Observable<Data> {
         Objects.requireNonNull(address)
+
         return ledger.getAllAtoms(address.getUID(), ApplicationPayloadAtom::class.java)
-            .map { dataStoreTranslator.fromAtom(it) }
+            .map(dataStoreTranslator::fromAtom)
+    }
+
+    fun getReadableData(address: RadixAddress): Observable<UnencryptedData> {
+        return getData(address)
             .flatMapMaybe { data -> myIdentity.decrypt(data).toMaybe().onErrorComplete() }
     }
 
