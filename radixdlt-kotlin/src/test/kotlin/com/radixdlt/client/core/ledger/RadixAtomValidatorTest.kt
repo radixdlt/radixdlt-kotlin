@@ -9,6 +9,7 @@ import com.radixdlt.client.core.atoms.RadixHash
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.util.any
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -16,7 +17,7 @@ import java.util.Arrays
 
 class RadixAtomValidatorTest {
 
-    @Test(expected = AtomValidationException::class)
+    @Test
     @Throws(AtomValidationException::class)
     fun testSignatureValidation() {
         val hash = mock(RadixHash::class.java)
@@ -36,10 +37,11 @@ class RadixAtomValidatorTest {
         val atom = mock(Atom::class.java)
         `when`(atom.hash).thenReturn(hash)
         `when`(atom.getSignature(any())).thenReturn(null)
-        `when`(atom.particles).thenReturn(Arrays.asList(consumer))
+        `when`(atom.consumers).thenReturn(Arrays.asList(consumer))
 
         val validator = RadixAtomValidator.getInstance()
-        validator.validateSignatures(atom)
+        assertThatThrownBy { validator.validateSignatures(atom) }
+            .isInstanceOf(AtomValidationException::class.java)
     }
 
     @Test

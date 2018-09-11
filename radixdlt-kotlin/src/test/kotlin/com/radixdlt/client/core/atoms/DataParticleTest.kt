@@ -21,4 +21,3 @@ class DataParticleTest {
             .isInstanceOf(NullPointerException::class.java)
     }
 }
-

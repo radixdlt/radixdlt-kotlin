@@ -11,15 +11,6 @@ class UnsignedAtom(val rawAtom: Atom) {
     fun sign(signature: ECSignature, signatureId: EUID): Atom {
         // TODO: Remove need to create a new object
         val atom = rawAtom
-        return Atom(
-            atom.dataParticle,
-            atom.particles!!,
-            atom.destinations,
-            atom.encryptor,
-            atom.uniqueParticle,
-            rawAtom.timestamp!!,
-            signatureId,
-            signature
-        )
+        return atom.withSignature(signature, signatureId)
     }
 }

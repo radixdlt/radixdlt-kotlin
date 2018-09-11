@@ -9,7 +9,8 @@ import java.util.HashSet
 class AtomBuilder {
 
     private val destinations = HashSet<EUID>()
-    private val particles = ArrayList<Particle>()
+    private val consumables = ArrayList<AbstractConsumable>()
+    private val consumers = ArrayList<Consumer>()
     private var encryptor: EncryptorParticle? = null
     private var dataParticle: DataParticle? = null
     private var uniqueParticle: UniqueParticle? = null
@@ -38,14 +39,20 @@ class AtomBuilder {
         return this
     }
 
-    fun addParticle(particle: Particle): AtomBuilder {
-        this.particles.add(particle)
-        this.destinations.addAll(particle.destinations!!)
+    fun addConsumer(consumer: Consumer): AtomBuilder {
+        this.consumers.add(consumer)
+        this.destinations.addAll(consumer.destinations!!)
         return this
     }
 
-    fun <T : Particle> addParticles(particles: List<T>): AtomBuilder {
-        this.particles.addAll(particles)
+    fun addConsumable(consumable: Consumable): AtomBuilder {
+        this.consumables.add(consumable)
+        this.destinations.addAll(consumable.destinations!!)
+        return this
+    }
+
+    fun <T : Consumable> addConsumables(particles: List<T>): AtomBuilder {
+        this.consumables.addAll(particles)
         particles.asSequence().flatMap { particle -> particle.destinations!!.asSequence() }
             .forEach { destinations.add(it) }
         return this
@@ -64,13 +71,23 @@ class AtomBuilder {
             .owner(owner)
             .pow(magic, Math.ceil(Math.log(size * 8.0)).toInt())
             .build()
-        this.addParticle(fee)
+        this.addConsumable(fee)
 
         return this.build(timestamp)
     }
 
     fun build(timestamp: Long): UnsignedAtom {
-        return UnsignedAtom(Atom(dataParticle, particles, destinations, encryptor, uniqueParticle, timestamp))
+        return UnsignedAtom(
+            Atom(
+                dataParticle,
+                if (consumers.isEmpty()) null else consumers, // Pretty nasty hack here. Need to fix.
+                consumables,
+                destinations,
+                encryptor,
+                uniqueParticle,
+                timestamp
+            )
+        )
     }
 
     // Temporary method for testing

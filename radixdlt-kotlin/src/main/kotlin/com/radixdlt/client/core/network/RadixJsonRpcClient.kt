@@ -241,7 +241,7 @@ class RadixJsonRpcClient(
      * @param atom the atom to submit
      * @param <T> the type of atom
      * @return observable of the atom as it gets stored
-    </T> */
+     */
     fun <T : Atom> submitAtom(atom: T): Observable<AtomSubmissionUpdate> {
         return this.wsClient.connect().andThen(
             Observable.create { emitter ->

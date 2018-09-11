@@ -8,7 +8,7 @@ object Longs {
     @JvmOverloads
     @JvmStatic
     fun toByteArray(value: Long, bytes: ByteArray = ByteArray(java.lang.Long.BYTES), offset: Int = 0): ByteArray {
-        var value = value
+        var valueCopy = value
         Objects.requireNonNull(bytes, "bytes is null for 'long' conversion")
 
         if (offset + LONG_BYTES > bytes.size) {
@@ -16,8 +16,8 @@ object Longs {
         }
 
         for (i in LONG_BYTES - 1 downTo 0) {
-            bytes[offset + i] = (value and 0xffL).toByte()
-            value = value ushr 8
+            bytes[offset + i] = (valueCopy and 0xffL).toByte()
+            valueCopy = valueCopy ushr 8
         }
 
         return bytes
