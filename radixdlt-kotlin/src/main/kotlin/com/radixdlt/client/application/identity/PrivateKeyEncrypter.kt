@@ -15,7 +15,6 @@ import com.radixdlt.client.core.crypto.MacMismatchException
 import com.radixdlt.client.core.util.AndroidUtil
 import okio.ByteString
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.io.FileWriter
 import java.io.IOException
 import java.io.Reader
 import java.nio.ByteBuffer
@@ -60,12 +59,6 @@ object PrivateKeyEncrypter {
             Security.insertProviderAt(BouncyCastleProvider(), 1)
         }
         secureRandom = SecureRandom()
-    }
-
-    @Throws(IOException::class, GeneralSecurityException::class)
-    fun createEncryptedPrivateKeyFile(password: String, filePath: String) {
-        val strJson = createEncryptedPrivateKey(password)
-        createFile(strJson, filePath)
     }
 
     @Throws(GeneralSecurityException::class)
@@ -128,13 +121,6 @@ object PrivateKeyEncrypter {
     private fun getKeystore(keyReader: Reader): Keystore {
         JsonReader(keyReader).use { jsonReader ->
             return Gson().fromJson(jsonReader, Keystore::class.java)
-        }
-    }
-
-    @Throws(IOException::class)
-    private fun createFile(fileContents: String, filePath: String) {
-        FileWriter(filePath).use { writer ->
-            writer.write(fileContents)
         }
     }
 
