@@ -12,6 +12,7 @@ import org.bouncycastle.util.encoders.Base64
 import org.bouncycastle.util.encoders.Hex
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.UncheckedIOException
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
@@ -22,11 +23,9 @@ import java.util.HashMap
 class Dson private constructor() {
 
     private val versionField = object : DsonField {
-        override val name: String
-            get() = "version"
+        override fun getName(): String = "version"
 
-        override val bytes: ByteArray
-            get() = toDson(100L)
+        override fun getBytes(): ByteArray = toDson(100L)
     }
 
     private enum class Primitive(val value: Int) {
@@ -41,7 +40,7 @@ class Dson private constructor() {
 
     private fun parse(byteBuffer: ByteBuffer): JsonElement {
         val type = byteBuffer.get().toInt()
-        var length = byteBuffer.int
+        var length = SerializationUtils.decodeInt(byteBuffer)
         val result: JsonElement
         if (type == Primitive.NUMBER.value) {
             result = JsonPrimitive(byteBuffer.long)
@@ -60,7 +59,7 @@ class Dson private constructor() {
             val jsonObject = JsonObject()
 
             while (length > 0) {
-                val fieldNameLength = byteBuffer.get().toInt()
+                val fieldNameLength = byteBuffer.get().toInt() and 0xFF
                 val fieldName = ByteArray(fieldNameLength)
                 byteBuffer.get(fieldName)
                 val start = byteBuffer.position()
@@ -108,8 +107,8 @@ class Dson private constructor() {
     }
 
     interface DsonField {
-        val name: String
-        val bytes: ByteArray
+        fun getName(): String
+        fun getBytes(): ByteArray
     }
 
     fun toDson(o: Any?): ByteArray {
@@ -125,7 +124,7 @@ class Dson private constructor() {
                     val arrayObjRaw = toDson(arrayObject)
                     outputStream.write(arrayObjRaw)
                 } catch (e: IOException) {
-                    throw RuntimeException()
+                    throw UncheckedIOException(e)
                 }
             }
             raw = outputStream.toByteArray()
@@ -152,17 +151,15 @@ class Dson private constructor() {
                 throw IllegalStateException("Cannot DSON serialize HashMap. Must be a predictably ordered map.")
             }
 
-            val fieldStream: Sequence<DsonField> = map!!.keys.asSequence().map { key ->
+            val fieldStream: Sequence<DsonField> = map!!.entries.asSequence().map { e ->
                 object : DsonField {
-                    override val name: String
-                        get() = key.toString()
+                    override fun getName(): String = e.key.toString()
 
-                    override val bytes: ByteArray
-                        get() = toDson(map[key])
+                    override fun getBytes(): ByteArray = toDson(e.value)
                 }
             }
 
-            val rawList: Sequence<DsonField> = fieldStream.sortedBy { it.name }
+            val rawList: Sequence<DsonField> = fieldStream.sortedBy { it.getName() }
             raw = toByteArray(rawList)
             type = 5
         } else {
@@ -186,27 +183,11 @@ class Dson private constructor() {
                         throw RuntimeException()
                     }
                 }
-                .map {
-                    object : DsonField {
-                        override val name: String
-                            get() {
-                                val serializedName = it.getAnnotation(SerializedName::class.java)
-                                return serializedName?.value ?: it.name
-                            }
-                        override val bytes: ByteArray
-                            get() {
-                                try {
-                                    it.isAccessible = true
-                                    val fieldObject = it.get(o)
-                                    return toDson(fieldObject)
-                                } catch (e: IllegalAccessException) {
-                                    throw RuntimeException()
-                                }
-                            }
-                    }
+                .map { field ->
+                    dsonFieldFrom(o, field)
                 }
 
-            val rawList = fieldStream.asSequence().plus(versionField).sortedBy { it.name }
+            val rawList = fieldStream.asSequence().plus(versionField).sortedBy { it.getName() }
             raw = toByteArray(rawList)
             type = 5
         }
@@ -223,15 +204,36 @@ class Dson private constructor() {
         val outputStream = ByteArrayOutputStream()
         rawList.forEach { dsonField ->
             try {
-                val nameBytes = dsonField.name.toByteArray(StandardCharsets.UTF_8)
-                outputStream.write(nameBytes.size)
+                val nameBytes = dsonField.getName().toByteArray(StandardCharsets.UTF_8)
+                SerializationUtils.encodeInt(nameBytes.size, outputStream)
                 outputStream.write(nameBytes)
-                outputStream.write(dsonField.bytes)
+                outputStream.write(dsonField.getBytes())
             } catch (e: IOException) {
-                throw RuntimeException()
+                throw UncheckedIOException(e)
             }
         }
         return outputStream.toByteArray()
+    }
+
+    private fun dsonFieldFrom(o: Any, field: Field): DsonField {
+        val serializedName = field.getAnnotation(SerializedName::class.java)
+        val name = serializedName?.value ?: field.name
+
+        return object : DsonField {
+            override fun getName(): String = name
+
+            override fun getBytes(): ByteArray {
+                try {
+                    field.isAccessible = true
+                    val fieldObject = field.get(o)
+                    return toDson(fieldObject)
+                } catch (e: IllegalArgumentException) {
+                    throw RuntimeException(e)
+                } catch (e: IllegalAccessException) {
+                    throw RuntimeException(e)
+                }
+            }
+        }
     }
 
     companion object {
