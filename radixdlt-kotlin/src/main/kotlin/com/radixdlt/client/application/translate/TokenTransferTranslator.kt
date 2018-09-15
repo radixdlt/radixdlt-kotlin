@@ -78,7 +78,7 @@ class TokenTransferTranslator(
             metaData["encrypted"] = encryptorParticle != null
 
             val encryptor: Encryptor? = if (encryptorParticle != null) {
-                val protectorsJson = JSON_PARSER.parse(encryptorParticle.bytes!!.toUtf8()).asJsonArray
+                val protectorsJson = JSON_PARSER.parse(encryptorParticle.bytes!!.toUtf8String()).asJsonArray
                 val protectors = ArrayList<EncryptedPrivateKey>()
                 protectorsJson.forEach { protectorJson ->
                     protectors.add(EncryptedPrivateKey.fromBase64(protectorJson.asString))

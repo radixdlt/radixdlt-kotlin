@@ -28,11 +28,7 @@ class Payload(
         return Arrays.copyOf(payload, payload!!.size)
     }
 
-    fun toAscii(): String {
-        return String(payload!!)
-    }
-
-    fun toUtf8(): String {
+    fun toUtf8String(): String {
         return String(payload!!, StandardCharsets.UTF_8)
     }
 

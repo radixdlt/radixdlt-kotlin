@@ -53,7 +53,7 @@ class DataStoreTranslator private constructor() {
             return Any()
         }
 
-        val bytesParticle: DataParticle = atom.dataParticles!!.asSequence()
+        val bytesParticle: DataParticle? = atom.dataParticles!!.asSequence()
             .filter { p -> "encryptor" != p.getMetaData("application") }
             .firstOrNull() ?: return Any()
 
@@ -61,8 +61,14 @@ class DataStoreTranslator private constructor() {
         metaData["timestamp"] = atom.timestamp
         metaData["signatures"] = atom.signatures
 
-        val application: String? = bytesParticle.getMetaData("application") as String?
+        val application: String? = bytesParticle?.getMetaData("application") as String?
         metaData.computeSynchronisedFunction("application") { _, _ -> application }
+
+        bytesParticle?.let { p ->
+            metaData.computeSynchronisedFunction("application") { _, _ ->
+                p.getMetaData("application")
+            }
+        }
 
         val encryptorParticle: DataParticle? = atom.dataParticles!!.asSequence()
             .filter { p -> "encryptor" == p.getMetaData("application") }
@@ -71,7 +77,7 @@ class DataStoreTranslator private constructor() {
 
         val encryptor: Encryptor?
         encryptor = if (encryptorParticle != null) {
-            val protectorsJson = JSON_PARSER.parse(encryptorParticle.bytes!!.toUtf8()).asJsonArray
+            val protectorsJson = JSON_PARSER.parse(encryptorParticle.bytes!!.toUtf8String()).asJsonArray
             val protectors = ArrayList<EncryptedPrivateKey>()
             protectorsJson.forEach { protectorJson ->
                 protectors.add(EncryptedPrivateKey.fromBase64(protectorJson.asString))
@@ -81,7 +87,7 @@ class DataStoreTranslator private constructor() {
             null
         }
 
-        return Data.raw(bytesParticle.bytes?.bytes, metaData, encryptor)
+        return Data.raw(bytesParticle?.bytes?.bytes, metaData, encryptor)
     }
 
     companion object {
@@ -101,3 +107,5 @@ fun <K, V> HashMap<K, V>.computeSynchronisedFunction(key: K, remappingFunction: 
         }
     }
 }
+
+inline fun <K : Any> K.ifPresent(condition: K.() -> Boolean): K? = if (condition()) this else null
