@@ -25,7 +25,7 @@ class DataParticle private constructor(
         private val metaData = MetadataMap()
         private var bytes: Payload? = null
 
-        fun setMetaData(key: String, value: String): DataParticleBuilder {
+        fun setMetaData(key: String, value: String?): DataParticleBuilder {
             metaData[key] = value
             return this
         }
