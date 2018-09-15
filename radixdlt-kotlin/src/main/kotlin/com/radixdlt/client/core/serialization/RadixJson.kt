@@ -7,6 +7,7 @@ import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
+import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.TypeAdapter
@@ -32,6 +33,9 @@ import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import com.radixdlt.client.core.network.NodeRunnerData
+import com.radixdlt.client.core.serialization.SerializationConstants.BYT_PREFIX
+import com.radixdlt.client.core.serialization.SerializationConstants.STR_PREFIX
+import com.radixdlt.client.core.serialization.SerializationConstants.UID_PREFIX
 import com.radixdlt.client.core.util.Base64Encoded
 import com.radixdlt.client.core.util.Int128
 import org.bouncycastle.util.encoders.Base64
@@ -42,30 +46,42 @@ import java.util.HashMap
 
 object RadixJson {
 
+    private fun checkPrefix(value: String, prefix: String): String {
+        if (!value.startsWith(prefix)) {
+            throw IllegalStateException("JSON value does not start with prefix $prefix")
+        }
+        return value.substring(prefix.length)
+    }
+
+    private fun unString(value: String): String {
+        return if (value.startsWith(STR_PREFIX)) value.substring(STR_PREFIX.length) else value
+    }
+
     private val BASE64_SERIALIZER =
-        JsonSerializer<Base64Encoded> { src, _, _ -> serializedValue("BASE64", src.base64()) }
+        JsonSerializer<Base64Encoded> { src, _, _ -> JsonPrimitive(BYT_PREFIX + src.base64()) }
 
     private val PAYLOAD_DESERIALIZER =
-        JsonDeserializer<Payload> { json, _, _ -> Payload.fromBase64(json.asJsonObject.get("value").asString) }
+        JsonDeserializer<Payload> { json, _, _ -> Payload.fromBase64(checkPrefix(json.asString, BYT_PREFIX)) }
 
     private val PK_DESERIALIZER = JsonDeserializer<ECPublicKey> { json, _, _ ->
-        val publicKey = Base64.decode(json.asJsonObject.get("value").asString)
+        val publicKey = Base64.decode(checkPrefix(json.asString, BYT_PREFIX))
         ECPublicKey(publicKey)
     }
 
     private val PROTECTOR_DESERIALIZER = JsonDeserializer<EncryptedPrivateKey> { json, _, _ ->
-        val encryptedPrivateKey = Base64.decode(json.asJsonObject.get("value").asString)
+        val encryptedPrivateKey = Base64.decode(checkPrefix(json.asString, BYT_PREFIX))
         EncryptedPrivateKey(encryptedPrivateKey)
     }
 
-    private val UNIVERSER_TYPE_DESERIALIZER =
+    private val UNIVERSE_TYPE_DESERIALIZER =
         JsonDeserializer<RadixUniverseType> { json, _, _ -> RadixUniverseType.valueOf(json.asInt) }
 
-    private val NODE_RUNNDER_DATA_JSON_DESERIALIZER = JsonDeserializer<NodeRunnerData> { json, _, _ ->
+    private val NODE_RUNNER_DATA_JSON_DESERIALIZER = JsonDeserializer<NodeRunnerData> { json, _, _ ->
+        val obj = json.asJsonObject
         NodeRunnerData(
-            if (json.asJsonObject.has("host")) json.asJsonObject.get("host").asJsonObject.get("ip").asString else null,
-            json.asJsonObject.get("system").asJsonObject.get("shards").asJsonObject.get("low").asLong,
-            json.asJsonObject.get("system").asJsonObject.get("shards").asJsonObject.get("high").asLong
+            if (obj.has("host")) unString(obj.get("host").asJsonObject.get("ip").asString) else null,
+            obj.get("system").asJsonObject.get("shards").asJsonObject.get("low").asLong,
+            obj.get("system").asJsonObject.get("shards").asJsonObject.get("high").asLong
         )
     }
 
@@ -151,12 +167,13 @@ object RadixJson {
             .registerTypeAdapter(ByteArray::class.java, ByteArraySerializer())
             .registerTypeAdapter(AbstractConsumable::class.java, ABSTRACT_CONSUMABLE_SERIALIZER)
             .registerTypeAdapter(AbstractConsumable::class.java, ABSTRACT_CONSUMABLE_DESERIALIZER)
+            .registerTypeAdapter(String::class.java, StringCodec())
             .registerTypeAdapter(EUID::class.java, EUIDSerializer())
             .registerTypeAdapter(Payload::class.java, PAYLOAD_DESERIALIZER)
             .registerTypeAdapter(EncryptedPrivateKey::class.java, PROTECTOR_DESERIALIZER)
             .registerTypeAdapter(ECPublicKey::class.java, PK_DESERIALIZER)
-            .registerTypeAdapter(RadixUniverseType::class.java, UNIVERSER_TYPE_DESERIALIZER)
-            .registerTypeAdapter(NodeRunnerData::class.java, NODE_RUNNDER_DATA_JSON_DESERIALIZER)
+            .registerTypeAdapter(RadixUniverseType::class.java, UNIVERSE_TYPE_DESERIALIZER)
+            .registerTypeAdapter(NodeRunnerData::class.java, NODE_RUNNER_DATA_JSON_DESERIALIZER)
 
         gson = gsonBuilder.create()
     }
@@ -170,23 +187,33 @@ object RadixJson {
 
     private class EUIDSerializer : JsonDeserializer<EUID>, JsonSerializer<EUID> {
         override fun serialize(src: EUID, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
-            return serializedValue("EUID", src.toString())
+            return JsonPrimitive(UID_PREFIX + src.toString())
         }
 
         @Throws(JsonParseException::class)
         override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): EUID {
-            return EUID(Int128.from(Hex.decode(json.asJsonObject.get("value").asString)))
+            return EUID(Int128.from(Hex.decode(checkPrefix(json.asString, UID_PREFIX))));
         }
     }
 
     private class ByteArraySerializer : JsonDeserializer<ByteArray>, JsonSerializer<ByteArray> {
         override fun serialize(src: ByteArray, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
-            return serializedValue("BASE64", Base64.toBase64String(src))
+            return JsonPrimitive(BYT_PREFIX + Base64.toBase64String(src))
         }
 
         @Throws(JsonParseException::class)
         override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): ByteArray {
-            return Base64.decode(json.asJsonObject.get("value").asString)
+            return Base64.decode(checkPrefix(json.asString, BYT_PREFIX));
+        }
+    }
+
+    private class StringCodec : JsonDeserializer<String>, JsonSerializer<String> {
+        override fun serialize(src: String, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+            return JsonPrimitive(STR_PREFIX + src)
+        }
+
+        override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): String {
+            return unString(json.asString)
         }
     }
 }

@@ -6,8 +6,11 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import com.google.gson.annotations.SerializedName
 import com.radixdlt.client.core.address.EUID
+import com.radixdlt.client.core.serialization.SerializationConstants.BYT_PREFIX
+import com.radixdlt.client.core.serialization.SerializationConstants.HSH_PREFIX
+import com.radixdlt.client.core.serialization.SerializationConstants.STR_PREFIX
+import com.radixdlt.client.core.serialization.SerializationConstants.UID_PREFIX
 import com.radixdlt.client.core.util.Base64Encoded
-import okio.ByteString
 import org.bouncycastle.util.encoders.Base64
 import org.bouncycastle.util.encoders.Hex
 import java.io.ByteArrayOutputStream
@@ -29,17 +32,17 @@ class Dson private constructor() {
     }
 
     private enum class Primitive(val value: Int) {
-        NUMBER(2),
-        STRING(3),
-        BYTES(4),
-        OBJECT(5),
-        ARRAY(6),
-        EUID(7),
-        HASH(8)
+        NUMBER(0x20),
+        EUID(0x21),
+        HASH(0x22),
+        BYTES(0x40),
+        STRING(0x41),
+        ARRAY(0x80),
+        OBJECT(0x81);
     }
 
     private fun parse(byteBuffer: ByteBuffer): JsonElement {
-        val type = byteBuffer.get().toInt()
+        val type = byteBuffer.get().toInt() and 0xFF
         var length = SerializationUtils.decodeInt(byteBuffer)
         val result: JsonElement
         if (type == Primitive.NUMBER.value) {
@@ -47,14 +50,11 @@ class Dson private constructor() {
         } else if (type == Primitive.STRING.value) {
             val buffer = ByteArray(length)
             byteBuffer.get(buffer)
-            result = JsonPrimitive(String(buffer))
+            result = JsonPrimitive(STR_PREFIX + String(buffer, StandardCharsets.UTF_8))
         } else if (type == Primitive.BYTES.value) {
             val buffer = ByteArray(length)
             byteBuffer.get(buffer)
-            val jsonObject = JsonObject()
-            jsonObject.addProperty("serializer", "BASE64")
-            jsonObject.addProperty("value", Base64.toBase64String(buffer))
-            result = jsonObject
+            result = JsonPrimitive(BYT_PREFIX + Base64.toBase64String(buffer))
         } else if (type == Primitive.OBJECT.value) {
             val jsonObject = JsonObject()
 
@@ -82,19 +82,13 @@ class Dson private constructor() {
             }
             result = jsonArray
         } else if (type == Primitive.EUID.value) {
-            val jsonObject = JsonObject()
-            jsonObject.addProperty("serializer", "EUID")
             val buffer = ByteArray(length)
             byteBuffer.get(buffer)
-            jsonObject.addProperty("value", Hex.toHexString(buffer))
-            result = jsonObject
+            result = JsonPrimitive(UID_PREFIX + Hex.toHexString(buffer))
         } else if (type == Primitive.HASH.value) {
-            val jsonObject = JsonObject()
-            jsonObject.addProperty("serializer", "HASH")
             val buffer = ByteArray(length)
             byteBuffer.get(buffer)
-            jsonObject.addProperty("value", ByteString.of(*buffer).hex())
-            result = jsonObject
+            result = JsonPrimitive(HSH_PREFIX + Hex.toHexString(buffer))
         } else {
             throw RuntimeException("Unknown type: $type")
         }
@@ -113,7 +107,7 @@ class Dson private constructor() {
 
     fun toDson(o: Any?): ByteArray {
         val raw: ByteArray
-        val type: Byte
+        val type: Int
 
         if (o == null) {
             throw IllegalArgumentException("Null sent")
@@ -128,22 +122,22 @@ class Dson private constructor() {
                 }
             }
             raw = outputStream.toByteArray()
-            type = 6
+            type = Primitive.ARRAY.value
         } else if (o is Long) {
             raw = longToByteArray((o as Long?)!!)
-            type = 2
+            type = Primitive.NUMBER.value
         } else if (o is EUID) {
             raw = o.toByteArray()
-            type = 7
+            type = Primitive.EUID.value
         } else if (o is Base64Encoded) {
             raw = o.toByteArray()
-            type = 4
+            type = Primitive.BYTES.value
         } else if (o is String) {
             raw = o.toByteArray()
-            type = 3
+            type = Primitive.STRING.value
         } else if (o is ByteArray) {
             raw = o
-            type = 4
+            type = Primitive.BYTES.value
         } else if (o is Map<*, *>) {
             val map = o as Map<*, *>?
 
@@ -161,7 +155,7 @@ class Dson private constructor() {
 
             val rawList: Sequence<DsonField> = fieldStream.sortedBy { it.getName() }
             raw = toByteArray(rawList)
-            type = 5
+            type = Primitive.OBJECT.value
         } else {
             var c: Class<*> = o.javaClass
             val fields = ArrayList<Field>()
@@ -189,11 +183,11 @@ class Dson private constructor() {
 
             val rawList = fieldStream.asSequence().plus(versionField).sortedBy { it.getName() }
             raw = toByteArray(rawList)
-            type = 5
+            type = Primitive.OBJECT.value
         }
 
         val byteBuffer = ByteBuffer.allocate(5 + raw.size)
-        byteBuffer.put(type)
+        byteBuffer.put(type.toByte())
         byteBuffer.putInt(raw.size)
         byteBuffer.put(raw)
 
