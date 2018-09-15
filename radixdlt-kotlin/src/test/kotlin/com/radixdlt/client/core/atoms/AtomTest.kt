@@ -2,17 +2,16 @@ package com.radixdlt.client.core.atoms
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AtomTest {
     @Test
     fun testNullAtom() {
-        val atom = Atom(null, emptyList(), emptyList(), emptySet(), null, null, 0)
-        assertNull(atom.dataParticle)
-        assertEquals(0, atom.consumables!!.size.toLong())
-        assertEquals(0, atom.consumables!!.size.toLong())
-        assertEquals(0, atom.consumers!!.size.toLong())
+        val atom = Atom(null, emptyList(), emptyList(), emptySet(), null, 0)
+        assertTrue(atom.dataParticles!!.isEmpty())
+        assertTrue(atom.consumables!!.isEmpty())
+        assertTrue(atom.consumers!!.isEmpty())
         assertNotNull(atom.hash)
         assertNotNull(atom.hid)
         assertNotNull(atom.summary())
@@ -20,6 +19,6 @@ class AtomTest {
         assertEquals(0L, atom.timestamp)
         assertNotNull(atom.toString())
 
-        assertEquals(atom, Atom(null, emptyList(), emptyList(), emptySet(), null, null, 0))
+        assertEquals(atom, Atom(null, emptyList(), emptyList(), emptySet(), null, 0))
     }
 }

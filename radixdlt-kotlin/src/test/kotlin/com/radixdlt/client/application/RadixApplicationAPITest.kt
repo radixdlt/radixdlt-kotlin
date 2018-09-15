@@ -35,8 +35,8 @@ class RadixApplicationAPITest {
         val identity = mock(RadixIdentity::class.java)
 
         val atomBuilder = mock(AtomBuilder::class.java)
-        `when`(atomBuilder.setEncryptorParticle(any())).thenReturn(atomBuilder)
-        `when`(atomBuilder.setDataParticle(any())).thenReturn(atomBuilder)
+        `when`(atomBuilder.addDataParticle(any())).thenReturn(atomBuilder)
+        `when`(atomBuilder.addDataParticle(any())).thenReturn(atomBuilder)
         val atom = mock(Atom::class.java)
         `when`(identity.sign(any())).thenReturn(Single.just(atom))
 
@@ -154,7 +154,7 @@ class RadixApplicationAPITest {
         `when`(universe.ledger).thenReturn(ledger)
         val address = mock(RadixAddress::class.java)
         val atom = mock(Atom::class.java)
-        `when`(atom.dataParticle).thenReturn(null)
+        `when`(atom.dataParticles).thenReturn(null)
 
         `when`(ledger.getAllAtoms(any())).thenReturn(Observable.just(atom, atom, atom))
 

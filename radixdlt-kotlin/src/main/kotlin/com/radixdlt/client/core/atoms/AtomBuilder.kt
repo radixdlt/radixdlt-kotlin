@@ -11,8 +11,7 @@ class AtomBuilder {
     private val destinations = HashSet<EUID>()
     private val consumables = ArrayList<AbstractConsumable>()
     private val consumers = ArrayList<Consumer>()
-    private var encryptor: DataParticle? = null
-    private var dataParticle: DataParticle? = null
+    private var dataParticles = ArrayList<DataParticle>()
     private var uniqueParticle: UniqueParticle? = null
 
     fun addDestination(euid: EUID): AtomBuilder {
@@ -29,13 +28,8 @@ class AtomBuilder {
         return this
     }
 
-    fun setDataParticle(dataParticle: DataParticle): AtomBuilder {
-        this.dataParticle = dataParticle
-        return this
-    }
-
-    fun setEncryptorParticle(encryptor: DataParticle): AtomBuilder {
-        this.encryptor = encryptor
+    fun addDataParticle(dataParticle: DataParticle): AtomBuilder {
+        this.dataParticles.add(dataParticle)
         return this
     }
 
@@ -79,11 +73,10 @@ class AtomBuilder {
     fun build(timestamp: Long): UnsignedAtom {
         return UnsignedAtom(
             Atom(
-                dataParticle,
+                if (dataParticles.isEmpty()) null else dataParticles,
                 if (consumers.isEmpty()) null else consumers, // Pretty nasty hack here. Need to fix.
                 consumables,
                 destinations,
-                encryptor,
                 uniqueParticle,
                 timestamp
             )

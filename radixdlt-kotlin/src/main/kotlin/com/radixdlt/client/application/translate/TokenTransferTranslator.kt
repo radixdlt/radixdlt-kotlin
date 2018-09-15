@@ -62,13 +62,23 @@ class TokenTransferTranslator(
             }
         }
 
+        val bytesParticle: DataParticle? = atom.dataParticles!!.asSequence()
+            .filter { p -> "encryptor" != p.getMetaData("application") }
+            .firstOrNull()
+
         // Construct attachment from atom
         val attachment: Data?
-        if (atom.dataParticle != null) {
+        if (bytesParticle != null) {
             val metaData = HashMap<String, Any>()
-            metaData["encrypted"] = atom.encryptor != null
-            val encryptor: Encryptor? = if (atom.encryptor != null) {
-                val protectorsJson = parser.parse(atom.encryptor.bytes!!.toUtf8()).asJsonArray
+
+            val encryptorParticle: DataParticle? = atom.dataParticles!!.asSequence()
+                .filter { p -> "encryptor" == p.getMetaData("application") }
+                .firstOrNull()
+
+            metaData["encrypted"] = encryptorParticle != null
+
+            val encryptor: Encryptor? = if (encryptorParticle != null) {
+                val protectorsJson = JSON_PARSER.parse(encryptorParticle.bytes!!.toUtf8()).asJsonArray
                 val protectors = ArrayList<EncryptedPrivateKey>()
                 protectorsJson.forEach { protectorJson ->
                     protectors.add(EncryptedPrivateKey.fromBase64(protectorJson.asString))
@@ -77,7 +87,7 @@ class TokenTransferTranslator(
             } else {
                 null
             }
-            attachment = Data.raw(atom.dataParticle.bytes?.bytes, metaData, encryptor)
+            attachment = Data.raw(encryptorParticle?.bytes?.bytes, metaData, encryptor)
         } else {
             attachment = null
         }
@@ -95,7 +105,7 @@ class TokenTransferTranslator(
                 // Translate attachment to corresponding atom structure
                 val attachment = tokenTransfer.attachment
                 if (attachment != null) {
-                    atomBuilder.setDataParticle(DataParticle(Payload(attachment.bytes), null))
+                    atomBuilder.addDataParticle(DataParticle(Payload(attachment.bytes), null))
                     val encryptor = attachment.encryptor
                     if (encryptor != null) {
                         val protectorsJson = JsonArray()
@@ -103,7 +113,7 @@ class TokenTransferTranslator(
 
                         val encryptorPayload = Payload(protectorsJson.toString().toByteArray(StandardCharsets.UTF_8))
                         val encryptorParticle = DataParticle(encryptorPayload, "encryptor")
-                        atomBuilder.setEncryptorParticle(encryptorParticle)
+                        atomBuilder.addDataParticle(encryptorParticle)
                     }
                 }
 
@@ -156,6 +166,6 @@ class TokenTransferTranslator(
     }
 
     companion object {
-        private val parser = JsonParser()
+        private val JSON_PARSER = JsonParser()
     }
 }

@@ -24,7 +24,6 @@ import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.Consumer
 import com.radixdlt.client.core.atoms.DataParticle
 import com.radixdlt.client.core.atoms.Emission
-import com.radixdlt.client.core.atoms.EncryptorParticle
 import com.radixdlt.client.core.atoms.Particle
 import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.atoms.UniqueParticle
@@ -110,7 +109,6 @@ object RadixJson {
         SERIALIZERS[Atom::class.java] = 2019665
         SERIALIZERS[ECKeyPair::class.java] = 547221307
         SERIALIZERS[ECSignature::class.java] = -434788200
-        SERIALIZERS[EncryptorParticle::class.java] = 105401064
         SERIALIZERS[DataParticle::class.java] = 473758768
         SERIALIZERS[UniqueParticle::class.java] = "UNIQUEPARTICLE".hashCode()
         SERIALIZERS[ChronoParticle::class.java] = "CHRONOPARTICLE".hashCode()

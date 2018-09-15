@@ -26,8 +26,9 @@ class Atom {
     val consumables: List<AbstractConsumable>?
         get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
 
-    val dataParticle: DataParticle?
-    val encryptor: DataParticle?
+    val dataParticles: List<DataParticle>?
+        get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
+
     val uniqueParticle: UniqueParticle?
     val chronoParticle: ChronoParticle
 
@@ -60,41 +61,37 @@ class Atom {
         get() = hash.toEUID()
 
     constructor(
-        dataParticle: DataParticle?,
+        dataParticles: List<DataParticle>?,
         consumers: List<Consumer>?,
         consumables: List<AbstractConsumable>?,
         destinations: Set<EUID>,
-        encryptor: DataParticle?,
         uniqueParticle: UniqueParticle?,
         timestamp: Long
     ) {
-        this.dataParticle = dataParticle
+        this.dataParticles = dataParticles
         this.chronoParticle = ChronoParticle(timestamp)
         this.consumers = consumers
         this.consumables = consumables
         this.destinations = destinations
-        this.encryptor = encryptor
         this.uniqueParticle = uniqueParticle
         this.signatures = null
         this.action = "STORE"
     }
 
     private constructor(
-        dataParticle: DataParticle?,
+        dataParticles: List<DataParticle>?,
         consumers: List<Consumer>?,
         consumables: List<AbstractConsumable>?,
         destinations: Set<EUID>,
-        encryptor: DataParticle?,
         uniqueParticle: UniqueParticle?,
         timestamp: Long,
         signatureId: EUID,
         signature: ECSignature
     ) {
-        this.dataParticle = dataParticle
+        this.dataParticles = dataParticles
         this.consumers = consumers
         this.consumables = consumables
         this.destinations = destinations
-        this.encryptor = encryptor
         this.uniqueParticle = uniqueParticle
         this.chronoParticle = ChronoParticle(timestamp)
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)
@@ -103,11 +100,10 @@ class Atom {
 
     fun withSignature(signature: ECSignature, signatureId: EUID): Atom {
         return Atom(
-            dataParticle,
+            dataParticles,
             consumers,
             consumables,
             destinations,
-            encryptor,
             uniqueParticle,
             timestamp,
             signatureId,

@@ -22,7 +22,7 @@ class DataStoreTranslator private constructor() {
         val payload = Payload(dataStore.data.bytes)
         val application = dataStore.data.getMetaData()["application"] as String?
 
-        atomBuilder.setDataParticle(DataParticle(payload, application))
+        atomBuilder.addDataParticle(DataParticle(payload, application))
         val encryptor = dataStore.data.encryptor
         if (encryptor != null) {
             val protectorsJson = JsonArray()
@@ -30,7 +30,7 @@ class DataStoreTranslator private constructor() {
 
             val encryptorPayload = Payload(protectorsJson.toString().toByteArray(StandardCharsets.UTF_8))
             val encryptorParticle = DataParticle(encryptorPayload, "encryptor")
-            atomBuilder.setEncryptorParticle(encryptorParticle)
+            atomBuilder.addDataParticle(encryptorParticle)
         }
         dataStore.getAddresses().forEach { atomBuilder.addDestination(it) }
 
@@ -39,19 +39,31 @@ class DataStoreTranslator private constructor() {
 
     // TODO: don't pass in maps, utilize a metadata builder?
     fun fromAtom(atom: Atom): Any {
-        if (atom.dataParticle == null) {
+
+        // This is here to pass the test, can be removed in the future
+        if (atom.dataParticles == null) {
             return Any()
         }
+
+        val bytesParticle: DataParticle = atom.dataParticles!!.asSequence()
+            .filter { p -> "encryptor" != p.getMetaData("application") }
+            .firstOrNull() ?: return Any()
 
         val metaData = HashMap<String, Any?>()
         metaData["timestamp"] = atom.timestamp
         metaData["signatures"] = atom.signatures
-        metaData.computeSynchronisedFunction("application") { _, _ -> atom.dataParticle.getMetaData("application") }
-        metaData["encrypted"] = atom.encryptor != null
+
+        val application: String? = bytesParticle.getMetaData("application") as String?
+        metaData.computeSynchronisedFunction("application") { _, _ -> application }
+
+        val encryptorParticle: DataParticle? = atom.dataParticles!!.asSequence()
+            .filter { p -> "encryptor" == p.getMetaData("application") }
+            .firstOrNull()
+        metaData["encrypted"] = encryptorParticle != null
 
         val encryptor: Encryptor?
-        encryptor = if (atom.encryptor != null) {
-            val protectorsJson = parser.parse(atom.encryptor.bytes!!.toUtf8()).asJsonArray
+        encryptor = if (encryptorParticle != null) {
+            val protectorsJson = JSON_PARSER.parse(encryptorParticle.bytes!!.toUtf8()).asJsonArray
             val protectors = ArrayList<EncryptedPrivateKey>()
             protectorsJson.forEach { protectorJson ->
                 protectors.add(EncryptedPrivateKey.fromBase64(protectorJson.asString))
@@ -61,14 +73,14 @@ class DataStoreTranslator private constructor() {
             null
         }
 
-        return Data.raw(atom.dataParticle.bytes?.bytes, metaData, encryptor)
+        return Data.raw(bytesParticle.bytes?.bytes, metaData, encryptor)
     }
 
     companion object {
         @JvmStatic
         val instance = DataStoreTranslator()
 
-        private val parser = JsonParser()
+        private val JSON_PARSER = JsonParser()
     }
 }
 

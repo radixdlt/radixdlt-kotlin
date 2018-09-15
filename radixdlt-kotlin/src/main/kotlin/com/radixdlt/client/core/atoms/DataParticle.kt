@@ -17,7 +17,7 @@ class DataParticle(
      * Nullable for the timebeing as we want dson to be optimized for
      * saving space and no way to skip empty maps in Dson yet.
      */
-    private val metaData: MutableMap<String, Any>?
+    private val metaData: MutableMap<String, Any?>?
 
     init {
         Objects.requireNonNull(bytes) // Not needed in Kotlin but for now keep as close to java and pass unit tests
