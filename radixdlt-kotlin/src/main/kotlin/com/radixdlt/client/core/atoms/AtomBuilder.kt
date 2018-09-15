@@ -11,7 +11,7 @@ class AtomBuilder {
     private val destinations = HashSet<EUID>()
     private val consumables = ArrayList<AbstractConsumable>()
     private val consumers = ArrayList<Consumer>()
-    private var encryptor: EncryptorParticle? = null
+    private var encryptor: DataParticle? = null
     private var dataParticle: DataParticle? = null
     private var uniqueParticle: UniqueParticle? = null
 
@@ -34,7 +34,7 @@ class AtomBuilder {
         return this
     }
 
-    fun setEncryptorParticle(encryptor: EncryptorParticle): AtomBuilder {
+    fun setEncryptorParticle(encryptor: DataParticle): AtomBuilder {
         this.encryptor = encryptor
         return this
     }

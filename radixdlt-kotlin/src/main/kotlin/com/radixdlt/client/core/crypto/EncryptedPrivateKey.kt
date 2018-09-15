@@ -13,4 +13,11 @@ class EncryptedPrivateKey(private val encryptedPrivateKey: ByteArray) : Base64En
     override fun toByteArray(): ByteArray {
         return Arrays.copyOf(encryptedPrivateKey, encryptedPrivateKey.size)
     }
+
+    companion object {
+        @JvmStatic
+        fun fromBase64(base64: String): EncryptedPrivateKey {
+            return EncryptedPrivateKey(Base64.decode(base64))
+        }
+    }
 }

@@ -1,14 +1,18 @@
 package com.radixdlt.client.application.translate
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonParser
 import com.radixdlt.client.application.actions.DataStore
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.DataParticle
-import com.radixdlt.client.core.atoms.EncryptorParticle
 import com.radixdlt.client.core.atoms.Payload
+import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import com.radixdlt.client.core.crypto.Encryptor
 import io.reactivex.Completable
+import java.nio.charset.StandardCharsets
+import java.util.ArrayList
 import java.util.HashMap
 
 class DataStoreTranslator private constructor() {
@@ -21,7 +25,12 @@ class DataStoreTranslator private constructor() {
         atomBuilder.setDataParticle(DataParticle(payload, application))
         val encryptor = dataStore.data.encryptor
         if (encryptor != null) {
-            atomBuilder.setEncryptorParticle(EncryptorParticle(encryptor.protectors))
+            val protectorsJson = JsonArray()
+            encryptor.protectors.asSequence().map(EncryptedPrivateKey::base64).forEach(protectorsJson::add)
+
+            val encryptorPayload = Payload(protectorsJson.toString().toByteArray(StandardCharsets.UTF_8))
+            val encryptorParticle = DataParticle(encryptorPayload, "encryptor")
+            atomBuilder.setEncryptorParticle(encryptorParticle)
         }
         dataStore.getAddresses().forEach { atomBuilder.addDestination(it) }
 
@@ -40,8 +49,14 @@ class DataStoreTranslator private constructor() {
         metaData.computeSynchronisedFunction("application") { _, _ -> atom.dataParticle.getMetaData("application") }
         metaData["encrypted"] = atom.encryptor != null
 
-        val encryptor: Encryptor? = if (atom.encryptor != null) {
-            Encryptor(atom.encryptor.protectors)
+        val encryptor: Encryptor?
+        encryptor = if (atom.encryptor != null) {
+            val protectorsJson = parser.parse(atom.encryptor.bytes!!.toUtf8()).asJsonArray
+            val protectors = ArrayList<EncryptedPrivateKey>()
+            protectorsJson.forEach { protectorJson ->
+                protectors.add(EncryptedPrivateKey.fromBase64(protectorJson.asString))
+            }
+            Encryptor(protectors)
         } else {
             null
         }
@@ -52,6 +67,8 @@ class DataStoreTranslator private constructor() {
     companion object {
         @JvmStatic
         val instance = DataStoreTranslator()
+
+        private val parser = JsonParser()
     }
 }
 

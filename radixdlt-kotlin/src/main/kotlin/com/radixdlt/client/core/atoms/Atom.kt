@@ -27,7 +27,7 @@ class Atom {
         get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
 
     val dataParticle: DataParticle?
-    val encryptor: EncryptorParticle?
+    val encryptor: DataParticle?
     val uniqueParticle: UniqueParticle?
     val chronoParticle: ChronoParticle
 
@@ -64,7 +64,7 @@ class Atom {
         consumers: List<Consumer>?,
         consumables: List<AbstractConsumable>?,
         destinations: Set<EUID>,
-        encryptor: EncryptorParticle?,
+        encryptor: DataParticle?,
         uniqueParticle: UniqueParticle?,
         timestamp: Long
     ) {
@@ -84,7 +84,7 @@ class Atom {
         consumers: List<Consumer>?,
         consumables: List<AbstractConsumable>?,
         destinations: Set<EUID>,
-        encryptor: EncryptorParticle?,
+        encryptor: DataParticle?,
         uniqueParticle: UniqueParticle?,
         timestamp: Long,
         signatureId: EUID,

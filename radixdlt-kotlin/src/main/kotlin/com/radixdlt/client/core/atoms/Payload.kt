@@ -2,6 +2,7 @@ package com.radixdlt.client.core.atoms
 
 import com.radixdlt.client.core.util.Base64Encoded
 import org.bouncycastle.util.encoders.Base64
+import java.nio.charset.StandardCharsets
 import java.util.Arrays
 
 /**
@@ -29,6 +30,10 @@ class Payload(
 
     fun toAscii(): String {
         return String(payload!!)
+    }
+
+    fun toUtf8(): String {
+        return String(payload!!, StandardCharsets.UTF_8)
     }
 
     companion object {
