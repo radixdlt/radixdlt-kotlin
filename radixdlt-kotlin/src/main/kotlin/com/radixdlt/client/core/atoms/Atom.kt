@@ -23,9 +23,6 @@ abstract class Atom {
     @Transient
     private var debug: MutableMap<String, Long>? = HashMap()
 
-    val isUnknown: Boolean
-        get() = this.javaClass == UnknownAtom::class.java
-
     val isNullAtom: Boolean
         get() = this.javaClass == NullAtom::class.java
 
