@@ -115,7 +115,7 @@ class TokenTransferTranslator(
                         val encryptorParticle = DataParticle.DataParticleBuilder()
                             .payload(encryptorPayload)
                             .setMetaData("application", "encryptor")
-                            .setMetaData("contentType", "json")
+                            .setMetaData("contentType", "application/json")
                             .build()
                         atomBuilder.addDataParticle(encryptorParticle)
                     }
