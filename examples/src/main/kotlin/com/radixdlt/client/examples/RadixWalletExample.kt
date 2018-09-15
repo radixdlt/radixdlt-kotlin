@@ -1,8 +1,8 @@
 package com.radixdlt.client.examples
 
 import com.radixdlt.client.application.RadixApplicationAPI
+import com.radixdlt.client.application.identity.RadixIdentities
 import com.radixdlt.client.application.identity.RadixIdentity
-import com.radixdlt.client.application.identity.SimpleRadixIdentity
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.Bootstrap
 import com.radixdlt.client.core.RadixUniverse
@@ -24,19 +24,18 @@ object RadixWalletExample {
     @Throws(Exception::class)
     @JvmStatic
     fun main(args: Array<String>) {
+        // Identity Manager which manages user's keys, signing, encrypting and decrypting
+        val radixIdentity: RadixIdentity = if (args.isNotEmpty()) {
+            RadixIdentities.loadOrCreateFile(args[0])
+        } else {
+            RadixIdentities.loadOrCreateFile("my.key")
+        }
+
         // Network updates
         RadixUniverse.getInstance()
             .network
             .getStatusUpdates()
             .subscribe { println(it) }
-
-        // Identity Manager which manages user's keys, signing, encrypting and decrypting
-        val radixIdentity: RadixIdentity
-        if (args.size > 0) {
-            radixIdentity = SimpleRadixIdentity(args[0])
-        } else {
-            radixIdentity = SimpleRadixIdentity()
-        }
 
         val api = RadixApplicationAPI.create(radixIdentity)
         val wallet = RadixWallet(api)

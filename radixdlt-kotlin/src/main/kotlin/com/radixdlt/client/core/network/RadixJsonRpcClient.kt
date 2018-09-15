@@ -76,7 +76,7 @@ class RadixJsonRpcClient(
 
         @Suppress("ConstantConditionIf")
         if (!CHECK_API_VERSION) {
-            this.serverApiVersion = Single.just(API_VERSION);
+            this.serverApiVersion = Single.just(API_VERSION)
         } else {
             this.serverApiVersion = jsonRpcCall("Api.getVersion")
                 .map { result -> result.asJsonObject.get("version").asInt }

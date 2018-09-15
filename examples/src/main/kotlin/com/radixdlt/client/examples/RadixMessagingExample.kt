@@ -1,7 +1,7 @@
 package com.radixdlt.client.examples
 
 import com.radixdlt.client.application.RadixApplicationAPI
-import com.radixdlt.client.application.identity.SimpleRadixIdentity
+import com.radixdlt.client.application.identity.RadixIdentities
 import com.radixdlt.client.core.Bootstrap
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
@@ -31,7 +31,7 @@ object RadixMessagingExample {
             .subscribe { println(it) }
 
         // Identity Manager which manages user's keys, signing, encrypting and decrypting
-        val api = RadixApplicationAPI.create(SimpleRadixIdentity())
+        val api = RadixApplicationAPI.create(RadixIdentities.loadOrCreateFile("my.key"))
 
         // Addresses
         val toAddress = RadixAddress.fromString(TO_ADDRESS_BASE58)

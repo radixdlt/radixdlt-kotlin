@@ -39,10 +39,9 @@ import java.util.Objects
 class RadixApplicationAPI private constructor(
     val myIdentity: RadixIdentity,
     private val universe: RadixUniverse,
+    private val dataStoreTranslator: DataStoreTranslator,
     private val atomBuilderSupplier: () -> AtomBuilder
 ) {
-
-    private val dataStoreTranslator: DataStoreTranslator = DataStoreTranslator.instance
 
     val ledger: RadixLedger = universe.ledger
 
@@ -80,10 +79,16 @@ class RadixApplicationAPI private constructor(
         }
     }
 
-    fun getReadableData(address: RadixAddress): Observable<UnencryptedData> {
+    fun getData(address: RadixAddress): Observable<Data> {
+        Objects.requireNonNull(address)
+
         return ledger.getAllAtoms(address.getUID())
             .map(dataStoreTranslator::fromAtom)
             .flatMapMaybe { data -> if (data is Data) Maybe.just(data) else Maybe.empty() }
+    }
+
+    fun getReadableData(address: RadixAddress): Observable<UnencryptedData> {
+        return getData(address)
             .flatMapMaybe { data -> myIdentity.decrypt(data).toMaybe().onErrorComplete() }
     }
 
@@ -126,6 +131,8 @@ class RadixApplicationAPI private constructor(
     }
 
     fun getTokenTransfers(address: RadixAddress, tokenClass: Asset): Observable<TokenTransfer> {
+        Objects.requireNonNull(address)
+        Objects.requireNonNull(tokenClass)
         return Observables.combineLatest<TransactionAtoms, Atom, Observable<Atom>>(
             Observable.fromCallable { TransactionAtoms(address, tokenClass.id) },
             ledger.getAllAtoms(address.getUID())
@@ -257,19 +264,25 @@ class RadixApplicationAPI private constructor(
         @JvmStatic
         fun create(identity: RadixIdentity): RadixApplicationAPI {
             Objects.requireNonNull(identity)
-            return RadixApplicationAPI(identity, RadixUniverse.getInstance(), ::AtomBuilder)
+            return RadixApplicationAPI(
+                identity,
+                RadixUniverse.getInstance(),
+                DataStoreTranslator.instance,
+                ::AtomBuilder
+            )
         }
 
         @JvmStatic
         fun create(
             identity: RadixIdentity,
             universe: RadixUniverse,
+            dataStoreTranslator: DataStoreTranslator,
             atomBuilderSupplier: () -> AtomBuilder
         ): RadixApplicationAPI {
             Objects.requireNonNull(identity)
             Objects.requireNonNull(universe)
             Objects.requireNonNull(atomBuilderSupplier)
-            return RadixApplicationAPI(identity, universe, atomBuilderSupplier)
+            return RadixApplicationAPI(identity, universe, dataStoreTranslator, atomBuilderSupplier)
         }
     }
 }

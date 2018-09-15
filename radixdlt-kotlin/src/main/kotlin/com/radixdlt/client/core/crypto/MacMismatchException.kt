@@ -1,8 +1,9 @@
 package com.radixdlt.client.core.crypto
 
 import org.bouncycastle.util.encoders.Base64
+import java.security.GeneralSecurityException
 
-class MacMismatchException : Exception {
+class MacMismatchException : GeneralSecurityException {
     private val expected: ByteArray
     private val actual: ByteArray
 
