@@ -42,7 +42,7 @@ class RadixUniverse private constructor(
 ) {
 
     val magic: Int
-        get() = config.magic
+        get() = config.getMagic()
 
     /**
      * Returns the system public key, also defined as the creator of this Universe
@@ -96,8 +96,8 @@ class RadixUniverse private constructor(
                     throw IllegalStateException("Default Universe already bootstrapped")
                 }
 
-                val network = RadixNetwork(peerDiscovery)
-                val ledger = RadixLedger(config.magic, network)
+                val network = RadixNetwork(config, peerDiscovery)
+                val ledger = RadixLedger(config.getMagic(), network)
 
                 defaultUniverse = RadixUniverse(config, network, ledger)
 

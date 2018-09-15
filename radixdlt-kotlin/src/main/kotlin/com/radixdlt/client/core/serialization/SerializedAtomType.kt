@@ -1,11 +1,13 @@
 package com.radixdlt.client.core.serialization
 
 import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
+import com.radixdlt.client.core.atoms.AssetAtom
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.NullAtom
 import com.radixdlt.client.core.atoms.TransactionAtom
 
 enum class SerializedAtomType(val atomClass: Class<out Atom>, val serializer: Long) {
+    ASSET(AssetAtom::class.java, 62583504L),
     TRANSACTION(TransactionAtom::class.java, -760130L),
     NULL(NullAtom::class.java, -1123323048L),
     MESSAGE(ApplicationPayloadAtom::class.java, -2040291185L);

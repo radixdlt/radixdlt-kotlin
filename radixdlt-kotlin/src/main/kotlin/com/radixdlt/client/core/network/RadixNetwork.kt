@@ -1,16 +1,18 @@
 package com.radixdlt.client.core.network
 
+import com.radixdlt.client.core.address.RadixUniverseConfig
 import com.radixdlt.client.core.network.WebSocketClient.RadixClientStatus
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.observables.ConnectableObservable
 import org.slf4j.LoggerFactory
 import java.util.AbstractMap.SimpleImmutableEntry
+import java.util.Objects
 
 /**
  * A Radix Network manages connections to Node Runners for a given Universe.
  */
-class RadixNetwork(peerDiscovery: PeerDiscovery) {
+class RadixNetwork(private val config: RadixUniverseConfig, peerDiscovery: PeerDiscovery) {
 
     /**
      * Cached observable for keeping track of Radix Peers
@@ -26,6 +28,9 @@ class RadixNetwork(peerDiscovery: PeerDiscovery) {
         get() = peers.map { it.radixClient }
 
     init {
+        Objects.requireNonNull(config)
+        Objects.requireNonNull(peerDiscovery)
+
         this.peers = peerDiscovery.findPeers()
             .doOnNext { peer -> LOGGER.info("Added to peer list: " + peer.location) }
             .replay().autoConnect(2)
@@ -74,6 +79,17 @@ class RadixNetwork(peerDiscovery: PeerDiscovery) {
                     .toMaybe()
             }
             .flatMapMaybe { client -> client.checkAPIVersion().filter { b -> b }.map { client } }
+            .flatMapMaybe { client ->
+                client.getUniverse()
+                    .doOnSuccess { cliUniverse ->
+                if (config != cliUniverse) {
+                    LOGGER.warn("$client has universe: ${cliUniverse.getHash()} but looking for ${config.getHash()}")
+                }
+            }
+                .map(config::equals)
+                .filter { b -> b }
+                .map { b -> client }
+            }
             .firstOrError()
     }
 

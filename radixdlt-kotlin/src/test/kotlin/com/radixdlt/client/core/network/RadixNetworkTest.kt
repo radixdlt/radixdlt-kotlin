@@ -1,5 +1,6 @@
 package com.radixdlt.client.core.network
 
+import com.radixdlt.client.core.address.RadixUniverseConfig
 import com.radixdlt.client.util.any
 import io.reactivex.Maybe
 import io.reactivex.Observable
@@ -16,8 +17,9 @@ class RadixNetworkTest {
 
     @Test
     fun testGetClientsMultipleTimes() {
+        val config = mock(RadixUniverseConfig::class.java)
 
-        val network = RadixNetwork(object : PeerDiscovery {
+        val network = RadixNetwork(config, object : PeerDiscovery {
             override fun findPeers(): Observable<RadixPeer> {
                 return Observable.just(
                         RadixPeer("1", false, 8080),
@@ -39,6 +41,7 @@ class RadixNetworkTest {
 
     @Test
     fun testAPIMismatch() {
+        val config = mock(RadixUniverseConfig::class.java)
         val peer = mock<RadixPeer>(RadixPeer::class.java)
         val client = mock<RadixJsonRpcClient>(RadixJsonRpcClient::class.java)
         `when`<Maybe<RadixPeer>>(peer.servesShards(any())).thenReturn(Maybe.just<RadixPeer>(peer))
@@ -51,7 +54,7 @@ class RadixNetworkTest {
         `when`<Single<Boolean>>(client.checkAPIVersion()).thenReturn(Single.just(false))
 
         // SAM could be replaced in Kotlin by higher order function
-        val network = RadixNetwork(object : PeerDiscovery {
+        val network = RadixNetwork(config, object : PeerDiscovery {
             override fun findPeers(): Observable<RadixPeer> {
                 return Observable.just(peer)
             }
@@ -60,5 +63,58 @@ class RadixNetworkTest {
         val testObserver = TestObserver.create<RadixJsonRpcClient>()
         network.getRadixClient(0L).subscribe(testObserver)
         testObserver.assertError(NoSuchElementException::class.java)
+    }
+
+    @Test
+    fun testUniverseMismatch() {
+        val config = mock(RadixUniverseConfig::class.java)
+        val peer = mock(RadixPeer::class.java)
+        val client = mock(RadixJsonRpcClient::class.java)
+        `when`(peer.servesShards(any())).thenReturn(Maybe.just(peer))
+        `when`(peer.radixClient).thenReturn(client)
+        `when`(client.status).thenReturn(
+            Observable.just(
+                WebSocketClient.RadixClientStatus.OPEN
+            )
+        )
+        `when`(client.checkAPIVersion()).thenReturn(Single.just(true))
+        val config2 = mock(RadixUniverseConfig::class.java)
+        `when`(client.getUniverse()).thenReturn(Single.just(config2))
+
+        val network = RadixNetwork(config, object : PeerDiscovery {
+            override fun findPeers(): Observable<RadixPeer> {
+                return Observable.just(peer)
+            }
+        })
+
+        val testObserver = TestObserver.create<RadixJsonRpcClient>()
+        network.getRadixClient(0L).subscribe(testObserver)
+        testObserver.assertError(NoSuchElementException::class.java)
+    }
+
+    @Test
+    fun testValidClient() {
+        val config = mock(RadixUniverseConfig::class.java)
+        val peer = mock(RadixPeer::class.java)
+        val client = mock(RadixJsonRpcClient::class.java)
+        `when`(peer.servesShards(any())).thenReturn(Maybe.just(peer))
+        `when`(peer.radixClient).thenReturn(client)
+        `when`(client.status).thenReturn(
+            Observable.just(
+                WebSocketClient.RadixClientStatus.OPEN
+            )
+        )
+        `when`(client.checkAPIVersion()).thenReturn(Single.just(true))
+        `when`(client.getUniverse()).thenReturn(Single.just(config))
+
+        val network = RadixNetwork(config, object : PeerDiscovery {
+            override fun findPeers(): Observable<RadixPeer> {
+                return Observable.just(peer)
+            }
+        })
+
+        val testObserver = TestObserver.create<RadixJsonRpcClient>()
+        network.getRadixClient(0L).subscribe(testObserver)
+        testObserver.assertValue(client)
     }
 }

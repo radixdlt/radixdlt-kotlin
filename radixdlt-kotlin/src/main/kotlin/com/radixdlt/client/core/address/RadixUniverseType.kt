@@ -1,9 +1,12 @@
 package com.radixdlt.client.core.address
 
-enum class RadixUniverseType(private val kname: String, private val ordinalValue: Int) {
-    PUBLIC("RADIX_PUBLIC", 1), DEVELOPMENT("RADIX_DEVELOPMENT", 2);
+import com.radixdlt.client.core.serialization.HasOrdinalValue
 
-    fun ordinalValue(): Int {
+enum class RadixUniverseType(private val kname: String, private val ordinalValue: Int) : HasOrdinalValue {
+    PUBLIC("RADIX_PUBLIC", 1),
+    DEVELOPMENT("RADIX_DEVELOPMENT", 2);
+
+    override fun ordinalValue(): Int {
         return ordinalValue
     }
 
