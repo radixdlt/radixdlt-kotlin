@@ -4,6 +4,7 @@ import com.radixdlt.client.application.RadixApplicationAPI.Result
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.application.objects.UnencryptedData
+import com.radixdlt.client.application.translate.DataStoreTranslator
 import com.radixdlt.client.application.translate.InsufficientFundsException
 import com.radixdlt.client.assets.Amount
 import com.radixdlt.client.assets.Asset
@@ -12,11 +13,8 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.CryptoException
-import com.radixdlt.client.core.crypto.EncryptedPrivateKey
-import com.radixdlt.client.core.crypto.Encryptor
 import com.radixdlt.client.core.ledger.RadixLedger
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
@@ -48,7 +46,7 @@ class RadixApplicationAPITest {
         val unsignedAtom = mock(UnsignedAtom::class.java)
         `when`(atomBuilder.buildWithPOWFee(anyInt(), any())).thenReturn(unsignedAtom)
 
-        return RadixApplicationAPI.create(identity, universe, atomBuilderSupplier)
+        return RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, atomBuilderSupplier)
     }
 
     private fun createMockedLedgerWhichAlwaysSucceeds(): RadixLedger {
@@ -163,23 +161,16 @@ class RadixApplicationAPITest {
             .thenReturn(Single.error(CryptoException("Can't decrypt")))
             .thenReturn(Single.just(unencryptedData))
 
-        val encryptor = mock(Encryptor::class.java)
-        val protector = mock(EncryptedPrivateKey::class.java)
-        `when`(encryptor.protectors).thenReturn(listOf(protector))
-
-        val payload = mock(Payload::class.java)
+        val data = mock(Data::class.java)
+        val dataStoreTranslator = mock(DataStoreTranslator::class.java)
+        `when`(dataStoreTranslator.fromAtom(any())).thenReturn(data, data)
 
         val errorAtom = mock(ApplicationPayloadAtom::class.java)
-        `when`(errorAtom.encryptor).thenReturn(encryptor)
-        `when`(errorAtom.encrypted).thenReturn(payload)
-
         val okAtom = mock(ApplicationPayloadAtom::class.java)
-        `when`(okAtom.encryptor).thenReturn(encryptor)
-        `when`(okAtom.encrypted).thenReturn(payload)
 
         `when`(ledger.getAllAtoms(any(), any<Class<Atom>>())).thenReturn(Observable.just(errorAtom, okAtom))
 
-        val api = RadixApplicationAPI.create(identity, universe, ::AtomBuilder)
+        val api = RadixApplicationAPI.create(identity, universe, dataStoreTranslator, ::AtomBuilder)
         val observer = TestObserver.create<Any>()
         api.getReadableData(address).subscribe(observer)
 
@@ -194,7 +185,7 @@ class RadixApplicationAPITest {
         val address = mock(RadixAddress::class.java)
         val identity = mock(RadixIdentity::class.java)
         `when`(universe.ledger).thenReturn(ledger)
-        val api = RadixApplicationAPI.create(identity, universe, ::AtomBuilder)
+        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
 
         `when`(ledger.getAllAtoms(any(), any<Class<Atom>>())).thenReturn(Observable.empty())
 
@@ -211,7 +202,7 @@ class RadixApplicationAPITest {
         val address = mock(RadixAddress::class.java)
         val identity = mock(RadixIdentity::class.java)
         `when`(universe.ledger).thenReturn(ledger)
-        val api = RadixApplicationAPI.create(identity, universe, ::AtomBuilder)
+        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
 
         `when`(ledger.getAllAtoms(any(), any<Class<Atom>>())).thenReturn(Observable.empty())
 

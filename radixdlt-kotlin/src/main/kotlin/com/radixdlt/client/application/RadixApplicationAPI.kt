@@ -39,10 +39,9 @@ import java.util.Objects
 class RadixApplicationAPI private constructor(
     val myIdentity: RadixIdentity,
     private val universe: RadixUniverse,
+    private val dataStoreTranslator: DataStoreTranslator,
     private val atomBuilderSupplier: () -> AtomBuilder
 ) {
-
-    private val dataStoreTranslator: DataStoreTranslator = DataStoreTranslator.instance
 
     val ledger: RadixLedger = universe.ledger
 
@@ -264,19 +263,25 @@ class RadixApplicationAPI private constructor(
         @JvmStatic
         fun create(identity: RadixIdentity): RadixApplicationAPI {
             Objects.requireNonNull(identity)
-            return RadixApplicationAPI(identity, RadixUniverse.getInstance(), ::AtomBuilder)
+            return RadixApplicationAPI(
+                identity,
+                RadixUniverse.getInstance(),
+                DataStoreTranslator.instance,
+                ::AtomBuilder
+            )
         }
 
         @JvmStatic
         fun create(
             identity: RadixIdentity,
             universe: RadixUniverse,
+            dataStoreTranslator: DataStoreTranslator,
             atomBuilderSupplier: () -> AtomBuilder
         ): RadixApplicationAPI {
             Objects.requireNonNull(identity)
             Objects.requireNonNull(universe)
             Objects.requireNonNull(atomBuilderSupplier)
-            return RadixApplicationAPI(identity, universe, atomBuilderSupplier)
+            return RadixApplicationAPI(identity, universe, dataStoreTranslator, atomBuilderSupplier)
         }
     }
 }
