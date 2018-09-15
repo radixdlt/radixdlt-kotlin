@@ -8,7 +8,7 @@ class AtomBuilderTest {
     @Test
     fun testMultipleAtomPayloadBuildsShouldCreateSameAtom() {
         val atomBuilder = AtomBuilder()
-            .addDataParticle(DataParticle(Payload("Hello".toByteArray()), "Test"))
+            .addDataParticle(DataParticle.DataParticleBuilder().payload(Payload("Hello".toByteArray())).build())
             .addDestination(EUID(1))
 
         val atom1 = atomBuilder.build(0)

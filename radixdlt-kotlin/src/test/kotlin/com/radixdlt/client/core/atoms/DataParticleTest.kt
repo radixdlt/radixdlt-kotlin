@@ -10,14 +10,17 @@ class DataParticleTest {
     @Test
     fun testApplicationMetaData() {
         val payload = mock(Payload::class.java)
-        val dataParticle = DataParticle(payload, "test")
+        val dataParticle = DataParticle.DataParticleBuilder()
+            .payload(payload)
+            .setMetaData("application", "test")
+            .build()
         assertEquals("test", dataParticle.getMetaData("application"))
         assertNull(dataParticle.getMetaData("missing"))
     }
 
     @Test
     fun testNullDataParticle() {
-        assertThatThrownBy { DataParticle(null, "hello") }
+        assertThatThrownBy { DataParticle.DataParticleBuilder().setMetaData("application", "hello").build() }
             .isInstanceOf(NullPointerException::class.java)
     }
 }

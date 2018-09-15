@@ -1,31 +1,43 @@
 package com.radixdlt.client.core.atoms
 
-import java.util.LinkedHashMap
 import java.util.Objects
+import java.util.TreeMap
 
 /**
  * Particle which can hold arbitrary data
  */
-class DataParticle(
+class DataParticle private constructor(
     /**
      * Arbitrary data, possibly encrypted
      */
     val bytes: Payload?,
-    application: String?
-) {
     /**
-     * Nullable for the timebeing as we want dson to be optimized for
+     * Nullable for the time being as we want dson to be optimized for
      * saving space and no way to skip empty maps in Dson yet.
      */
-    private val metaData: MutableMap<String, Any?>?
+    private val metaData: Map<String, Any?>?
+) {
 
     init {
-        Objects.requireNonNull(bytes) // Not needed in Kotlin but for now keep as close to java and pass unit tests
-        if (application != null) {
-            this.metaData = LinkedHashMap()
-            this.metaData["application"] = application
-        } else {
-            this.metaData = null
+        Objects.requireNonNull(bytes)
+    }
+
+    class DataParticleBuilder {
+        private val metaData = TreeMap<String, Any?>()
+        private var bytes: Payload? = null
+
+        fun setMetaData(key: String, value: Any?): DataParticleBuilder {
+            metaData[key] = value
+            return this
+        }
+
+        fun payload(bytes: Payload): DataParticleBuilder {
+            this.bytes = bytes
+            return this
+        }
+
+        fun build(): DataParticle {
+            return DataParticle(bytes, if (metaData.isEmpty()) null else metaData)
         }
     }
 
