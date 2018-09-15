@@ -1,7 +1,6 @@
 package com.radixdlt.client.core.atoms
 
 import java.util.Objects
-import java.util.TreeMap
 
 /**
  * Particle which can hold arbitrary data
@@ -15,7 +14,7 @@ class DataParticle private constructor(
      * Nullable for the time being as we want dson to be optimized for
      * saving space and no way to skip empty maps in Dson yet.
      */
-    private val metaData: Map<String, Any?>?
+    private val metaData: MetadataMap?
 ) {
 
     init {
@@ -23,10 +22,10 @@ class DataParticle private constructor(
     }
 
     class DataParticleBuilder {
-        private val metaData = TreeMap<String, Any?>()
+        private val metaData = MetadataMap()
         private var bytes: Payload? = null
 
-        fun setMetaData(key: String, value: Any?): DataParticleBuilder {
+        fun setMetaData(key: String, value: String): DataParticleBuilder {
             metaData[key] = value
             return this
         }

@@ -25,6 +25,7 @@ import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.Consumer
 import com.radixdlt.client.core.atoms.DataParticle
 import com.radixdlt.client.core.atoms.Emission
+import com.radixdlt.client.core.atoms.MetadataMap
 import com.radixdlt.client.core.atoms.Particle
 import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.atoms.UniqueParticle
@@ -168,6 +169,7 @@ object RadixJson {
             .registerTypeAdapter(AbstractConsumable::class.java, ABSTRACT_CONSUMABLE_SERIALIZER)
             .registerTypeAdapter(AbstractConsumable::class.java, ABSTRACT_CONSUMABLE_DESERIALIZER)
             .registerTypeAdapter(String::class.java, StringCodec())
+            .registerTypeAdapter(MetadataMap::class.java, MetadataCodec())
             .registerTypeAdapter(EUID::class.java, EUIDSerializer())
             .registerTypeAdapter(Payload::class.java, PAYLOAD_DESERIALIZER)
             .registerTypeAdapter(EncryptedPrivateKey::class.java, PROTECTOR_DESERIALIZER)
@@ -214,6 +216,25 @@ object RadixJson {
 
         override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): String {
             return unString(json.asString)
+        }
+    }
+
+    private class MetadataCodec : JsonDeserializer<MetadataMap>, JsonSerializer<MetadataMap> {
+        override fun serialize(src: MetadataMap, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+            val obj = JsonObject()
+            for ((key, value) in src) {
+                obj.addProperty(key, STR_PREFIX + value)
+            }
+            return obj
+        }
+
+        override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): MetadataMap {
+            val obj = json as JsonObject
+            val map = MetadataMap()
+            for ((key, value) in obj.entrySet()) {
+                map[key] = unString(value.asString)
+            }
+            return map
         }
     }
 }
