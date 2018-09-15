@@ -3,7 +3,9 @@ package com.radixdlt.client.core.address
 import com.google.gson.JsonObject
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.crypto.ECPublicKey
+import com.radixdlt.client.core.serialization.Dson
 import com.radixdlt.client.core.serialization.RadixJson
+import org.bouncycastle.util.encoders.Base64
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.Collections
@@ -79,6 +81,13 @@ internal constructor(
         @JvmStatic
         fun fromInputStream(inputStream: InputStream): RadixUniverseConfig {
             return RadixJson.gson.fromJson(InputStreamReader(inputStream), RadixUniverseConfig::class.java)
+        }
+
+        @JvmStatic
+        fun fromDsonBase64(dsonBase64: String): RadixUniverseConfig {
+            val universeJson = Dson.instance.parse(Base64.decode(dsonBase64))
+            println(universeJson)
+            return RadixJson.gson.fromJson(universeJson, RadixUniverseConfig::class.java)
         }
     }
 }
