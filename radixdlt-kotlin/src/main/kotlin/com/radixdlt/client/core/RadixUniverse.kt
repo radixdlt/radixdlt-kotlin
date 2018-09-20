@@ -90,14 +90,15 @@ class RadixUniverse private constructor(
          * @param peerDiscovery The peer discovery mechanism
          * @return The default universe created, can also be retrieved with RadixUniverse.getInstance()
          */
+        @JvmStatic
         fun bootstrap(config: RadixUniverseConfig, peerDiscovery: PeerDiscovery): RadixUniverse {
             synchronized(lock) {
                 if (defaultUniverse != null) {
                     throw IllegalStateException("Default Universe already bootstrapped")
                 }
 
-                val network = RadixNetwork(config, peerDiscovery)
-                val ledger = RadixLedger(config.getMagic(), network)
+                val network = RadixNetwork(peerDiscovery)
+                val ledger = RadixLedger(config, network)
 
                 defaultUniverse = RadixUniverse(config, network, ledger)
 

@@ -2,6 +2,7 @@ package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
+import com.radixdlt.client.core.address.RadixUniverseConfig
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomValidationException
 import com.radixdlt.client.core.atoms.RadixHash
@@ -10,9 +11,12 @@ import com.radixdlt.client.core.network.AtomQuery
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
 import com.radixdlt.client.core.network.IncreasingRetryTimer
+import com.radixdlt.client.core.network.RadixJsonRpcClient
 import com.radixdlt.client.core.network.RadixNetwork
+import com.radixdlt.client.core.network.WebSocketClient
 import com.radixdlt.client.core.serialization.RadixJson
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.functions.Predicate
 import org.slf4j.LoggerFactory
 import java.util.HashSet
@@ -24,9 +28,16 @@ import java.util.concurrent.atomic.AtomicBoolean
  * the main interface to interacting with a Radix Ledger, specifically reading
  * and writing atoms onto the Ledger.
  */
-class RadixLedger(val magic: Int, val radixNetwork: RadixNetwork) {
+class RadixLedger(
+    /**
+     * The Universe we need peers for
+     * TODO: is this the right place to have this?
+     */
+    private val config: RadixUniverseConfig,
+    val radixNetwork: RadixNetwork) {
 
     private val debug = AtomicBoolean(false)
+    val magic: Int = config.getMagic()
 
     fun setDebug(debug: Boolean) {
         this.debug.set(debug)
@@ -44,6 +55,46 @@ class RadixLedger(val magic: Int, val radixNetwork: RadixNetwork) {
     }
 
     /**
+     * Returns a cold observable of the first peer found which supports
+     * a set short shards which intersects with a given set of shards.
+     *
+     * @param shards set of shards to find an intersection with
+     * @return a cold observable of the first matching Radix client
+     */
+    private fun getRadixClient(shards: Set<Long>): Single<RadixJsonRpcClient> {
+        return this.radixNetwork.getRadixClients(shards)
+            .flatMapMaybe { client-> client.status
+            .filter { status -> status != WebSocketClient.RadixClientStatus.FAILURE }
+            .map { _ -> client }
+            .firstOrError()
+            .toMaybe()
+            }
+            .flatMapMaybe { client-> client.getUniverse()
+                .doOnSuccess { cliUniverse-> if (config != cliUniverse) {
+                    LOGGER.warn(
+                        (client).toString() + " has universe: " + cliUniverse.getHash()
+                            + " but looking for " + config.getHash()
+                    )
+                } }
+                .map { config == it }
+                .filter { b -> b }
+                .map { _ -> client }
+            }
+            .firstOrError()
+    }
+
+    /**
+     * Returns a cold observable of the first peer found which supports
+     * a set short shards which intersects with a given shard
+     *
+     * @param shard a shards to find an intersection with
+     * @return a cold observable of the first matching Radix client
+     */
+    private fun getRadixClient(shard: Long): Single<RadixJsonRpcClient> {
+        return getRadixClient(setOf(shard))
+    }
+
+    /**
      * Returns a new hot Observable Atom Query which will connect to the network
      * to retrieve the requested atoms.
      *
@@ -56,9 +107,12 @@ class RadixLedger(val magic: Int, val radixNetwork: RadixNetwork) {
         Objects.requireNonNull(atomClass)
 
         val atomQuery = AtomQuery(destination, atomClass)
-        return radixNetwork.getRadixClient(destination.shard)
+        return getRadixClient(destination.shard)
             .flatMapObservable { client -> client.getAtoms(atomQuery) }
-            .doOnError(Throwable::printStackTrace)
+            .doOnError {throwable ->
+                LOGGER.warn("Error on getAllAtoms $destination")
+                throwable.printStackTrace()
+            }
             .retryWhen(IncreasingRetryTimer())
             .filter(object : Predicate<T> {
                 private val atomsSeen = HashSet<RadixHash>()
@@ -99,9 +153,13 @@ class RadixLedger(val magic: Int, val radixNetwork: RadixNetwork) {
      * @return Observable emitting status updates to submission
      */
     fun submitAtom(atom: Atom): Observable<AtomSubmissionUpdate> {
-        val status = radixNetwork.getRadixClient(atom.requiredFirstShard)
+        val status = getRadixClient(atom.requiredFirstShard)
             // .doOnSubscribe(client -> logger.info("Looking for client to submit atom"))
             // .doOnSuccess(client -> logger.info("Found client to submit atom: " + client.getLocation()))
+            .doOnError {throwable ->
+                LOGGER.warn("Error on submitAtom " + atom.hid)
+                throwable.printStackTrace()
+            }
             .flatMapObservable { client -> client.submitAtom(atom) }
             .doOnError(Throwable::printStackTrace)
             .retryWhen(IncreasingRetryTimer())
