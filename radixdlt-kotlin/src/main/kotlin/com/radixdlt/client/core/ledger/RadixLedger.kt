@@ -34,7 +34,8 @@ class RadixLedger(
      * TODO: is this the right place to have this?
      */
     private val config: RadixUniverseConfig,
-    val radixNetwork: RadixNetwork) {
+    val radixNetwork: RadixNetwork
+) {
 
     private val debug = AtomicBoolean(false)
     val magic: Int = config.getMagic()
@@ -63,22 +64,25 @@ class RadixLedger(
      */
     private fun getRadixClient(shards: Set<Long>): Single<RadixJsonRpcClient> {
         return this.radixNetwork.getRadixClients(shards)
-            .flatMapMaybe { client-> client.status
-            .filter { status -> status != WebSocketClient.RadixClientStatus.FAILURE }
-            .map { _ -> client }
-            .firstOrError()
-            .toMaybe()
+            .flatMapMaybe { client ->
+                client.status
+                    .filter { status -> status != WebSocketClient.RadixClientStatus.FAILURE }
+                    .map { _ -> client }
+                    .firstOrError()
+                    .toMaybe()
             }
-            .flatMapMaybe { client-> client.getUniverse()
-                .doOnSuccess { cliUniverse-> if (config != cliUniverse) {
-                    LOGGER.warn(
-                        (client).toString() + " has universe: " + cliUniverse.getHash()
-                            + " but looking for " + config.getHash()
-                    )
-                } }
-                .map { config == it }
-                .filter { b -> b }
-                .map { _ -> client }
+            .flatMapMaybe { client ->
+                client.getUniverse()
+                    .doOnSuccess { cliUniverse ->
+                        if (config != cliUniverse) {
+                            LOGGER.warn(
+                                "${(client)} has universe: ${cliUniverse.getHash()} but looking for ${config.getHash()}"
+                            )
+                        }
+                    }
+                    .map { config == it }
+                    .filter { b -> b }
+                    .map { _ -> client }
             }
             .firstOrError()
     }
@@ -109,9 +113,8 @@ class RadixLedger(
         val atomQuery = AtomQuery(destination, atomClass)
         return getRadixClient(destination.shard)
             .flatMapObservable { client -> client.getAtoms(atomQuery) }
-            .doOnError {throwable ->
+            .doOnError {
                 LOGGER.warn("Error on getAllAtoms $destination")
-                throwable.printStackTrace()
             }
             .retryWhen(IncreasingRetryTimer())
             .filter(object : Predicate<T> {
@@ -154,9 +157,8 @@ class RadixLedger(
      */
     fun submitAtom(atom: Atom): Observable<AtomSubmissionUpdate> {
         val status = getRadixClient(atom.requiredFirstShard)
-            // .doOnSubscribe(client -> logger.info("Looking for client to submit atom"))
-            // .doOnSuccess(client -> logger.info("Found client to submit atom: " + client.getLocation()))
-            .doOnError {throwable ->
+            .doOnSuccess { client -> LOGGER.info("Found client to submit atom: " + client.location) }
+            .doOnError { throwable ->
                 LOGGER.warn("Error on submitAtom " + atom.hid)
                 throwable.printStackTrace()
             }

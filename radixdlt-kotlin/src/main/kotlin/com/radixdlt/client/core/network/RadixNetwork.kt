@@ -26,8 +26,10 @@ class RadixNetwork(peerDiscovery: PeerDiscovery) {
         Objects.requireNonNull(peerDiscovery)
 
         this.peers = peerDiscovery.findPeers()
+            .retryWhen(IncreasingRetryTimer())
             .doOnNext { peer -> LOGGER.info("Added to peer list: " + peer.location) }
             .replay().autoConnect(2)
+
         this.statusUpdates = peers.map { it.radixClient }
             .flatMap { client -> client.status.map { status -> SimpleImmutableEntry(client.location, status) } }
             .publish()
@@ -55,7 +57,7 @@ class RadixNetwork(peerDiscovery: PeerDiscovery) {
     fun getRadixClients(shards: Set<Long>): Observable<RadixJsonRpcClient> {
         return peers.flatMapMaybe { peer -> peer.servesShards(shards) }
             .map(RadixPeer::radixClient)
-            .flatMapMaybe { client -> client.checkAPIVersion().filter { b -> b }.map { b -> client } }
+            .flatMapMaybe { client -> client.checkAPIVersion().filter { b -> b }.map { _ -> client } }
     }
 
     fun getRadixClients(shard: Long): Observable<RadixJsonRpcClient> {

@@ -9,6 +9,8 @@ import io.reactivex.observers.TestObserver
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import java.io.IOException
+import java.util.AbstractMap
 
 class RadixNetworkTest {
 
@@ -17,20 +19,20 @@ class RadixNetworkTest {
         val network = RadixNetwork(object : PeerDiscovery {
             override fun findPeers(): Observable<RadixPeer> {
                 return Observable.just(
-                        RadixPeer("1", false, 8080),
-                        RadixPeer("2", false, 8080),
-                        RadixPeer("3", false, 8080)
+                    RadixPeer("1", false, 8080),
+                    RadixPeer("2", false, 8080),
+                    RadixPeer("3", false, 8080)
                 )
             }
         })
 
-        (0 .. 10).forEach { _ ->
+        (0..10).forEach { _ ->
             network.getRadixClients()
-                    .map { it.location }
-                    .test()
-                    .assertValueAt(0, "http://1:8080/rpc")
-                    .assertValueAt(1, "http://2:8080/rpc")
-                    .assertValueAt(2, "http://3:8080/rpc")
+                .map { it.location }
+                .test()
+                .assertValueAt(0, "http://1:8080/rpc")
+                .assertValueAt(1, "http://2:8080/rpc")
+                .assertValueAt(2, "http://3:8080/rpc")
         }
     }
 
@@ -86,5 +88,23 @@ class RadixNetworkTest {
         val testObserver = TestObserver.create<RadixJsonRpcClient>()
         network.getRadixClients(0L).subscribe(testObserver)
         testObserver.assertValue(client)
+    }
+
+    /**
+     * RadixNetwork class should protect subscribers from network level exceptions
+     */
+    @Test
+    fun testPeerDiscoveryFail() {
+        val network = RadixNetwork(object : PeerDiscovery {
+            override fun findPeers(): Observable<RadixPeer> {
+                return Observable.error<RadixPeer>(IOException())
+            }
+        })
+
+        val observer =
+            TestObserver.create<AbstractMap.SimpleImmutableEntry<String, WebSocketClient.RadixClientStatus>>()
+        network.getStatusUpdates().subscribe(observer)
+        network.connectAndGetStatusUpdates().subscribe()
+        observer.assertNoErrors()
     }
 }

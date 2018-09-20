@@ -23,6 +23,7 @@ class PeersFromSeed(private val seed: RadixPeer) : PeerDiscovery {
             connectedSeed
                 .map<RadixJsonRpcClient> { it.radixClient }
                 .flatMapSingle { client -> client.livePeers.doFinally { client.tryClose() } }
+                .doOnError { LOGGER.warn("Unable to load seed peers") }
                 .doOnNext { list -> LOGGER.info("Got peer list $list") }
                 .flatMapIterable { list ->
                     val copyList = ArrayList(list)

@@ -132,7 +132,7 @@ class RadixJsonRpcClient(
                             emitter.onError(RuntimeException("Could not connect."))
                         }
                     }
-                    .subscribe { msg ->
+                    .subscribe({ msg ->
                         val received = msg.asJsonObject
                         if (received.has("result")) {
                             emitter.onSuccess(received.get("result"))
@@ -143,7 +143,9 @@ class RadixJsonRpcClient(
                                 RuntimeException("Received bad json rpc message: " + received.toString())
                             )
                         }
-                    }
+                    }, { _ ->
+                        emitter.onError(RuntimeException("Lost connection."))
+                    })
             }
         )
     }
@@ -286,68 +288,66 @@ class RadixJsonRpcClient(
      * @return observable of the atom as it gets stored
     </T> */
     fun <T : Atom> submitAtom(atom: T): Observable<AtomSubmissionUpdate> {
-        return this.wsClient.connect().andThen(
-            Observable.create { emitter ->
-                val jsonAtom = RadixJson.gson.toJsonTree(atom, Atom::class.java)
+        return Observable.create { emitter ->
+            val jsonAtom = RadixJson.gson.toJsonTree(atom, Atom::class.java)
 
-                val subscriberId = UUID.randomUUID().toString()
-                val params = JsonObject()
-                params.addProperty("subscriberId", subscriberId)
-                params.add("atom", jsonAtom)
+            val subscriberId = UUID.randomUUID().toString()
+            val params = JsonObject()
+            params.addProperty("subscriberId", subscriberId)
+            params.add("atom", jsonAtom)
 
-                val subscriptionDisposable = messages
-                    .filter { msg -> msg.has("method") }
-                    .filter { msg -> msg.get("method").asString == "AtomSubmissionState.onNext" }
-                    .map { msg -> msg.get("params").asJsonObject }
-                    .filter { p -> p.get("subscriberId").asString == subscriberId }
-                    .map { p ->
-                        val state = AtomSubmissionState.valueOf(p.get("value").asString)
-                        val message: String?
-                        if (p.has("message")) {
-                            message = p.get("message").asString
-                        } else {
-                            message = null
-                        }
-                        AtomSubmissionUpdate.now(atom.hid, state, message)
+            val subscriptionDisposable = messages
+                .filter { msg -> msg.has("method") }
+                .filter { msg -> msg.get("method").asString == "AtomSubmissionState.onNext" }
+                .map { msg -> msg.get("params").asJsonObject }
+                .filter { p -> p.get("subscriberId").asString == subscriberId }
+                .map { p ->
+                    val state = AtomSubmissionState.valueOf(p.get("value").asString)
+                    val message: String?
+                    if (p.has("message")) {
+                        message = p.get("message").asString
+                    } else {
+                        message = null
                     }
-                    .takeUntil { it.isComplete }
-                    .subscribe(
-                        { emitter.onNext(it) },
-                        { emitter.onError(it) },
-                        { emitter.onComplete() }
-                    )
-
-                val methodDisposable = this.jsonRpcCall("Universe.submitAtomAndSubscribe", params)
-                    .doOnSubscribe {
-                        emitter.onNext(AtomSubmissionUpdate.now(atom.hid, AtomSubmissionState.SUBMITTING))
-                    }
-                    .subscribe(
-                        {
-                            emitter.onNext(
-                                AtomSubmissionUpdate.now(
-                                    atom.hid,
-                                    AtomSubmissionState.SUBMITTED
-                                )
-                            )
-                        },
-                        {
-                            emitter.onNext(
-                                AtomSubmissionUpdate.now(
-                                    atom.hid,
-                                    AtomSubmissionState.FAILED,
-                                    it.message
-                                )
-                            )
-                            emitter.onComplete()
-                        }
-                    )
-
-                emitter.setCancellable {
-                    methodDisposable.dispose()
-                    subscriptionDisposable.dispose()
+                    AtomSubmissionUpdate.now(atom.hid, state, message)
                 }
+                .takeUntil { it.isComplete }
+                .subscribe(
+                    { emitter.onNext(it) },
+                    { emitter.onError(it) },
+                    { emitter.onComplete() }
+                )
+
+            val methodDisposable = this.jsonRpcCall("Universe.submitAtomAndSubscribe", params)
+                .doOnSubscribe {
+                    emitter.onNext(AtomSubmissionUpdate.now(atom.hid, AtomSubmissionState.SUBMITTING))
+                }
+                .subscribe(
+                    {
+                        emitter.onNext(
+                            AtomSubmissionUpdate.now(
+                                atom.hid,
+                                AtomSubmissionState.SUBMITTED
+                            )
+                        )
+                    },
+                    {
+                        emitter.onNext(
+                            AtomSubmissionUpdate.now(
+                                atom.hid,
+                                AtomSubmissionState.FAILED,
+                                it.message
+                            )
+                        )
+                        emitter.onComplete()
+                    }
+                )
+
+            emitter.setCancellable {
+                methodDisposable.dispose()
+                subscriptionDisposable.dispose()
             }
-        )
+        }
     }
 
     companion object {
