@@ -76,7 +76,8 @@ class RadixLedger(
                     .doOnSuccess { cliUniverse ->
                         if (config != cliUniverse) {
                             LOGGER.warn(
-                                "${(client)} has universe: ${cliUniverse.getHash()} but looking for ${config.getHash()}"
+                                "{} has universe: {} but looking for {}",
+                                client, cliUniverse.getHash(), config.getHash()
                             )
                         }
                     }
@@ -114,7 +115,7 @@ class RadixLedger(
         return getRadixClient(destination.shard)
             .flatMapObservable { client -> client.getAtoms(atomQuery) }
             .doOnError {
-                LOGGER.warn("Error on getAllAtoms $destination")
+                LOGGER.warn("Error on getAllAtoms: {}", destination)
             }
             .retryWhen(IncreasingRetryTimer())
             .filter(object : Predicate<T> {
@@ -157,9 +158,9 @@ class RadixLedger(
      */
     fun submitAtom(atom: Atom): Observable<AtomSubmissionUpdate> {
         val status = getRadixClient(atom.requiredFirstShard)
-            .doOnSuccess { client -> LOGGER.info("Found client to submit atom: " + client.location) }
+            .doOnSuccess { client -> LOGGER.info("Found client to submit atom: {}", client.location) }
             .doOnError { throwable ->
-                LOGGER.warn("Error on submitAtom " + atom.hid)
+                LOGGER.warn("Error on submitAtom {}", atom.hid)
                 throwable.printStackTrace()
             }
             .flatMapObservable { client -> client.submitAtom(atom) }
@@ -175,7 +176,7 @@ class RadixLedger(
 
             return status.doOnNext { atomSubmissionUpdate ->
                 if (atomSubmissionUpdate.getState() == AtomSubmissionState.VALIDATION_ERROR) {
-                    LOGGER.error(atomSubmissionUpdate.message + "\n" + RadixJson.gson.toJson(atom))
+                    LOGGER.error("{}\n{}", atomSubmissionUpdate.message, RadixJson.gson.toJson(atom))
                 }
             }
         }

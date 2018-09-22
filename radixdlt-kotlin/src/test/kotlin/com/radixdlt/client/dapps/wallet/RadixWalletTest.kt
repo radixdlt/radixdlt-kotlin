@@ -28,7 +28,7 @@ class RadixWalletTest {
 //            .isInstanceOf(NullPointerException::class.java)
 //        assertThatThrownBy { radixWallet.send(1, null) }
 //            .isInstanceOf(NullPointerException::class.java)
-//        assertThatThrownBy { radixWallet.send(1, null, "hi") }
+//        assertThatThrownBy { radixWallet.send(1, "hi", null) }
 //            .isInstanceOf(NullPointerException::class.java)
 //        assertThatThrownBy { radixWallet.sendWhenAvailable(1, null) }
 //            .isInstanceOf(NullPointerException::class.java)

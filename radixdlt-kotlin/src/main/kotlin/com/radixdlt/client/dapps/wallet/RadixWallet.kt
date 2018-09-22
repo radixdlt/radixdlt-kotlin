@@ -45,7 +45,7 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      *
      * @return an unending Observable of balances
      */
-    fun getBalance(): Observable<Amount> = api.getBalance(api.myAddress, Asset.TEST)
+    fun getBalance(): Observable<Amount> = api.getMyBalance(Asset.TEST)
 
     /**
      * Returns an unending stream of the latest balance of an account
@@ -81,7 +81,7 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      * @param toAddress The myAddress to send to.
      * @return The result of the transaction.
      */
-    fun send(amount: BigDecimal, toAddress: RadixAddress): SendResult = this.send(amount, toAddress, null)
+    fun send(amount: BigDecimal, toAddress: RadixAddress): SendResult = this.send(amount, null, toAddress)
 
     /**
      * Immediately try and transfer TEST from user's account to another myAddress with an encrypted message
@@ -89,11 +89,11 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      * will specify so.
      *
      * @param amount The amount of TEST to transfer.
-     * @param toAddress The myAddress to send to.
      * @param message The message to send as an attachment.
+     * @param toAddress The myAddress to send to.
      * @return The result of the transaction.
      */
-    fun send(amount: BigDecimal, toAddress: RadixAddress, message: String?): SendResult {
+    fun send(amount: BigDecimal, message: String?, toAddress: RadixAddress): SendResult {
         val attachment: Data? = if (message != null) {
             Data.DataBuilder()
                 .addReader(toAddress.publicKey)
