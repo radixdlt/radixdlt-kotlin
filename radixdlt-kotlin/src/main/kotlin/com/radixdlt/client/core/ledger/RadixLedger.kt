@@ -1,5 +1,6 @@
 package com.radixdlt.client.core.ledger
 
+import com.radixdlt.client.application.translate.computeIfAbsentSynchronisedFunction
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.address.RadixUniverseConfig
@@ -21,6 +22,7 @@ import io.reactivex.functions.Predicate
 import org.slf4j.LoggerFactory
 import java.util.HashSet
 import java.util.Objects
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -38,6 +40,12 @@ class RadixLedger(
 ) {
 
     private val debug = AtomicBoolean(false)
+
+    /**
+     * Implementation of a data store for all atoms in a shard
+     */
+    private val cache = ConcurrentHashMap<EUID, Observable<Atom>>()
+
     val magic: Int = config.getMagic()
 
     fun setDebug(debug: Boolean) {
@@ -100,51 +108,50 @@ class RadixLedger(
     }
 
     /**
-     * Returns a new hot Observable Atom Query which will connect to the network
-     * to retrieve the requested atoms.
+     * Returns an unending stream of atoms which are stored at a particular destination.
      *
      * @param destination destination (which determines shard) to query atoms for
-     * @param atomClass atom class type to filter for
-     * @return a new Observable Atom Query
+     * @return an Atom Observable
      */
     fun getAllAtoms(destination: EUID): Observable<Atom> {
         Objects.requireNonNull(destination)
 
-        val atomQuery = AtomQuery(destination, Atom::class.java)
-        return getRadixClient(destination.shard)
-            .flatMapObservable { client -> client.getAtoms(atomQuery) }
-            .doOnError {
-                LOGGER.warn("Error on getAllAtoms: {}", destination)
-            }
-            .retryWhen(IncreasingRetryTimer())
-            .filter(object : Predicate<Atom> {
-                private val atomsSeen = HashSet<RadixHash>()
+        return cache.computeIfAbsentSynchronisedFunction(destination) { euid ->
+            val atomQuery = AtomQuery(euid, Atom::class.java)
+            return@computeIfAbsentSynchronisedFunction getRadixClient(euid.shard)
+                .flatMapObservable { client -> client.getAtoms(atomQuery) }
+                .doOnError {
+                    LOGGER.warn("Error on getAllAtoms: {}", euid)
+                }
+                .retryWhen(IncreasingRetryTimer())
+                .filter(object : Predicate<Atom> {
+                    private val atomsSeen = HashSet<RadixHash>()
 
-                override fun test(atom: Atom): Boolean {
-                    if (atomsSeen.contains(atom.hash)) {
-                        LOGGER.warn("Atom Already Seen: destination({}) atom({})", destination, atom)
-                        return false
+                    override fun test(atom: Atom): Boolean {
+                        if (atomsSeen.contains(atom.hash)) {
+                            LOGGER.warn("Atom Already Seen: destination({})", euid)
+                            return false
+                        }
+                        atomsSeen.add(atom.hash)
+
+                        return true
                     }
-                    atomsSeen.add(atom.hash)
-
-                    return true
+                })
+                .filter { atom ->
+                    return@filter try {
+                        RadixAtomValidator.getInstance().validate(atom)
+                        true
+                    } catch (e: AtomValidationException) {
+                        // TODO: Stop stream and mark client as untrustable
+                        LOGGER.error(e.toString())
+                        false
+                    }
                 }
-            })
-            .filter { atom ->
-                return@filter try {
-                    RadixAtomValidator.getInstance().validate(atom)
-                    true
-                } catch (e: AtomValidationException) {
-                    // TODO: Stop stream and mark client as untrustable
-                    LOGGER.error(e.toString())
-                    false
+                .doOnSubscribe {
+                    LOGGER.info("Atom Query Subscribe: destination({})", destination)
                 }
-            }
-            .doOnSubscribe {
-                LOGGER.info("Atom Query Subscribe: destination({})", destination)
-            }
-            .publish()
-            .refCount()
+                .cache()
+        }
     }
 
     /**
