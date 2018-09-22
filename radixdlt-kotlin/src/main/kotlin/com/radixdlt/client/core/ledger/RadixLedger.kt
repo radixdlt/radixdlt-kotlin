@@ -107,26 +107,25 @@ class RadixLedger(
      * @param atomClass atom class type to filter for
      * @return a new Observable Atom Query
      */
-    fun <T : Atom> getAllAtoms(destination: EUID, atomClass: Class<T>): Observable<T> {
+    fun getAllAtoms(destination: EUID): Observable<Atom> {
         Objects.requireNonNull(destination)
-        Objects.requireNonNull(atomClass)
 
-        val atomQuery = AtomQuery(destination, atomClass)
+        val atomQuery = AtomQuery(destination, Atom::class.java)
         return getRadixClient(destination.shard)
             .flatMapObservable { client -> client.getAtoms(atomQuery) }
             .doOnError {
                 LOGGER.warn("Error on getAllAtoms: {}", destination)
             }
             .retryWhen(IncreasingRetryTimer())
-            .filter(object : Predicate<T> {
+            .filter(object : Predicate<Atom> {
                 private val atomsSeen = HashSet<RadixHash>()
 
-                override fun test(t: T): Boolean {
-                    if (atomsSeen.contains(t.hash)) {
-                        LOGGER.warn("Atom Already Seen: destination({}) atom({})", destination, t)
+                override fun test(atom: Atom): Boolean {
+                    if (atomsSeen.contains(atom.hash)) {
+                        LOGGER.warn("Atom Already Seen: destination({}) atom({})", destination, atom)
                         return false
                     }
-                    atomsSeen.add(t.hash)
+                    atomsSeen.add(atom.hash)
 
                     return true
                 }
@@ -142,7 +141,7 @@ class RadixLedger(
                 }
             }
             .doOnSubscribe {
-                LOGGER.info("Atom Query Subscribe: destination({}) class({})", destination, atomClass.simpleName)
+                LOGGER.info("Atom Query Subscribe: destination({})", destination)
             }
             .publish()
             .refCount()

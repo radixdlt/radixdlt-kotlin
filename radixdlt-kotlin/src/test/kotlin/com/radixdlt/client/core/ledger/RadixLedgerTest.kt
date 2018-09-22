@@ -33,7 +33,7 @@ class RadixLedgerTest {
             .rawAtom
 
         @Suppress("UNCHECKED_CAST")
-        val observer = mock(Consumer::class.java) as Consumer<ApplicationPayloadAtom>
+        val observer = mock(Consumer::class.java) as Consumer<Atom>
         val client = mock(RadixJsonRpcClient::class.java)
         val network = mock(RadixNetwork::class.java)
         `when`(network.getRadixClients(any<Long>())).thenReturn(Single.just(client).toObservable())
@@ -47,8 +47,7 @@ class RadixLedgerTest {
         `when`(client.getUniverse()).thenReturn(Single.just(config))
 
         val ledger = RadixLedger(config, network)
-        ledger.getAllAtoms(EUID(BigInteger.ONE), ApplicationPayloadAtom::class.java)
-            .subscribe(observer)
+        ledger.getAllAtoms(EUID(BigInteger.ONE)).subscribe(observer)
 
         verify(observer, times(1)).accept(any())
     }

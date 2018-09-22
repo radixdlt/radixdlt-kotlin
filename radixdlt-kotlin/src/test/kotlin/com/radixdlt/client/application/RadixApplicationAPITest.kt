@@ -166,9 +166,13 @@ class RadixApplicationAPITest {
         `when`(dataStoreTranslator.fromAtom(any())).thenReturn(data, data)
 
         val errorAtom = mock(ApplicationPayloadAtom::class.java)
+        `when`(errorAtom.isMessageAtom).thenReturn(true)
+        `when`(errorAtom.asMessageAtom).thenReturn(errorAtom)
         val okAtom = mock(ApplicationPayloadAtom::class.java)
+        `when`(okAtom.isMessageAtom).thenReturn(true)
+        `when`(okAtom.asMessageAtom).thenReturn(okAtom)
 
-        `when`(ledger.getAllAtoms(any(), any<Class<Atom>>())).thenReturn(Observable.just(errorAtom, okAtom))
+        `when`(ledger.getAllAtoms(any())).thenReturn(Observable.just(errorAtom, okAtom))
 
         val api = RadixApplicationAPI.create(identity, universe, dataStoreTranslator, ::AtomBuilder)
         val observer = TestObserver.create<Any>()
@@ -187,7 +191,7 @@ class RadixApplicationAPITest {
         `when`(universe.ledger).thenReturn(ledger)
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
 
-        `when`(ledger.getAllAtoms(any(), any<Class<Atom>>())).thenReturn(Observable.empty())
+        `when`(ledger.getAllAtoms(any())).thenReturn(Observable.empty())
 
         val observer = TestObserver.create<Amount>()
 
@@ -204,7 +208,7 @@ class RadixApplicationAPITest {
         `when`(universe.ledger).thenReturn(ledger)
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
 
-        `when`(ledger.getAllAtoms(any(), any<Class<Atom>>())).thenReturn(Observable.empty())
+        `when`(ledger.getAllAtoms(any())).thenReturn(Observable.empty())
 
         val observer = TestObserver.create<Any>()
         api.transferTokens(address, address, Amount.subUnitsOf(10, Asset.TEST)).toCompletable().subscribe(observer)

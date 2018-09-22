@@ -15,7 +15,7 @@ import com.radixdlt.client.assets.Amount
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
+import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.TransactionAtom
@@ -82,7 +82,9 @@ class RadixApplicationAPI private constructor(
     fun getData(address: RadixAddress): Observable<Data> {
         Objects.requireNonNull(address)
 
-        return ledger.getAllAtoms(address.getUID(), ApplicationPayloadAtom::class.java)
+        return ledger.getAllAtoms(address.getUID())
+            .filter(Atom::isMessageAtom)
+            .map(Atom::asMessageAtom)
             .map(dataStoreTranslator::fromAtom)
     }
 
@@ -134,7 +136,9 @@ class RadixApplicationAPI private constructor(
         Objects.requireNonNull(tokenClass)
         return Observables.combineLatest<TransactionAtoms, TransactionAtom, Observable<TransactionAtom>>(
             Observable.fromCallable { TransactionAtoms(address, tokenClass.id) },
-            ledger.getAllAtoms(address.getUID(), TransactionAtom::class.java)
+            ledger.getAllAtoms(address.getUID())
+                .filter(Atom::isTransactionAtom)
+                .map(Atom::asTransactionAtom)
         ) { transactionAtoms, atom ->
             transactionAtoms.accept(atom).newValidTransactions
         }

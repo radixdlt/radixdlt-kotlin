@@ -2,6 +2,7 @@ package com.radixdlt.client.application.translate
 
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.address.RadixAddress
+import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.TransactionAtom
 import com.radixdlt.client.core.ledger.RadixLedger
@@ -25,7 +26,9 @@ class ConsumableDataSource(private val ledger: RadixLedger) {
             Observable.just<Collection<Consumable>>(emptySet()).concatWith(
                 Observables.combineLatest<TransactionAtoms, TransactionAtom, Maybe<Collection<Consumable>>>(
                     Observable.fromCallable { TransactionAtoms(address, Asset.TEST.id) },
-                    ledger.getAllAtoms(address.getUID(), TransactionAtom::class.java)
+                    ledger.getAllAtoms(address.getUID())
+                        .filter(Atom::isTransactionAtom)
+                        .map(Atom::asTransactionAtom)
                 ) { transactionAtoms, atom ->
                     transactionAtoms.accept(atom)
                         .getUnconsumedConsumables()
