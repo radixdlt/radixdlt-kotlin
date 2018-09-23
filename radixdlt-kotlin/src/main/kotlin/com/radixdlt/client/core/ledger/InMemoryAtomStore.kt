@@ -36,8 +36,8 @@ class InMemoryAtomStore {
      * @param destination destination (which determines shard) to query atoms for
      * @return an Atom Observable
      */
-    fun getAtoms(destination: EUID): Observable<Atom> {
-        Objects.requireNonNull(destination)
+    fun getAtoms(destination: EUID?): Observable<Atom> {
+        Objects.requireNonNull(destination!!)
         return cache.computeIfAbsentSynchronisedFunction(destination) { euid -> ReplaySubject.create() }
             .distinct()
     }

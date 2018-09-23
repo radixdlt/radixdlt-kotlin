@@ -7,7 +7,11 @@ import com.radixdlt.client.core.address.RadixUniverseConfig
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.crypto.ECPublicKey
-import com.radixdlt.client.core.ledger.RadixLedger
+import com.radixdlt.client.core.ledger.AtomFetcher
+import com.radixdlt.client.core.ledger.AtomPuller
+import com.radixdlt.client.core.ledger.AtomSubmitter
+import com.radixdlt.client.core.ledger.ClientSelector
+import com.radixdlt.client.core.ledger.InMemoryAtomStore
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.PeerDiscovery
 import com.radixdlt.client.core.network.RadixNetwork
@@ -40,18 +44,21 @@ class RadixUniverse private constructor(
     /**
      * Network Interface
      */
-    val network: RadixNetwork,
-    /**
-     * Ledger Interface
-     */
-    val ledger: RadixLedger
+    val network: RadixNetwork
 ) {
+
+
+    private val clientSelector = ClientSelector(config, network)
+    private val atomFetcher = AtomFetcher(clientSelector::getRadixClient);
+    private val atomSubmitter = AtomSubmitter(clientSelector::getRadixClient)
+    private val inMemoryAtomStore = InMemoryAtomStore()
+    private val atomPuller = AtomPuller(atomFetcher::fetchAtoms, inMemoryAtomStore::store)
 
     /**
      * The Particle Data Store
      * TODO: actually change it into the particle data store
      */
-    private val consumableDataSource: ConsumableDataSource = ConsumableDataSource(ledger::getAllAtoms)
+    private val consumableDataSource: ConsumableDataSource = ConsumableDataSource(inMemoryAtomStore::getAtoms)
 
     val magic: Int
         get() = config.getMagic()
@@ -60,9 +67,14 @@ class RadixUniverse private constructor(
         return consumableDataSource::getConsumables
     }
 
-    fun getAtomStore(): (EUID?) -> (Observable<Atom>) = ledger::getAllAtoms
+    fun getAtomStore(): (EUID) -> (Observable<Atom>) {
+        return { euid ->
+            val disposable = atomPuller.pull(euid)
+            inMemoryAtomStore.getAtoms(euid).doOnDispose { disposable.dispose() }
+        }
+    }
 
-    fun getAtomSubmissionHandler(): (Atom) -> (Observable<AtomSubmissionUpdate>) = ledger::submitAtom
+    fun getAtomSubmissionHandler(): (Atom) -> (Observable<AtomSubmissionUpdate>) = atomSubmitter::submitAtom
 
     /**
      * Returns the system public key, also defined as the creator of this Universe
@@ -87,7 +99,6 @@ class RadixUniverse private constructor(
      * Attempts to gracefully free all resources associated with this Universe
      */
     fun disconnect() {
-        ledger.close()
         network.close()
     }
 
@@ -118,9 +129,8 @@ class RadixUniverse private constructor(
                 }
 
                 val network = RadixNetwork(peerDiscovery)
-                val ledger = RadixLedger(config, network)
 
-                defaultUniverse = RadixUniverse(config, network, ledger)
+                defaultUniverse = RadixUniverse(config, network)
 
                 return defaultUniverse!!
             }

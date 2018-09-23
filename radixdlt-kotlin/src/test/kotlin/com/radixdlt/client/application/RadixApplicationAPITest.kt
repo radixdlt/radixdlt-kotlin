@@ -1,23 +1,25 @@
 package com.radixdlt.client.application
 
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.times
+import com.nhaarman.mockitokotlin2.verify
 import com.radixdlt.client.application.RadixApplicationAPI.Result
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.application.objects.UnencryptedData
-import com.radixdlt.client.application.translate.ConsumableDataSource
 import com.radixdlt.client.application.translate.DataStoreTranslator
 import com.radixdlt.client.application.translate.InsufficientFundsException
 import com.radixdlt.client.assets.Amount
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
+import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.CryptoException
-import com.radixdlt.client.core.ledger.RadixLedger
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
 import io.reactivex.Observable
@@ -30,15 +32,18 @@ import org.mockito.Mockito.mock
 import java.util.Collections
 
 class RadixApplicationAPITest {
-    private fun createMockedAPI(ledger: RadixLedger): RadixApplicationAPI {
+    private fun createMockedAPI(
+        atomSubmission: (Atom) -> (Observable<AtomSubmissionUpdate>),
+        atomStore: (EUID) -> (Observable<Atom>)
+    ): RadixApplicationAPI {
         val universe = mock(RadixUniverse::class.java)
-        `when`(universe.getAtomSubmissionHandler()).thenReturn(ledger::submitAtom)
+        `when`(universe.getAtomSubmissionHandler()).thenReturn(atomSubmission)
 
-        val consumableDataSource = mock(ConsumableDataSource::class.java)
-        `when`(universe.getParticleStore()).thenReturn(consumableDataSource::getConsumables)
+//        val consumableDataSource = mock(ConsumableDataSource::class.java)
+//        `when`(universe.getParticleStore()).thenReturn(consumableDataSource::getConsumables)
 //        `when`(universe.getParticleStore()).thenReturn { Observable.just(Collections.emptySet()) }
 
-        `when`(universe.getAtomStore()).thenReturn(ledger::getAllAtoms)
+        `when`(universe.getAtomStore()).thenReturn(atomStore)
         val identity = mock(RadixIdentity::class.java)
 
         val atomBuilder = mock(AtomBuilder::class.java)
@@ -55,8 +60,8 @@ class RadixApplicationAPITest {
         return RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, atomBuilderSupplier)
     }
 
-    private fun createMockedLedgerWhichAlwaysSucceeds(): RadixLedger {
-        val ledger = mock(RadixLedger::class.java)
+    private fun createMockedSubmissionWhichAlwaysSucceeds(): (Atom) -> (Observable<AtomSubmissionUpdate>) {
+        val submission = mock<(Atom) -> (Observable<AtomSubmissionUpdate>)>()
 
         val submitting = mock(AtomSubmissionUpdate::class.java)
         val submitted = mock(AtomSubmissionUpdate::class.java)
@@ -69,13 +74,13 @@ class RadixApplicationAPITest {
         `when`(submitted.getState()).thenReturn(AtomSubmissionState.SUBMITTED)
         `when`(stored.getState()).thenReturn(AtomSubmissionState.STORED)
 
-        `when`(ledger.submitAtom(any())).thenReturn(Observable.just(submitting, submitted, stored))
+        `when`(submission(any())).thenReturn(Observable.just(submitting, submitted, stored))
 
-        return ledger
+        return submission
     }
 
     private fun createMockedAPIWhichAlwaysSucceeds(): RadixApplicationAPI {
-        return createMockedAPI(createMockedLedgerWhichAlwaysSucceeds())
+        return createMockedAPI(createMockedSubmissionWhichAlwaysSucceeds(), { euid -> Observable.never() })
     }
 
     private fun validateSuccessfulStoreDataResult(result: Result) {
@@ -115,7 +120,7 @@ class RadixApplicationAPITest {
 
         val encryptedData = mock(Data::class.java)
         val result = api.storeData(encryptedData, address)
-//        validateSuccessfulStoreDataResult(result)
+        validateSuccessfulStoreDataResult(result)
     }
 
     @Test
@@ -125,24 +130,24 @@ class RadixApplicationAPITest {
 
         val encryptedData = mock(Data::class.java)
         val result = api.storeData(encryptedData, address, address)
-//        validateSuccessfulStoreDataResult(result)
+        validateSuccessfulStoreDataResult(result)
     }
 
     @Test
     fun testStoreWithoutSubscription() {
-        val ledger = createMockedLedgerWhichAlwaysSucceeds()
-        val api = createMockedAPI(ledger)
+        val submission = createMockedSubmissionWhichAlwaysSucceeds()
+        val api = createMockedAPI(submission,  { euid -> Observable.never<Atom>() })
         val address = mock(RadixAddress::class.java)
 
         val encryptedData = mock(Data::class.java)
         api.storeData(encryptedData, address, address)
-//        verify(ledger, times(1)).submitAtom(any())
+        verify(submission, times(1)).apply(any())
     }
 
     @Test
     fun testStoreWithMultipleSubscribes() {
-        val ledger = createMockedLedgerWhichAlwaysSucceeds()
-        val api = createMockedAPI(ledger)
+        val submission = createMockedSubmissionWhichAlwaysSucceeds()
+        val api = createMockedAPI(submission, { euid -> Observable.never<Atom>() })
         val address = mock(RadixAddress::class.java)
 
         val encryptedData = mock(Data::class.java)
@@ -151,7 +156,7 @@ class RadixApplicationAPITest {
         observable.subscribe()
         observable.subscribe()
         observable.subscribe()
-//        verify(ledger, times(1)).submitAtom(any())
+        verify(submission, times(1)).apply(any())
     }
 
     @Test

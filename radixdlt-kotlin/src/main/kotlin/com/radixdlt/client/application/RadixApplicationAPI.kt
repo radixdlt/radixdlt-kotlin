@@ -40,7 +40,7 @@ class RadixApplicationAPI private constructor(
     private val universe: RadixUniverse,
     private val dataStoreTranslator: DataStoreTranslator,
     private val atomBuilderSupplier: () -> AtomBuilder,
-    private val atomStore: (EUID?) -> (Observable<Atom>),
+    private val atomStore: (EUID) -> (Observable<Atom>),
     private val particleStore: (RadixAddress) -> (Observable<Collection<Consumable>>),
     private val atomSubmissionHandler: (Atom) -> (Observable<AtomSubmissionUpdate>)
 ) {
