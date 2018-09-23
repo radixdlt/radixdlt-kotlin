@@ -26,6 +26,8 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.annotations.Nullable
+import io.reactivex.disposables.Disposable
+import io.reactivex.disposables.Disposables
 import io.reactivex.observables.ConnectableObservable
 import io.reactivex.rxkotlin.Observables
 import java.util.Objects
@@ -77,8 +79,23 @@ class RadixApplicationAPI private constructor(
         }
     }
 
+    /**
+     * Idempotent method which prefetches atoms in user's account
+     * TODO: what to do when no puller available
+     * @return Disposable to dispose to stop pulling
+     */
+    fun pull(): Disposable {
+        return if (ledger.getAtomPuller() != null) {
+            ledger.getAtomPuller().pull(myPublicKey.getUID())
+        } else {
+            Disposables.disposed()
+        }
+    }
+
     fun getData(address: RadixAddress): Observable<Data> {
         Objects.requireNonNull(address)
+
+        pull()
 
         return ledger.getAtomStore().getAtoms(address.getUID())
             .filter(Atom::isMessageAtom)
@@ -132,6 +149,9 @@ class RadixApplicationAPI private constructor(
     fun getTokenTransfers(address: RadixAddress, tokenClass: Asset): Observable<TokenTransfer> {
         Objects.requireNonNull(address)
         Objects.requireNonNull(tokenClass)
+
+        pull()
+
         return Observables.combineLatest<TransactionAtoms, TransactionAtom, Observable<TransactionAtom>>(
             Observable.fromCallable { TransactionAtoms(address, tokenClass.id) },
             ledger.getAtomStore().getAtoms(address.getUID())
@@ -150,6 +170,9 @@ class RadixApplicationAPI private constructor(
     fun getBalance(address: RadixAddress, tokenClass: Asset): Observable<Amount> {
         Objects.requireNonNull(address)
         Objects.requireNonNull(tokenClass)
+
+        pull()
+
         return this.ledger.getParticleStore().getConsumables(address)
             .map { it.asSequence() }
             .map { sequence ->
@@ -240,6 +263,8 @@ class RadixApplicationAPI private constructor(
     // TODO: make this more generic
     private fun executeTransaction(tokenTransfer: TokenTransfer, @Nullable uniqueProperty: UniqueProperty?): Result {
         Objects.requireNonNull(tokenTransfer)
+
+        pull()
 
         val atomBuilder = atomBuilderSupplier()
 
