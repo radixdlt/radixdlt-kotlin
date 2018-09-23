@@ -116,7 +116,7 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      * @return The result of the transaction.
      */
     fun sendWhenAvailable(amount: BigDecimal, toAddress: RadixAddress): SendResult {
-        return this.sendWhenAvailable(amount, toAddress, null, null)
+        return this.sendWhenAvailable(amount, null, toAddress, null)
     }
 
     /**
@@ -124,16 +124,16 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      * amount with an encrypted message (readable by sender and receiver) to a specified account.
      *
      * @param amount The amount of TEST to transfer.
-     * @param toAddress The address to send to.
      * @param message The message to send as an attachment.
+     * @param toAddress The address to send to.
      * @return The result of the transaction.
      */
     fun sendWhenAvailable(
         amount: BigDecimal,
-        @NonNull toAddress: RadixAddress,
-        @Nullable message: String
+        @Nullable message: String,
+        @NonNull toAddress: RadixAddress
     ): SendResult {
-        return sendWhenAvailable(amount, toAddress, message, null)
+        return sendWhenAvailable(amount, message, toAddress, null)
     }
 
     /**
@@ -141,15 +141,15 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      * amount with an encrypted message (readable by sender and receiver) to a specified account.
      *
      * @param amount The amount of TEST to transfer.
-     * @param toAddress The myAddress to send to.
      * @param message The message to send as an attachment.
+     * @param toAddress The myAddress to send to.
      * @param unique The unique id for this transaction.
      * @return The result of the transaction.
      */
     fun sendWhenAvailable(
         amount: BigDecimal,
-        toAddress: RadixAddress,
         message: String?,
+        toAddress: RadixAddress,
         unique: String?
     ): SendResult {
         val attachment: Data? = if (message != null) {

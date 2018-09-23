@@ -52,7 +52,7 @@ object RadixWalletExample {
         @Suppress("SENSELESS_COMPARISON")
         if (TO_ADDRESS_BASE58 != null) {
             val toAddress = RadixAddress.fromString(TO_ADDRESS_BASE58)
-            wallet.sendWhenAvailable(AMOUNT, toAddress, MESSAGE)
+            wallet.sendWhenAvailable(AMOUNT, MESSAGE, toAddress)
                 .toObservable()
                 .subscribe(System.out::println, Throwable::printStackTrace)
         }
