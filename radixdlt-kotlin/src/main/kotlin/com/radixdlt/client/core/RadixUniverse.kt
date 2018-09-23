@@ -1,9 +1,11 @@
 package com.radixdlt.client.core
 
+import com.radixdlt.client.application.translate.ConsumableDataSource
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.address.RadixUniverseConfig
 import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.ledger.RadixLedger
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
@@ -45,8 +47,18 @@ class RadixUniverse private constructor(
     val ledger: RadixLedger
 ) {
 
+    /**
+     * The Particle Data Store
+     * TODO: actually change it into the particle data store
+     */
+    private val consumableDataSource: ConsumableDataSource = ConsumableDataSource(ledger::getAllAtoms)
+
     val magic: Int
         get() = config.getMagic()
+
+    fun getParticleStore(): (RadixAddress) -> (Observable<Collection<Consumable>>) {
+        return consumableDataSource::getConsumables
+    }
 
     fun getAtomStore(): (EUID?) -> (Observable<Atom>) = ledger::getAllAtoms
 

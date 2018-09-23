@@ -6,7 +6,6 @@ import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.application.objects.UnencryptedData
-import com.radixdlt.client.application.translate.ConsumableDataSource
 import com.radixdlt.client.application.translate.DataStoreTranslator
 import com.radixdlt.client.application.translate.TokenTransferTranslator
 import com.radixdlt.client.application.translate.TransactionAtoms
@@ -42,11 +41,11 @@ class RadixApplicationAPI private constructor(
     private val dataStoreTranslator: DataStoreTranslator,
     private val atomBuilderSupplier: () -> AtomBuilder,
     private val atomStore: (EUID?) -> (Observable<Atom>),
+    private val particleStore: (RadixAddress) -> (Observable<Collection<Consumable>>),
     private val atomSubmissionHandler: (Atom) -> (Observable<AtomSubmissionUpdate>)
 ) {
 
-    private val consumableDataSource = ConsumableDataSource(universe.getAtomStore())
-    private val tokenTransferTranslator = TokenTransferTranslator(universe, consumableDataSource)
+    private val tokenTransferTranslator = TokenTransferTranslator(universe, particleStore)
     private val uniquePropertyTranslator = UniquePropertyTranslator()
 
     val myAddress: RadixAddress
@@ -152,7 +151,7 @@ class RadixApplicationAPI private constructor(
     fun getBalance(address: RadixAddress, tokenClass: Asset): Observable<Amount> {
         Objects.requireNonNull(address)
         Objects.requireNonNull(tokenClass)
-        return this.consumableDataSource.getConsumables(address)
+        return this.particleStore(address)
             .map { it.asSequence() }
             .map { sequence ->
                 sequence.filter { consumable ->
@@ -293,6 +292,7 @@ class RadixApplicationAPI private constructor(
                 dataStoreTranslator,
                 atomBuilderSupplier,
                 universe.getAtomStore(),
+                universe.getParticleStore(),
                 universe.getAtomSubmissionHandler())
         }
     }

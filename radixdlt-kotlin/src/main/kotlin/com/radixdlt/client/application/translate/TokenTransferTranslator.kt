@@ -12,12 +12,13 @@ import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import io.reactivex.Completable
+import io.reactivex.Observable
 import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.HashMap
 
 class TokenTransferTranslator(
     private val universe: RadixUniverse,
-    private val consumableDataSource: ConsumableDataSource
+    private val particleStore: (RadixAddress) -> (Observable<Collection<Consumable>>)
 ) {
 
     fun fromAtom(transactionAtom: TransactionAtom): TokenTransfer {
@@ -73,7 +74,7 @@ class TokenTransferTranslator(
     fun translate(tokenTransfer: TokenTransfer, atomBuilder: AtomBuilder): Completable {
         atomBuilder.type(TransactionAtom::class.java)
 
-        return this.consumableDataSource.getConsumables(tokenTransfer.from!!)
+        return this.particleStore(tokenTransfer.from!!)
             .firstOrError()
             .flatMapCompletable { unconsumedConsumables ->
 

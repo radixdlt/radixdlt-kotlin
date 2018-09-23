@@ -6,17 +6,12 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.Consumable
 import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.rxkotlin.Observables
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 class ConsumableDataSource(private val atomStore: (EUID?) -> (Observable<Atom>)) {
     private val cache = ConcurrentHashMap<RadixAddress, Observable<Collection<Consumable>>>()
-
-    fun getCurrentConsumables(address: RadixAddress): Single<Collection<Consumable>> {
-        return this.getConsumables(address).firstOrError()
-    }
 
     fun getConsumables(address: RadixAddress): Observable<Collection<Consumable>> {
         // TODO: use https://github.com/JakeWharton/RxReplayingShare to disconnect when unsubscribed
