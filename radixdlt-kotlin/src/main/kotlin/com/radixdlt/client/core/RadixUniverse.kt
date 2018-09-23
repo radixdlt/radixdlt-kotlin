@@ -47,7 +47,7 @@ class RadixUniverse private constructor(
 ) {
 
     interface Ledger {
-        fun getAtomPuller(): AtomPuller
+        fun getAtomPuller(): AtomPuller?
 
         fun getParticleStore(): ParticleStore
 
@@ -60,7 +60,7 @@ class RadixUniverse private constructor(
     // TODO: cleanup
     val ledger: Ledger = object : Ledger {
         private val clientSelector = ClientSelector(config, network)
-        private val atomFetcher = AtomFetcher(clientSelector::getRadixClient);
+        private val atomFetcher = AtomFetcher(clientSelector::getRadixClient)
         private val inMemoryAtomStore = InMemoryAtomStore()
         private val atomPuller = RadixAtomPuller(atomFetcher::fetchAtoms, inMemoryAtomStore::store)
         private val atomSubmitter = RadixAtomSubmitter(clientSelector::getRadixClient)

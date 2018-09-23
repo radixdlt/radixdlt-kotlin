@@ -17,7 +17,8 @@ class RadixAtomPuller(
     /**
      * The mechanism by which to merge or store atoms
      */
-    private val atomStore: (EUID, Atom) -> Unit) : AtomPuller {
+    private val atomStore: (EUID, Atom) -> Unit
+) : AtomPuller {
 
     /**
      * Atoms retrieved from the network

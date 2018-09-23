@@ -25,9 +25,9 @@ class RadixAtomPullerTest {
         val fetcher = mock<(EUID) -> (Observable<Atom>)>()
         `when`(fetcher(any())).thenReturn(atoms)
 
-        val radixAtomPuller = RadixAtomPuller(fetcher) { a, b -> }
+        val radixAtomPuller = RadixAtomPuller(fetcher) { _, _ -> }
 
-        val observers = generateSequence(TestObserver.create<Any>()) { t -> TestObserver.create() }
+        val observers = generateSequence(TestObserver.create<Any>()) { TestObserver.create() }
             .take(10)
             .toList()
 

@@ -25,7 +25,7 @@ class InMemoryAtomStore : AtomStore {
      * @param atom the atom to store
      */
     fun store(destination: EUID, atom: Atom) {
-        cache.computeIfAbsentSynchronisedFunction(destination) { euid -> ReplaySubject.create() }
+        cache.computeIfAbsentSynchronisedFunction(destination) { ReplaySubject.create() }
             .onNext(atom)
     }
 
@@ -37,7 +37,7 @@ class InMemoryAtomStore : AtomStore {
      */
     override fun getAtoms(destination: EUID?): Observable<Atom> {
         Objects.requireNonNull(destination!!)
-        return cache.computeIfAbsentSynchronisedFunction(destination) { euid -> ReplaySubject.create() }
+        return cache.computeIfAbsentSynchronisedFunction(destination) { ReplaySubject.create() }
             .distinct()
     }
 }

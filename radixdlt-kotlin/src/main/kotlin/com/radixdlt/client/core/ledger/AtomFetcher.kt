@@ -36,7 +36,7 @@ class AtomFetcher(
                     false
                 }
             }
-            .doOnSubscribe { atoms -> LOGGER.info("Atom Query Subscribe: destination({})", destination) }
+            .doOnSubscribe { LOGGER.info("Atom Query Subscribe: destination({})", destination) }
     }
 
     companion object {

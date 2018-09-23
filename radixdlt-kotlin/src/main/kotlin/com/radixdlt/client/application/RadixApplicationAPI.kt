@@ -86,7 +86,7 @@ class RadixApplicationAPI private constructor(
      */
     fun pull(): Disposable {
         return if (ledger.getAtomPuller() != null) {
-            ledger.getAtomPuller().pull(myPublicKey.getUID())
+            ledger.getAtomPuller()!!.pull(myPublicKey.getUID())
         } else {
             Disposables.disposed()
         }
