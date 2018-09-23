@@ -12,6 +12,7 @@ import com.radixdlt.client.core.network.WebSocketClient
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.functions.Consumer
+import io.reactivex.observers.TestObserver
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -20,6 +21,34 @@ import org.mockito.Mockito.verify
 import java.math.BigInteger
 
 class RadixLedgerTest {
+
+    @Test
+    fun testClientAPICalledOnceWithManySubscibers() {
+        val network = mock(RadixNetwork::class.java)
+        val client = mock(RadixJsonRpcClient::class.java)
+        `when`(client.getAtoms<Atom>(any())).thenReturn(Observable.never())
+        `when`(client.status).thenReturn(
+            Observable.just(
+                WebSocketClient.RadixClientStatus.OPEN
+            )
+        )
+        `when`(client.checkAPIVersion()).thenReturn(Single.just(true))
+        `when`(network.getRadixClients(any<Long>())).thenReturn(Single.just(client).toObservable())
+        `when`(network.getRadixClients(any<Set<Long>>())).thenReturn(Single.just(client).toObservable())
+
+        val config = mock(RadixUniverseConfig::class.java)
+        `when`(client.getUniverse()).thenReturn(Single.just(config))
+
+        val ledger = RadixLedger(config, network)
+
+        val observers = generateSequence(TestObserver.create<Any>()) { t -> TestObserver.create() }
+            .take(10)
+            .toList()
+
+        observers.forEach { observer -> ledger.getAllAtoms(EUID(BigInteger.ONE)).subscribe(observer) }
+
+        verify(client, times(1)).getAtoms<Atom>(any())
+    }
 
     @Test
     @Throws(Exception::class)

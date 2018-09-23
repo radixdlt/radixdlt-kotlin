@@ -2,12 +2,9 @@ package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.application.translate.computeIfAbsentSynchronisedFunction
 import com.radixdlt.client.core.address.EUID
-import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.address.RadixUniverseConfig
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomValidationException
-import com.radixdlt.client.core.atoms.RadixHash
-import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.network.AtomQuery
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
@@ -18,9 +15,7 @@ import com.radixdlt.client.core.network.WebSocketClient
 import com.radixdlt.client.core.serialization.RadixJson
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.functions.Predicate
 import org.slf4j.LoggerFactory
-import java.util.HashSet
 import java.util.Objects
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -46,21 +41,12 @@ class RadixLedger(
      */
     private val cache = ConcurrentHashMap<EUID, Observable<Atom>>()
 
+    private val inMemoryAtomStore = InMemoryAtomStore()
+
     val magic: Int = config.getMagic()
 
     fun setDebug(debug: Boolean) {
         this.debug.set(debug)
-    }
-
-    /**
-     * Maps a public key to it's corresponding Radix myAddress in this universe.
-     * Within a universe, a public key has a one to one bijective relationship to an myAddress
-     *
-     * @param publicKey the key to get an myAddress from
-     * @return the corresponding myAddress to the key for this universe
-     */
-    fun getAddressFromPublicKey(publicKey: ECPublicKey): RadixAddress {
-        return RadixAddress(magic, publicKey)
     }
 
     /**
@@ -107,15 +93,7 @@ class RadixLedger(
         return getRadixClient(setOf(shard))
     }
 
-    /**
-     * Returns an unending stream of atoms which are stored at a particular destination.
-     *
-     * @param destination destination (which determines shard) to query atoms for
-     * @return an Atom Observable
-     */
-    fun getAllAtoms(destination: EUID?): Observable<Atom> {
-        Objects.requireNonNull(destination!!)
-
+    fun fetchAtoms(destination: EUID): Observable<Atom> {
         return cache.computeIfAbsentSynchronisedFunction(destination) { euid ->
             val atomQuery = AtomQuery(euid, Atom::class.java)
             return@computeIfAbsentSynchronisedFunction getRadixClient(euid.shard)
@@ -124,19 +102,6 @@ class RadixLedger(
                     LOGGER.warn("Error on getAllAtoms: {}", euid)
                 }
                 .retryWhen(IncreasingRetryTimer())
-                .filter(object : Predicate<Atom> {
-                    private val atomsSeen = HashSet<RadixHash>()
-
-                    override fun test(atom: Atom): Boolean {
-                        if (atomsSeen.contains(atom.hash)) {
-                            LOGGER.warn("Atom Already Seen: destination({})", euid)
-                            return false
-                        }
-                        atomsSeen.add(atom.hash)
-
-                        return true
-                    }
-                })
                 .filter { atom ->
                     return@filter try {
                         RadixAtomValidator.getInstance().validate(atom)
@@ -150,8 +115,24 @@ class RadixLedger(
                 .doOnSubscribe {
                     LOGGER.info("Atom Query Subscribe: destination({})", destination)
                 }
-                .cache()
+                .doOnNext { atom -> inMemoryAtomStore.store(destination, atom) }
+                .publish()
+                .refCount()
         }
+    }
+
+    /**
+     * Returns an unending stream of atoms which are stored at a particular destination.
+     *
+     * @param destination destination (which determines shard) to query atoms for
+     * @return an Atom Observable
+     */
+    fun getAllAtoms(destination: EUID?): Observable<Atom> {
+        Objects.requireNonNull(destination!!)
+
+        val disposable = fetchAtoms(destination).subscribe()
+
+        return inMemoryAtomStore.getAtoms(destination).doOnDispose(disposable::dispose)
     }
 
     /**
