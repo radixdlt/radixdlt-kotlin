@@ -1,19 +1,17 @@
 package com.radixdlt.client.application.translate
 
 import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.Consumable
-import com.radixdlt.client.core.atoms.TransactionAtom
-import com.radixdlt.client.core.ledger.RadixLedger
-import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.rxkotlin.Observables
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
-class ConsumableDataSource(private val ledger: RadixLedger) {
+class ConsumableDataSource(private val atomStore: (EUID?) -> (Observable<Atom>)) {
     private val cache = ConcurrentHashMap<RadixAddress, Observable<Collection<Consumable>>>()
 
     fun getCurrentConsumables(address: RadixAddress): Single<Collection<Consumable>> {
@@ -24,9 +22,9 @@ class ConsumableDataSource(private val ledger: RadixLedger) {
         // TODO: use https://github.com/JakeWharton/RxReplayingShare to disconnect when unsubscribed
         return cache.computeIfAbsentSynchronisedFunction(address) { _ ->
             Observable.just<Collection<Consumable>>(emptySet()).concatWith(
-                Observables.combineLatest<TransactionAtoms, TransactionAtom, Maybe<Collection<Consumable>>>(
+                Observables.combineLatest(
                     Observable.fromCallable { TransactionAtoms(address, Asset.TEST.id) },
-                    ledger.getAllAtoms(address.getUID())
+                    atomStore(address.getUID())
                         .filter(Atom::isTransactionAtom)
                         .map(Atom::asTransactionAtom)
                 ) { transactionAtoms, atom ->

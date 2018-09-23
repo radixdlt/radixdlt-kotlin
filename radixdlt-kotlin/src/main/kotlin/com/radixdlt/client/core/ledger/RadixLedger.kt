@@ -113,8 +113,8 @@ class RadixLedger(
      * @param destination destination (which determines shard) to query atoms for
      * @return an Atom Observable
      */
-    fun getAllAtoms(destination: EUID): Observable<Atom> {
-        Objects.requireNonNull(destination)
+    fun getAllAtoms(destination: EUID?): Observable<Atom> {
+        Objects.requireNonNull(destination!!)
 
         return cache.computeIfAbsentSynchronisedFunction(destination) { euid ->
             val atomQuery = AtomQuery(euid, Atom::class.java)

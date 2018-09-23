@@ -1,11 +1,15 @@
 package com.radixdlt.client.core
 
+import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.address.RadixUniverseConfig
+import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.ledger.RadixLedger
+import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.PeerDiscovery
 import com.radixdlt.client.core.network.RadixNetwork
+import io.reactivex.Observable
 
 /**
  * A RadixUniverse represents the interface through which a client can interact
@@ -43,6 +47,10 @@ class RadixUniverse private constructor(
 
     val magic: Int
         get() = config.getMagic()
+
+    fun getAtomStore(): (EUID?) -> (Observable<Atom>) = ledger::getAllAtoms
+
+    fun getAtomSubmissionHandler(): (Atom) -> (Observable<AtomSubmissionUpdate>) = ledger::submitAtom
 
     /**
      * Returns the system public key, also defined as the creator of this Universe

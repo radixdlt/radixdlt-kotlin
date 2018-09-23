@@ -32,7 +32,8 @@ import org.mockito.Mockito.verify
 class RadixApplicationAPITest {
     private fun createMockedAPI(ledger: RadixLedger): RadixApplicationAPI {
         val universe = mock(RadixUniverse::class.java)
-        `when`(universe.ledger).thenReturn(ledger)
+        `when`(universe.getAtomSubmissionHandler()).thenReturn(ledger::submitAtom)
+        `when`(universe.getAtomStore()).thenReturn(ledger::getAllAtoms)
         val identity = mock(RadixIdentity::class.java)
 
         val atomBuilder = mock(AtomBuilder::class.java)
@@ -151,9 +152,7 @@ class RadixApplicationAPITest {
     @Test
     fun testUndecryptableData() {
         val identity = mock(RadixIdentity::class.java)
-        val ledger = mock(RadixLedger::class.java)
         val universe = mock(RadixUniverse::class.java)
-        `when`(universe.ledger).thenReturn(ledger)
         val address = mock(RadixAddress::class.java)
         val unencryptedData = mock(UnencryptedData::class.java)
 
@@ -172,7 +171,7 @@ class RadixApplicationAPITest {
         `when`(okAtom.isMessageAtom).thenReturn(true)
         `when`(okAtom.asMessageAtom).thenReturn(okAtom)
 
-        `when`(ledger.getAllAtoms(any())).thenReturn(Observable.just(errorAtom, okAtom))
+        `when`(universe.getAtomStore()).thenReturn { Observable.just(errorAtom, okAtom) }
 
         val api = RadixApplicationAPI.create(identity, universe, dataStoreTranslator, ::AtomBuilder)
         val observer = TestObserver.create<Any>()
@@ -185,14 +184,12 @@ class RadixApplicationAPITest {
     @Test
     fun testZeroTransactionWallet() {
         val universe = mock(RadixUniverse::class.java)
-        val ledger = mock(RadixLedger::class.java)
+        `when`(universe.getAtomStore()).thenReturn { Observable.empty() }
+
         val address = mock(RadixAddress::class.java)
         val identity = mock(RadixIdentity::class.java)
-        `when`(universe.ledger).thenReturn(ledger)
+
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
-
-        `when`(ledger.getAllAtoms(any())).thenReturn(Observable.empty())
-
         val observer = TestObserver.create<Amount>()
 
         api.getBalance(address, Asset.TEST).subscribe(observer)
@@ -202,13 +199,13 @@ class RadixApplicationAPITest {
     @Test
     fun createTransactionWithNoFunds() {
         val universe = mock(RadixUniverse::class.java)
-        val ledger = mock(RadixLedger::class.java)
+        `when`(universe.getAtomStore()).thenReturn { Observable.empty() }
+        `when`(universe.getAtomSubmissionHandler()).thenReturn { Observable.empty() }
+
         val address = mock(RadixAddress::class.java)
         val identity = mock(RadixIdentity::class.java)
-        `when`(universe.ledger).thenReturn(ledger)
-        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
 
-        `when`(ledger.getAllAtoms(any())).thenReturn(Observable.empty())
+        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
 
         val observer = TestObserver.create<Any>()
         api.transferTokens(address, address, Amount.subUnitsOf(10, Asset.TEST)).toCompletable().subscribe(observer)
