@@ -15,7 +15,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.math.BigInteger
 
-class AtomPullerTest {
+class RadixAtomPullerTest {
     @Test
     @Throws(Exception::class)
     fun testClientAPICalledOnceWithManySubscibers() {
@@ -25,13 +25,13 @@ class AtomPullerTest {
         val fetcher = mock<(EUID) -> (Observable<Atom>)>()
         `when`(fetcher(any())).thenReturn(atoms)
 
-        val atomPuller = AtomPuller(fetcher) { a, b -> }
+        val radixAtomPuller = RadixAtomPuller(fetcher) { a, b -> }
 
         val observers = generateSequence(TestObserver.create<Any>()) { t -> TestObserver.create() }
             .take(10)
             .toList()
 
-        observers.forEach { _ -> atomPuller.pull(EUID(BigInteger.ONE)) }
+        observers.forEach { _ -> radixAtomPuller.pull(EUID(BigInteger.ONE)) }
 
         verify(onSubscribe, times(1)).accept(any())
     }

@@ -7,11 +7,17 @@ import com.radixdlt.client.core.network.WebSocketClient.RadixClientStatus
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
 
+/**
+ * Given a network, selects the node to connect to
+ */
 class ClientSelector(
     /**
-     * The Universe we need peers for
+     * The Universe the node we return must match
      */
     private val config: RadixUniverseConfig,
+    /**
+     * The network of peers available to connect to
+     */
     private val radixNetwork: RadixNetwork
 ) {
 

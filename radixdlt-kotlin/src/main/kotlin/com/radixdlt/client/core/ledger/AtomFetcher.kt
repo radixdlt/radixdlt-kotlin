@@ -10,7 +10,15 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
 
-class AtomFetcher(private val clientSelector: (Long) -> (Single<RadixJsonRpcClient>)) {
+/**
+ * Module responsible for selecting a node and fetching atoms and retrying if necessary.
+ */
+class AtomFetcher(
+    /**
+     * Mechanism by which to get a valid client to connect to.
+     */
+    private val clientSelector: (Long) -> (Single<RadixJsonRpcClient>)
+) {
 
     fun fetchAtoms(destination: EUID): Observable<Atom> {
         val atomQuery = AtomQuery(destination, Atom::class.java)
