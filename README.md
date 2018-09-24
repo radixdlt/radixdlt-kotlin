@@ -33,7 +33,7 @@ repositories {
 ```
 ```
 dependencies {
-    implementation 'com.radixdlt:radixdlt-kotlin:0.11.0'
+    implementation 'com.radixdlt:radixdlt-kotlin:0.11.1'
 }
 ```
 
@@ -44,7 +44,7 @@ as well as decrypt data.
 
 To create/load an identity from a file:
 ```
-val identity: RadixIdentity = RadixIdentities.loadOrCreateEncryptedFile("filename.key", password")
+val identity: RadixIdentity = RadixIdentities.loadOrCreateEncryptedFile("filename.key", "password")
 ```
 This will create a new file which stores the public/private key and encrypted with the given password.
 
