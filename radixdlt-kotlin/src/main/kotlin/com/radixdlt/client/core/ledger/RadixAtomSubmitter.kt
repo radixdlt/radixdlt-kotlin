@@ -26,8 +26,7 @@ class RadixAtomSubmitter(private val clientSelector: (Set<Long>) -> (Single<Radi
         val status = clientSelector(atom.requiredFirstShard)
             .doOnSuccess { client -> LOGGER.info("Found client to submit atom: {}", client.location) }
             .doOnError { throwable ->
-                LOGGER.warn("Error on submitAtom {}", atom.hid)
-                throwable.printStackTrace()
+                LOGGER.warn("Error on submitAtom {} {}", atom.hid, throwable.message)
             }
             .flatMapObservable { client -> client.submitAtom(atom) }
             .doOnError(Throwable::printStackTrace)

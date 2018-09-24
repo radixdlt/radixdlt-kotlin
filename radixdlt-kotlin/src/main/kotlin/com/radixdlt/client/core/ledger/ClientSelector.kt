@@ -47,6 +47,7 @@ class ClientSelector(
                     .map { _ -> client }
                     .firstOrError()
                     .toMaybe()
+                    .onErrorComplete()
             }
             .flatMapMaybe { client ->
                 client.getUniverse()
@@ -61,6 +62,7 @@ class ClientSelector(
                     .map { config == it }
                     .filter { b -> b }
                     .map { _ -> client }
+                    .onErrorComplete()
             }
             .firstOrError()
     }

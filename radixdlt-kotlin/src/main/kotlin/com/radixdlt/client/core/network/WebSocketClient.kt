@@ -107,7 +107,7 @@ class WebSocketClient(private val okHttpClient: () -> OkHttpClient, val endpoint
                 if (status == RadixClientStatus.CLOSED) {
                     this.tryConnect()
                 } else if (status == RadixClientStatus.FAILURE) {
-                    throw Exceptions.propagate(IOException())
+                    throw Exceptions.propagate(IOException("${this.endpoint}: connection failure"))
                 }
             }
             .filter { status -> status == RadixClientStatus.OPEN }
