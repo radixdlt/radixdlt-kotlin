@@ -6,7 +6,6 @@ import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.application.objects.UnencryptedData
-import com.radixdlt.client.application.translate.ConsumableDataSource
 import com.radixdlt.client.application.translate.DataStoreTranslator
 import com.radixdlt.client.application.translate.TokenTransferTranslator
 import com.radixdlt.client.application.translate.TransactionAtoms
@@ -15,19 +14,20 @@ import com.radixdlt.client.assets.Amount
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
+import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.TransactionAtom
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.ECPublicKey
-import com.radixdlt.client.core.ledger.RadixLedger
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.annotations.Nullable
+import io.reactivex.disposables.Disposable
+import io.reactivex.disposables.Disposables
 import io.reactivex.observables.ConnectableObservable
 import io.reactivex.rxkotlin.Observables
 import java.util.Objects
@@ -39,18 +39,18 @@ import java.util.Objects
 class RadixApplicationAPI private constructor(
     val myIdentity: RadixIdentity,
     private val universe: RadixUniverse,
+    // TODO: Translators from application to particles
     private val dataStoreTranslator: DataStoreTranslator,
-    private val atomBuilderSupplier: () -> AtomBuilder
+    // TODO: Translator from particles to atom
+    private val atomBuilderSupplier: () -> AtomBuilder,
+    private val ledger: RadixUniverse.Ledger
 ) {
 
-    val ledger: RadixLedger = universe.ledger
-
-    private val consumableDataSource = ConsumableDataSource(ledger)
-    private val tokenTransferTranslator = TokenTransferTranslator(universe, consumableDataSource)
+    private val tokenTransferTranslator = TokenTransferTranslator(universe, ledger.getParticleStore())
     private val uniquePropertyTranslator = UniquePropertyTranslator()
 
     val myAddress: RadixAddress
-        get() = ledger.getAddressFromPublicKey(myIdentity.getPublicKey())
+        get() = universe.getAddressFrom(myIdentity.getPublicKey())
 
     val myPublicKey: ECPublicKey
         get() = myIdentity.getPublicKey()
@@ -79,10 +79,27 @@ class RadixApplicationAPI private constructor(
         }
     }
 
+    /**
+     * Idempotent method which prefetches atoms in user's account
+     * TODO: what to do when no puller available
+     * @return Disposable to dispose to stop pulling
+     */
+    fun pull(): Disposable {
+        return if (ledger.getAtomPuller() != null) {
+            ledger.getAtomPuller()!!.pull(myPublicKey.getUID())
+        } else {
+            Disposables.disposed()
+        }
+    }
+
     fun getData(address: RadixAddress): Observable<Data> {
         Objects.requireNonNull(address)
 
-        return ledger.getAllAtoms(address.getUID(), ApplicationPayloadAtom::class.java)
+        pull()
+
+        return ledger.getAtomStore().getAtoms(address.getUID())
+            .filter(Atom::isMessageAtom)
+            .map(Atom::asMessageAtom)
             .map(dataStoreTranslator::fromAtom)
     }
 
@@ -100,9 +117,9 @@ class RadixApplicationAPI private constructor(
 
         val atomBuilder = atomBuilderSupplier()
         val updates: ConnectableObservable<AtomSubmissionUpdate> = dataStoreTranslator.translate(dataStore, atomBuilder)
-            .andThen(Single.fromCallable { atomBuilder.buildWithPOWFee(ledger.magic, address.publicKey) })
+            .andThen(Single.fromCallable { atomBuilder.buildWithPOWFee(universe.magic, address.publicKey) })
             .flatMap(myIdentity::sign)
-            .flatMapObservable(ledger::submitAtom)
+            .flatMapObservable(ledger.getAtomSubmitter()::submitAtom)
             .replay()
 
         updates.connect()
@@ -115,9 +132,9 @@ class RadixApplicationAPI private constructor(
 
         val atomBuilder = atomBuilderSupplier()
         val updates: ConnectableObservable<AtomSubmissionUpdate> = dataStoreTranslator.translate(dataStore, atomBuilder)
-            .andThen(Single.fromCallable { atomBuilder.buildWithPOWFee(ledger.magic, address0.publicKey) })
+            .andThen(Single.fromCallable { atomBuilder.buildWithPOWFee(universe.magic, address0.publicKey) })
             .flatMap(myIdentity::sign)
-            .flatMapObservable(ledger::submitAtom)
+            .flatMapObservable(ledger.getAtomSubmitter()::submitAtom)
             .replay()
 
         updates.connect()
@@ -132,9 +149,14 @@ class RadixApplicationAPI private constructor(
     fun getTokenTransfers(address: RadixAddress, tokenClass: Asset): Observable<TokenTransfer> {
         Objects.requireNonNull(address)
         Objects.requireNonNull(tokenClass)
+
+        pull()
+
         return Observables.combineLatest<TransactionAtoms, TransactionAtom, Observable<TransactionAtom>>(
             Observable.fromCallable { TransactionAtoms(address, tokenClass.id) },
-            ledger.getAllAtoms(address.getUID(), TransactionAtom::class.java)
+            ledger.getAtomStore().getAtoms(address.getUID())
+                .filter(Atom::isTransactionAtom)
+                .map(Atom::asTransactionAtom)
         ) { transactionAtoms, atom ->
             transactionAtoms.accept(atom).newValidTransactions
         }
@@ -148,7 +170,10 @@ class RadixApplicationAPI private constructor(
     fun getBalance(address: RadixAddress, tokenClass: Asset): Observable<Amount> {
         Objects.requireNonNull(address)
         Objects.requireNonNull(tokenClass)
-        return this.consumableDataSource.getConsumables(address)
+
+        pull()
+
+        return this.ledger.getParticleStore().getConsumables(address)
             .map { it.asSequence() }
             .map { sequence ->
                 sequence.filter { consumable ->
@@ -239,18 +264,22 @@ class RadixApplicationAPI private constructor(
     private fun executeTransaction(tokenTransfer: TokenTransfer, @Nullable uniqueProperty: UniqueProperty?): Result {
         Objects.requireNonNull(tokenTransfer)
 
+        pull()
+
         val atomBuilder = atomBuilderSupplier()
 
-        val updates = uniquePropertyTranslator.translate(uniqueProperty, atomBuilder)
+        val unsignedAtom = uniquePropertyTranslator.translate(uniqueProperty, atomBuilder)
             .andThen(tokenTransferTranslator.translate(tokenTransfer, atomBuilder))
             .andThen(Single.fromCallable<UnsignedAtom> {
                 atomBuilder.buildWithPOWFee(
-                    ledger.magic,
+                    universe.magic,
                     tokenTransfer.from!!.publicKey
                 )
             })
+
+        val updates = unsignedAtom
             .flatMap(myIdentity::sign)
-            .flatMapObservable(ledger::submitAtom)
+            .flatMapObservable(ledger.getAtomSubmitter()::submitAtom)
             .replay()
 
         updates.connect()
@@ -263,7 +292,7 @@ class RadixApplicationAPI private constructor(
         @JvmStatic
         fun create(identity: RadixIdentity): RadixApplicationAPI {
             Objects.requireNonNull(identity)
-            return RadixApplicationAPI(
+            return create(
                 identity,
                 RadixUniverse.getInstance(),
                 DataStoreTranslator.instance,
@@ -281,7 +310,13 @@ class RadixApplicationAPI private constructor(
             Objects.requireNonNull(identity)
             Objects.requireNonNull(universe)
             Objects.requireNonNull(atomBuilderSupplier)
-            return RadixApplicationAPI(identity, universe, dataStoreTranslator, atomBuilderSupplier)
+            return RadixApplicationAPI(
+                identity,
+                universe,
+                dataStoreTranslator,
+                atomBuilderSupplier,
+                universe.ledger
+            )
         }
     }
 }

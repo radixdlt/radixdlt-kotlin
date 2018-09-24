@@ -38,6 +38,8 @@ object RadixWalletExample {
             .subscribe { println(it) }
 
         val api = RadixApplicationAPI.create(radixIdentity)
+        api.pull()
+
         val wallet = RadixWallet(api)
 
         // Print out all past and future transactions
