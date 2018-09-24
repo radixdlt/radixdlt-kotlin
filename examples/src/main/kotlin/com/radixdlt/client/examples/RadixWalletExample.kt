@@ -3,17 +3,17 @@ package com.radixdlt.client.examples
 import com.radixdlt.client.application.RadixApplicationAPI
 import com.radixdlt.client.application.identity.RadixIdentities
 import com.radixdlt.client.application.identity.RadixIdentity
-import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.Bootstrap
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.dapps.wallet.RadixWallet
+import java.math.BigDecimal
 
 object RadixWalletExample {
 
-    private val TO_ADDRESS_BASE58 = "JGuwJVu7REeqQtx7736GB9AJ91z5xB55t8NvteaoC25AumYovjp"
+    private val TO_ADDRESS_BASE58 = "9ejksTjHEXJAPuSwUP1a9GDYNaRmUShJq5RgMkXQXgdHbdEkTbD"
     // private val TO_ADDRESS_BASE58 = null;
-    private val AMOUNT: Long = 1
+    private val AMOUNT = BigDecimal("100.0")
     private val MESSAGE = "A gift!"
 
     // Initialize Radix Universe
@@ -41,18 +41,18 @@ object RadixWalletExample {
         val wallet = RadixWallet(api)
 
         // Print out all past and future transactions
-        wallet.getXRDTransactions()
+        wallet.getTransactions()
             .subscribe { println(it) }
 
         // Subscribe to current and future total balance
-        wallet.getXRDBalance()
+        wallet.getBalance()
             .subscribe { balance -> println("My Balance: $balance") }
 
         // If specified, send money to another myAddress
         @Suppress("SENSELESS_COMPARISON")
         if (TO_ADDRESS_BASE58 != null) {
             val toAddress = RadixAddress.fromString(TO_ADDRESS_BASE58)
-            wallet.transferXRDWhenAvailable(AMOUNT * Asset.TEST.subUnits, toAddress, MESSAGE)
+            wallet.sendWhenAvailable(AMOUNT, MESSAGE, toAddress)
                 .toObservable()
                 .subscribe(System.out::println, Throwable::printStackTrace)
         }
