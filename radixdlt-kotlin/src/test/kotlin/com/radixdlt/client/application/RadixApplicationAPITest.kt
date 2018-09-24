@@ -1,8 +1,6 @@
 package com.radixdlt.client.application
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.times
-import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.anyOrNull
 import com.radixdlt.client.application.RadixApplicationAPI.Result
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
@@ -25,6 +23,8 @@ import com.radixdlt.client.core.ledger.AtomSubmitter
 import com.radixdlt.client.core.ledger.ParticleStore
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
+import com.radixdlt.client.util.any
+
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.observers.TestObserver
@@ -32,6 +32,8 @@ import org.junit.Test
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 
 class RadixApplicationAPITest {
     private fun createMockedAPI(
@@ -42,19 +44,26 @@ class RadixApplicationAPITest {
         val ledger = mock(RadixUniverse.Ledger::class.java)
         `when`(ledger.getAtomSubmitter()).thenReturn(atomSubmitter)
         `when`(ledger.getAtomStore()).thenReturn(atomStore)
+
+        `when`(ledger.getParticleStore()).thenReturn(object : ParticleStore {
+            override fun getConsumables(address: RadixAddress): Observable<Collection<Consumable>> {
+                return Observable.just(emptySet())
+            }
+        })
+
         `when`(universe.ledger).thenReturn(ledger)
         val identity = mock(RadixIdentity::class.java)
 
         val atomBuilder = mock(AtomBuilder::class.java)
-        `when`(atomBuilder.type(any<Class<Atom>>())).thenReturn(atomBuilder)
-        `when`(atomBuilder.protectors(any())).thenReturn(atomBuilder)
-        `when`(atomBuilder.payload(any<ByteArray>())).thenReturn(atomBuilder)
+        `when`(atomBuilder.type(anyOrNull<Class<Atom>>())).thenReturn(atomBuilder)
+        `when`(atomBuilder.protectors(anyOrNull())).thenReturn(atomBuilder)
+        `when`(atomBuilder.payload(anyOrNull<ByteArray>())).thenReturn(atomBuilder)
         val atom = mock(Atom::class.java)
-        `when`(identity.sign(any())).thenReturn(Single.just(atom))
+        `when`(identity.sign(anyOrNull())).thenReturn(Single.just(atom))
 
         val atomBuilderSupplier = { atomBuilder }
         val unsignedAtom = mock(UnsignedAtom::class.java)
-        `when`(atomBuilder.buildWithPOWFee(anyInt(), any())).thenReturn(unsignedAtom)
+        `when`(atomBuilder.buildWithPOWFee(anyInt(), anyOrNull())).thenReturn(unsignedAtom)
 
         return RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, atomBuilderSupplier)
     }
@@ -198,6 +207,14 @@ class RadixApplicationAPITest {
                 return Observable.just(errorAtom, okAtom)
             }
         })
+
+        // Extra in Kotlin so that test passes due to null parameter check in kotlin
+        `when`(ledger.getParticleStore()).thenReturn(object : ParticleStore {
+            override fun getConsumables(address: RadixAddress): Observable<Collection<Consumable>> {
+                return Observable.just(emptySet())
+            }
+        })
+
         `when`(universe.ledger).thenReturn(ledger)
 
         val api = RadixApplicationAPI.create(identity, universe, dataStoreTranslator, ::AtomBuilder)
