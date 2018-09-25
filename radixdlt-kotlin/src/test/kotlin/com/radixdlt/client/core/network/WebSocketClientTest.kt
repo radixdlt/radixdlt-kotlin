@@ -47,7 +47,7 @@ class WebSocketClientTest {
 
         val testObserver = TestObserver.create<Any>()
         client.connect().subscribe(testObserver)
-        testObserver.assertError { t -> t is IOException }
+        testObserver.assertError { t -> t is RuntimeException }
     }
 
     @Test

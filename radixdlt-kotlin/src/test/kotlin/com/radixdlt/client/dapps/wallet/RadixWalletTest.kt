@@ -11,6 +11,7 @@ import io.reactivex.observers.TestObserver
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import java.math.BigDecimal
 
 class RadixWalletTest {
 
@@ -21,18 +22,18 @@ class RadixWalletTest {
 //    fun nullTest() {
 //        val api = mock(RadixApplicationAPI::class.java)
 //        val radixWallet = RadixWallet(api)
-//        assertThatThrownBy { radixWallet.getXRDBalance(null) }
+//        assertThatThrownBy { radixWallet.getBalance(null) }
 //            .isInstanceOf(NullPointerException::class.java)
-//        assertThatThrownBy { radixWallet.getXRDTransactions(null) }
+//        assertThatThrownBy { radixWallet.getTransactions(null) }
 //            .isInstanceOf(NullPointerException::class.java)
-//        assertThatThrownBy { radixWallet.transferXRD(1, null) }
+//        assertThatThrownBy { radixWallet.send(1, null) }
 //            .isInstanceOf(NullPointerException::class.java)
-//        assertThatThrownBy { radixWallet.transferXRD(1, null, "hi") }
+//        assertThatThrownBy { radixWallet.send(1, "hi", null) }
 //            .isInstanceOf(NullPointerException::class.java)
-//        assertThatThrownBy { radixWallet.transferXRDWhenAvailable(1, null) }
+//        assertThatThrownBy { radixWallet.sendWhenAvailable(1, null) }
 //            .isInstanceOf(NullPointerException::class.java)
-//        assertThatThrownBy { radixWallet.transferXRDWhenAvailable(1, null, "hi") }
-//            .isInstanceOf(NullPointerException::class.java)
+//        assertThatThrownBy { radixWallet.sendWhenAvailable(1, "hi", null) }
+//            .isInstanceOf(NullPointerException::class.java)˚
 //    }
 
     @Test
@@ -40,12 +41,12 @@ class RadixWalletTest {
         val api = mock(RadixApplicationAPI::class.java)
         val result = mock(RadixApplicationAPI.Result::class.java)
         `when`(result.toCompletable()).thenReturn(Completable.complete())
-        `when`(api.getMyBalance(any())).thenReturn(Observable.just(Amount.subUnitsOf(1000, Asset.TEST)))
+        `when`(api.getMyBalance(any())).thenReturn(Observable.just(Amount.of(BigDecimal("1.0"), Asset.TEST)))
         `when`(api.sendTokens(any(), any(), any(), any<ByteArray>())).thenReturn(result)
         val radixWallet = RadixWallet(api)
         val radixAddress = mock(RadixAddress::class.java)
         val testObserver = TestObserver.create<Any>()
-        radixWallet.transferXRDWhenAvailable(1000, radixAddress).toCompletable().subscribe(testObserver)
+        radixWallet.sendWhenAvailable(BigDecimal("1.0"), radixAddress).toCompletable().subscribe(testObserver)
         testObserver.assertComplete()
     }
 }

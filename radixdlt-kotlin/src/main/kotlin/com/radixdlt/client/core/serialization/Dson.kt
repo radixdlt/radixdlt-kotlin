@@ -126,6 +126,8 @@ class Dson private constructor() {
         } else if (o is Long) {
             raw = longToByteArray((o as Long?)!!)
             type = Primitive.NUMBER.value
+        } else if (o is Number) {
+            throw IllegalStateException("A number must be a long to be serialized in Dson: $o")
         } else if (o is EUID) {
             raw = o.toByteArray()
             type = Primitive.EUID.value
@@ -156,6 +158,10 @@ class Dson private constructor() {
             val rawList: Sequence<DsonField> = fieldStream.sortedBy { it.getName() }
             raw = toByteArray(rawList)
             type = Primitive.OBJECT.value
+        } else if (o is HasOrdinalValue) {
+            // HACK
+            raw = longToByteArray(o.ordinalValue().toLong())
+            type = 2
         } else {
             var c: Class<*> = o.javaClass
             val fields = ArrayList<Field>()

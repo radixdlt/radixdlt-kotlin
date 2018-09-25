@@ -1,29 +1,31 @@
-package com.radixdlt.client.application.translate
+package com.radixdlt.client.core.ledger
 
+import com.radixdlt.client.application.translate.TransactionAtoms
 import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
+import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.Consumable
-import com.radixdlt.client.core.ledger.RadixLedger
 import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.rxkotlin.Observables
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
-class ConsumableDataSource(private val ledger: RadixLedger) {
+class ConsumableDataSource(private val atomStore: (EUID) -> (Observable<Atom>)) : ParticleStore {
     private val cache = ConcurrentHashMap<RadixAddress, Observable<Collection<Consumable>>>()
 
-    fun getCurrentConsumables(address: RadixAddress): Single<Collection<Consumable>> {
-        return this.getConsumables(address).firstOrError()
-    }
-
-    fun getConsumables(address: RadixAddress): Observable<Collection<Consumable>> {
+    override fun getConsumables(address: RadixAddress): Observable<Collection<Consumable>> {
         // TODO: use https://github.com/JakeWharton/RxReplayingShare to disconnect when unsubscribed
         return cache.computeIfAbsentSynchronisedFunction(address) { _ ->
             Observable.just<Collection<Consumable>>(emptySet()).concatWith(
                 Observables.combineLatest(
-                    Observable.fromCallable { TransactionAtoms(address, Asset.TEST.id) },
-                    ledger.getAllAtoms(address.getUID())
+                    Observable.fromCallable {
+                        TransactionAtoms(
+                            address,
+                            Asset.TEST.id
+                        )
+                    },
+                    atomStore(address.getUID())
                 ) { transactionAtoms, atom ->
                     transactionAtoms.accept(atom)
                         .getUnconsumedConsumables()

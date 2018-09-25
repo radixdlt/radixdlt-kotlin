@@ -3,13 +3,22 @@ package com.radixdlt.client.core
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.address.RadixUniverseConfig
 import com.radixdlt.client.core.crypto.ECPublicKey
-import com.radixdlt.client.core.ledger.RadixLedger
+import com.radixdlt.client.core.ledger.AtomFetcher
+import com.radixdlt.client.core.ledger.AtomPuller
+import com.radixdlt.client.core.ledger.AtomStore
+import com.radixdlt.client.core.ledger.AtomSubmitter
+import com.radixdlt.client.core.ledger.ClientSelector
+import com.radixdlt.client.core.ledger.ConsumableDataSource
+import com.radixdlt.client.core.ledger.InMemoryAtomStore
+import com.radixdlt.client.core.ledger.ParticleStore
+import com.radixdlt.client.core.ledger.RadixAtomPuller
+import com.radixdlt.client.core.ledger.RadixAtomSubmitter
 import com.radixdlt.client.core.network.PeerDiscovery
 import com.radixdlt.client.core.network.RadixNetwork
 
 /**
  * A RadixUniverse represents the interface through which a client can interact
- * with a Radix Universe (an instance of a Radix Ledger + Radix Network).
+ * with a Radix Universe.
  *
  *
  * The configuration file of a Radix Universe defines the genesis atoms of the
@@ -34,15 +43,45 @@ class RadixUniverse private constructor(
     /**
      * Network Interface
      */
-    val network: RadixNetwork,
-    /**
-     * Ledger Interface
-     */
-    val ledger: RadixLedger
+    val network: RadixNetwork
 ) {
 
+    interface Ledger {
+        fun getAtomPuller(): AtomPuller?
+
+        fun getParticleStore(): ParticleStore
+
+        fun getAtomStore(): AtomStore
+
+        fun getAtomSubmitter(): AtomSubmitter
+    }
+
+    // Hooking up the default configuration
+    // TODO: cleanup
+    val ledger: Ledger = object : Ledger {
+        private val clientSelector = ClientSelector(config, network)
+        private val atomFetcher = AtomFetcher(clientSelector::getRadixClient)
+        private val inMemoryAtomStore = InMemoryAtomStore()
+        private val atomPuller = RadixAtomPuller(atomFetcher::fetchAtoms, inMemoryAtomStore::store)
+        private val atomSubmitter = RadixAtomSubmitter(clientSelector::getRadixClient)
+
+        /**
+         * The Particle Data Store
+         * TODO: actually change it into the particle data store
+         */
+        private val particleStore = ConsumableDataSource(inMemoryAtomStore::getAtoms)
+
+        override fun getAtomPuller(): AtomPuller = this.atomPuller
+
+        override fun getParticleStore(): ParticleStore = this.particleStore
+
+        override fun getAtomStore(): AtomStore = this.inMemoryAtomStore
+
+        override fun getAtomSubmitter(): AtomSubmitter = this.atomSubmitter
+    }
+
     val magic: Int
-        get() = config.magic
+        get() = config.getMagic()
 
     /**
      * Returns the system public key, also defined as the creator of this Universe
@@ -67,7 +106,6 @@ class RadixUniverse private constructor(
      * Attempts to gracefully free all resources associated with this Universe
      */
     fun disconnect() {
-        ledger.close()
         network.close()
     }
 
@@ -90,6 +128,7 @@ class RadixUniverse private constructor(
          * @param peerDiscovery The peer discovery mechanism
          * @return The default universe created, can also be retrieved with RadixUniverse.getInstance()
          */
+        @JvmStatic
         fun bootstrap(config: RadixUniverseConfig, peerDiscovery: PeerDiscovery): RadixUniverse {
             synchronized(lock) {
                 if (defaultUniverse != null) {
@@ -97,9 +136,8 @@ class RadixUniverse private constructor(
                 }
 
                 val network = RadixNetwork(peerDiscovery)
-                val ledger = RadixLedger(config.magic, network)
 
-                defaultUniverse = RadixUniverse(config, network, ledger)
+                defaultUniverse = RadixUniverse(config, network)
 
                 return defaultUniverse!!
             }

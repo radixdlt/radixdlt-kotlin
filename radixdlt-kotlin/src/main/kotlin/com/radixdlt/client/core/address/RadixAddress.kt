@@ -29,7 +29,7 @@ class RadixAddress {
         this.publicKey = ECPublicKey(publicKey)
     }
 
-    constructor(universe: RadixUniverseConfig, publicKey: ECPublicKey) : this(universe.magic, publicKey)
+    constructor(universe: RadixUniverseConfig, publicKey: ECPublicKey) : this(universe.getMagic(), publicKey)
 
     constructor(magic: Int, publicKey: ECPublicKey) {
         Objects.requireNonNull(publicKey)

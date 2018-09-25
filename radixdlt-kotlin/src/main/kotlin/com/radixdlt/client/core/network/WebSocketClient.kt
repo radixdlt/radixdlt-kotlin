@@ -2,6 +2,7 @@ package com.radixdlt.client.core.network
 
 import io.reactivex.Completable
 import io.reactivex.Observable
+import io.reactivex.exceptions.Exceptions
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import okhttp3.OkHttpClient
@@ -106,7 +107,7 @@ class WebSocketClient(private val okHttpClient: () -> OkHttpClient, val endpoint
                 if (status == RadixClientStatus.CLOSED) {
                     this.tryConnect()
                 } else if (status == RadixClientStatus.FAILURE) {
-                    throw IOException()
+                    throw Exceptions.propagate(IOException("${this.endpoint}: connection failure"))
                 }
             }
             .filter { status -> status == RadixClientStatus.OPEN }
