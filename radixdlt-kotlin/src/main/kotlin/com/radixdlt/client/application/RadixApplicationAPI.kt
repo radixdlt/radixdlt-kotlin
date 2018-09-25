@@ -153,7 +153,7 @@ class RadixApplicationAPI private constructor(
 
         return Observables.combineLatest<TransactionAtoms, Atom, Observable<Atom>>(
             Observable.fromCallable { TransactionAtoms(address, tokenClass.id) },
-            ledger.getAtomStore().getAtoms(address.getUID()) { transactionAtoms, atom ->
+            ledger.getAtomStore().getAtoms(address.getUID())) { transactionAtoms, atom ->
             transactionAtoms.accept(atom).newValidTransactions
         }
             .flatMap { atoms -> atoms.map { tokenTransferTranslator.fromAtom(it) } }

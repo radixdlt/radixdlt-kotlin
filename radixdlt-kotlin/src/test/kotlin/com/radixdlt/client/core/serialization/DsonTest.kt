@@ -118,7 +118,7 @@ class DsonTest {
         )
         val jsonElement = dson.parse(originalDson)
         val universeFromDson = RadixJson.gson.fromJson(jsonElement, RadixUniverseConfig::class.java)
-        assertEquals(63799298, universeFromDson.magic.toLong())
+        assertEquals(63799298, universeFromDson.getMagic())
         assertEquals(3, universeFromDson.genesis.size.toLong())
     }
 }

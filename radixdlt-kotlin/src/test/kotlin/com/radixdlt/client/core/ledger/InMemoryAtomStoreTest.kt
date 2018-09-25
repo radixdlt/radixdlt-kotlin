@@ -5,7 +5,6 @@ import com.radixdlt.client.core.atoms.Atom
 import io.reactivex.observers.TestObserver
 import org.junit.Test
 import org.mockito.Mockito.mock
-import java.math.BigInteger
 
 class InMemoryAtomStoreTest {
 
@@ -15,8 +14,8 @@ class InMemoryAtomStoreTest {
         val atom = mock(Atom::class.java)
 
         val testObserver = TestObserver.create<Atom>()
-        inMemoryAtomStore.getAtoms(EUID(BigInteger.ONE)).subscribe(testObserver)
-        inMemoryAtomStore.store(EUID(BigInteger.ONE), atom)
+        inMemoryAtomStore.getAtoms(EUID(1)).subscribe(testObserver)
+        inMemoryAtomStore.store(EUID(1), atom)
 
         testObserver.assertValue(atom)
     }
@@ -27,8 +26,8 @@ class InMemoryAtomStoreTest {
         val atom = mock(Atom::class.java)
 
         val testObserver = TestObserver.create<Atom>()
-        inMemoryAtomStore.store(EUID(BigInteger.ONE), atom)
-        inMemoryAtomStore.getAtoms(EUID(BigInteger.ONE)).subscribe(testObserver)
+        inMemoryAtomStore.store(EUID(1), atom)
+        inMemoryAtomStore.getAtoms(EUID(1)).subscribe(testObserver)
 
         testObserver.assertValue(atom)
     }

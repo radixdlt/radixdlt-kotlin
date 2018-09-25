@@ -13,7 +13,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import java.math.BigInteger
 
 class RadixAtomPullerTest {
     @Test
@@ -31,7 +30,7 @@ class RadixAtomPullerTest {
             .take(10)
             .toList()
 
-        observers.forEach { _ -> radixAtomPuller.pull(EUID(BigInteger.ONE)) }
+        observers.forEach { _ -> radixAtomPuller.pull(EUID(1)) }
 
         verify(onSubscribe, times(1)).accept(any())
     }
