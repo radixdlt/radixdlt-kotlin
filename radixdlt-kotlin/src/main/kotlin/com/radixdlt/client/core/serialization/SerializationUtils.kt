@@ -24,7 +24,7 @@ class SerializationUtils private constructor() {
          *
          * Currently this value is 2<sup>29</sup>-1.
          */
-        internal val SERIALIZE_MAX_INT = (1 shl (5 + java.lang.Byte.SIZE * 3)) - 1
+        internal const val SERIALIZE_MAX_INT = (1 shl (5 + java.lang.Byte.SIZE * 3)) - 1
 
         /**
          * Return the length in bytes of `value` when encoded.
@@ -144,7 +144,7 @@ class SerializationUtils private constructor() {
         /**
          * Write an encoded integer to a [ByteArrayOutputStream].
          *
-         * @param value The integer to write
+         * @param length The integer to write
          * @param outputStream The output stream to write on
          * @see .encodeInt
          */
