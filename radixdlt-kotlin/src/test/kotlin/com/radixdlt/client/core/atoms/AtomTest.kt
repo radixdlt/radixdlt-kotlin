@@ -8,7 +8,7 @@ import org.junit.Test
 class AtomTest {
     @Test
     fun testNullAtom() {
-        val atom = Atom(null, emptyList(), emptyList(), emptySet(), null, 0)
+        val atom = Atom(null, emptyList(), emptyList(), emptySet(), null, null, 0)
         assertTrue(atom.dataParticles!!.isEmpty())
         assertTrue(atom.consumables!!.isEmpty())
         assertTrue(atom.consumers!!.isEmpty())
@@ -19,6 +19,6 @@ class AtomTest {
         assertEquals(0L, atom.timestamp)
         assertNotNull(atom.toString())
 
-        assertEquals(atom, Atom(null, emptyList(), emptyList(), emptySet(), null, 0))
+        assertEquals(atom, Atom(null, emptyList(), emptyList(), emptySet(), null, null, 0))
     }
 }

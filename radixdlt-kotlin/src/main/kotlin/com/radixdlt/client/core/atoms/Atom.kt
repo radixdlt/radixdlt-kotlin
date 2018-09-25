@@ -31,6 +31,7 @@ class Atom {
 
     val uniqueParticle: UniqueParticle?
     val chronoParticle: ChronoParticle
+    private val asset: AssetParticle?
 
     val signatures: Map<String, ECSignature>?
 
@@ -66,6 +67,7 @@ class Atom {
         consumables: List<AbstractConsumable>?,
         destinations: Set<EUID>,
         uniqueParticle: UniqueParticle?,
+        asset: AssetParticle?,
         timestamp: Long
     ) {
         this.dataParticles = dataParticles
@@ -74,6 +76,7 @@ class Atom {
         this.consumables = consumables
         this.destinations = destinations
         this.uniqueParticle = uniqueParticle
+        this.asset = asset
         this.signatures = null
         this.action = "STORE"
     }
@@ -84,6 +87,7 @@ class Atom {
         consumables: List<AbstractConsumable>?,
         destinations: Set<EUID>,
         uniqueParticle: UniqueParticle?,
+        asset: AssetParticle?,
         timestamp: Long,
         signatureId: EUID,
         signature: ECSignature
@@ -93,6 +97,7 @@ class Atom {
         this.consumables = consumables
         this.destinations = destinations
         this.uniqueParticle = uniqueParticle
+        this.asset = asset
         this.chronoParticle = ChronoParticle(timestamp)
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)
         this.action = "STORE"
@@ -105,6 +110,7 @@ class Atom {
             consumables,
             destinations,
             uniqueParticle,
+            asset,
             timestamp,
             signatureId,
             signature
