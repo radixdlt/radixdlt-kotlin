@@ -10,8 +10,6 @@ buildscript {
 }
 
 group = 'com.radixdlt'
-version = '0.11.2'
-
 // Do NOT override project version from CLI, gradle.properties, etc.
 if (version == 'unspecified') {
     // Add the -SNAPSHOT suffix so that we do not clash with artifacts published by jitpack
