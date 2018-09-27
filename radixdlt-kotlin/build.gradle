@@ -10,6 +10,11 @@ buildscript {
     }
 }
 
+plugins {
+    id 'java-library'
+    id 'maven'
+}
+
 apply plugin: 'java'
 apply plugin: 'kotlin'
 
@@ -117,4 +122,18 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 artifacts {
     archives sourcesJar
     archives javadocJar
+}
+
+install {
+    repositories.mavenInstaller {
+        pom.project {
+            licenses {
+                license {
+                    name "The MIT License"
+                    url "https://opensource.org/licenses/MIT"
+                    distribution "repo"
+                }
+            }
+        }
+    }
 }

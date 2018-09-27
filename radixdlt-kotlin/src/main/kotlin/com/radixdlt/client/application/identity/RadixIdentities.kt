@@ -50,7 +50,9 @@ object RadixIdentities {
             ecKeyPair = ECKeyPair.fromFile(keyFile)
         } else {
             ecKeyPair = ECKeyPairGenerator.newInstance().generateKeyPair()
-            FileOutputStream(keyFile).use { io -> io.write(ecKeyPair.getPrivateKey()) }
+            FileOutputStream(keyFile).use { io ->
+                io.write(ecKeyPair.getPrivateKey())
+            }
         }
 
         return BaseRadixIdentity(ecKeyPair)
@@ -79,9 +81,9 @@ object RadixIdentities {
     @Throws(IOException::class, GeneralSecurityException::class)
     fun loadOrCreateEncryptedFile(keyFile: File, password: String): RadixIdentity {
         return if (!keyFile.exists()) {
-            createNewEncryptedIdentity(FileWriter(keyFile), password)
+            FileWriter(keyFile).use { createNewEncryptedIdentity(it, password) }
         } else {
-            readEncryptedIdentity(FileReader(keyFile), password)
+            FileReader(keyFile).use { readEncryptedIdentity(it, password) }
         }
     }
 
@@ -99,7 +101,8 @@ object RadixIdentities {
     }
 
     /**
-     * Creates a new private key and encrypts it and then writes the result to a given writer
+     * Creates a new private key and encrypts it and then writes/flushes the result to a given writer
+     *
      * @param writer the writer to write the encrypted private key to
      * @param password the password to encrypt the private key with
      * @return the radix identity created
@@ -109,6 +112,7 @@ object RadixIdentities {
     fun createNewEncryptedIdentity(writer: Writer, password: String): RadixIdentity {
         val encryptedKey = PrivateKeyEncrypter.createEncryptedPrivateKey(password)
         writer.write(encryptedKey)
+        writer.flush()
         return readEncryptedIdentity(StringReader(encryptedKey), password)
     }
 
