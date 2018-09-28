@@ -46,6 +46,7 @@ object Base58 {
 
     // Decodes the specified Base58 encoded String to its byte array representation
     @JvmStatic
+    @Throws(IllegalArgumentException::class)
     fun fromBase58(s: String): ByteArray {
         try {
             var leading = true
