@@ -3,7 +3,7 @@ package com.radixdlt.client.core.ledger
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.mock
 import com.radixdlt.client.core.address.EUID
-import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.AtomObservation
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.Consumer
@@ -21,8 +21,8 @@ class RadixAtomPullerTest {
     fun testClientAPICalledOnceWithManySubscibers() {
         @Suppress("UNCHECKED_CAST")
         val onSubscribe: Consumer<Disposable> = mock(Consumer::class.java) as Consumer<Disposable>
-        val atoms: Observable<Atom> = Observable.never<Atom>().doOnSubscribe(onSubscribe)
-        val fetcher = mock<(EUID) -> (Observable<Atom>)>()
+        val atoms: Observable<AtomObservation> = Observable.never<AtomObservation>().doOnSubscribe(onSubscribe)
+        val fetcher = mock<(EUID) -> (Observable<AtomObservation>)>()
         `when`(fetcher(any())).thenReturn(atoms)
 
         val radixAtomPuller = RadixAtomPuller(fetcher) { _, _ -> }

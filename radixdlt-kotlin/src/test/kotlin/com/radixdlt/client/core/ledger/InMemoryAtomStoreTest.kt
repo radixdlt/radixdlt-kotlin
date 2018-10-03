@@ -1,7 +1,7 @@
 package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.core.address.EUID
-import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.AtomObservation
 import io.reactivex.observers.TestObserver
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -12,24 +12,24 @@ class InMemoryAtomStoreTest {
     @Test
     fun subscribeBeforeStoreAtomTest() {
         val inMemoryAtomStore = InMemoryAtomStore()
-        val atom = mock(Atom::class.java)
+        val atomObservation = mock(AtomObservation::class.java)
 
-        val testObserver = TestObserver.create<Atom>()
+        val testObserver = TestObserver.create<AtomObservation>()
         inMemoryAtomStore.getAtoms(EUID(BigInteger.ONE)).subscribe(testObserver)
-        inMemoryAtomStore.store(EUID(BigInteger.ONE), atom)
+        inMemoryAtomStore.store(EUID(BigInteger.ONE), atomObservation)
 
-        testObserver.assertValue(atom)
+        testObserver.assertValue(atomObservation)
     }
 
     @Test
     fun subscribeAfterStoreAtomTest() {
         val inMemoryAtomStore = InMemoryAtomStore()
-        val atom = mock(Atom::class.java)
+        val atomObservation = mock(AtomObservation::class.java)
 
-        val testObserver = TestObserver.create<Atom>()
-        inMemoryAtomStore.store(EUID(BigInteger.ONE), atom)
+        val testObserver = TestObserver.create<AtomObservation>()
+        inMemoryAtomStore.store(EUID(BigInteger.ONE), atomObservation)
         inMemoryAtomStore.getAtoms(EUID(BigInteger.ONE)).subscribe(testObserver)
 
-        testObserver.assertValue(atom)
+        testObserver.assertValue(atomObservation)
     }
 }

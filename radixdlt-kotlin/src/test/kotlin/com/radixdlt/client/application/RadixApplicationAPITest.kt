@@ -15,6 +15,7 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.AtomObservation
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.CryptoException
@@ -89,7 +90,7 @@ class RadixApplicationAPITest {
 
     private fun createMockedAPIWhichAlwaysSucceeds(): RadixApplicationAPI {
         return createMockedAPI(createMockedSubmissionWhichAlwaysSucceeds(), object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(destination: EUID?): Observable<AtomObservation> {
                 return Observable.never()
             }
         })
@@ -149,7 +150,7 @@ class RadixApplicationAPITest {
     fun testStoreWithoutSubscription() {
         val submitter = createMockedSubmissionWhichAlwaysSucceeds()
         val api = createMockedAPI(submitter, object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(destination: EUID?): Observable<AtomObservation> {
                 return Observable.never()
             }
         })
@@ -164,7 +165,7 @@ class RadixApplicationAPITest {
     fun testStoreWithMultipleSubscribes() {
         val submitter = createMockedSubmissionWhichAlwaysSucceeds()
         val api = createMockedAPI(submitter, object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(destination: EUID?): Observable<AtomObservation> {
                 return Observable.never()
             }
         })
@@ -203,8 +204,8 @@ class RadixApplicationAPITest {
 
         val ledger = mock(RadixUniverse.Ledger::class.java)
         `when`(ledger.getAtomStore()).thenReturn(object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
-                return Observable.just(errorAtom, okAtom)
+            override fun getAtoms(destination: EUID?): Observable<AtomObservation> {
+                return Observable.just(errorAtom, okAtom).map(AtomObservation.Companion::storeAtom)
             }
         })
 
@@ -231,7 +232,7 @@ class RadixApplicationAPITest {
         val ledger = mock(RadixUniverse.Ledger::class.java)
         `when`(universe.ledger).thenReturn(ledger)
         `when`(ledger.getAtomStore()).thenReturn(object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(destination: EUID?): Observable<AtomObservation> {
                 return Observable.empty()
             }
         })
@@ -257,7 +258,7 @@ class RadixApplicationAPITest {
         val ledger = mock(RadixUniverse.Ledger::class.java)
         `when`(universe.ledger).thenReturn(ledger)
         `when`(ledger.getAtomStore()).thenReturn(object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(destination: EUID?): Observable<AtomObservation> {
                 return Observable.empty()
             }
         })
@@ -295,7 +296,7 @@ class RadixApplicationAPITest {
         `when`(universe.ledger).thenReturn(ledger)
 
         `when`(ledger.getAtomStore()).thenReturn(object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(destination: EUID?): Observable<AtomObservation> {
                 return Observable.empty()
             }
         })

@@ -1,7 +1,7 @@
 package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.core.address.EUID
-import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.AtomObservation
 import io.reactivex.Observable
 import io.reactivex.subjects.ReplaySubject
 import java.util.Objects
@@ -15,18 +15,18 @@ class InMemoryAtomStore : AtomStore {
     /**
      * The In Memory Atom Data Store
      */
-    private val cache = ConcurrentHashMap<EUID, ReplaySubject<Atom>>()
+    private val cache = ConcurrentHashMap<EUID, ReplaySubject<AtomObservation>>()
 
     /**
      * Store an atom under a given destination
      * TODO: add synchronization if needed
      *
      * @param destination destination to store under
-     * @param atom the atom to store
+     * @param atomObservation the atom to store
      */
-    fun store(destination: EUID, atom: Atom) {
+    fun store(destination: EUID, atomObservation: AtomObservation) {
         cache.computeIfAbsentSynchronisedFunction(destination) { ReplaySubject.create() }
-            .onNext(atom)
+            .onNext(atomObservation)
     }
 
     /**
@@ -35,7 +35,7 @@ class InMemoryAtomStore : AtomStore {
      * @param destination destination (which determines shard) to query atoms for
      * @return an Atom Observable
      */
-    override fun getAtoms(destination: EUID?): Observable<Atom> {
+    override fun getAtoms(destination: EUID?): Observable<AtomObservation> {
         Objects.requireNonNull(destination!!)
         return cache.computeIfAbsentSynchronisedFunction(destination) { ReplaySubject.create() }
             .distinct()

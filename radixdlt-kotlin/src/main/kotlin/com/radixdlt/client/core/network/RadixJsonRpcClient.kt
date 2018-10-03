@@ -1,5 +1,6 @@
 package com.radixdlt.client.core.network
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -7,6 +8,7 @@ import com.google.gson.reflect.TypeToken
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixUniverseConfig
 import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.AtomObservation
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
 import com.radixdlt.client.core.network.WebSocketClient.RadixClientStatus
 import com.radixdlt.client.core.serialization.RadixJson
@@ -263,20 +265,24 @@ class RadixJsonRpcClient(
      * @param destination atoms at a particular destination
      * @return observable of atoms
      */
-    fun getAtoms(destination: EUID): Observable<Atom> {
+    fun getAtoms(destination: EUID): Observable<AtomObservation> {
         val params = JsonObject()
         val query = JsonObject()
         query.addProperty("destination", destination.bigInteger())
         params.add("query", query)
 
         return this.jsonRpcSubscribe("Atoms.subscribe", params, "Atoms.subscribeUpdate")
-            .map { p -> p.asJsonObject.get("atoms").asJsonArray }
-            .flatMapIterable<JsonElement> { array -> array }
-            .map<JsonObject> { it.asJsonObject }
-            .map { jsonAtom -> RadixJson.gson.fromJson(jsonAtom, Atom::class.java) }
-            .map { atom ->
-                atom.putDebug("RECEIVED", System.currentTimeMillis())
-                atom
+            .map(JsonElement::getAsJsonObject)
+            .flatMapIterable { observedAtomsJson ->
+                val atomsJson: JsonArray = observedAtomsJson.getAsJsonArray("atoms")
+                val atomsObserved: Sequence<AtomObservation> = atomsJson.asSequence() // TODO StreamSupport??? spliterator????
+                    .map { atomJson: JsonElement -> RadixJson.gson.fromJson(atomJson, Atom::class.java) }
+                    .map(AtomObservation.Companion::storeAtom)
+
+                val isHead = observedAtomsJson.has("isHead") && observedAtomsJson.get("isHead").asBoolean
+                val headObserved = if (isHead) sequenceOf(AtomObservation.head()) else emptySequence()
+
+                return@flatMapIterable atomsObserved.plus(headObserved).toList()
             }
     }
 

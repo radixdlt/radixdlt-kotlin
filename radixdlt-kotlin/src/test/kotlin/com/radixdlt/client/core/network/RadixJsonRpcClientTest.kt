@@ -6,6 +6,7 @@ import com.google.gson.JsonParser
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
 import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.AtomObservation
 import com.radixdlt.client.core.atoms.Shards
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
 import com.radixdlt.client.core.network.WebSocketClient.RadixClientStatus
@@ -197,6 +198,7 @@ class RadixJsonRpcClientTest {
             )
             atoms.add(atom)
             params.add("atoms", atoms)
+            params.addProperty("isHead", false)
 
             notification.add("params", params)
 
@@ -205,13 +207,13 @@ class RadixJsonRpcClientTest {
         }.`when`(wsClient).send(any())
         val jsonRpcClient = RadixJsonRpcClient(wsClient)
 
-        val observer = TestObserver<Atom>()
+        val observer = TestObserver<AtomObservation>()
 
         jsonRpcClient.getAtoms(EUID(BigInteger.ONE)).subscribe(observer)
 
         observer.assertNoErrors()
         observer.assertValueCount(1)
-        observer.assertValue { atom -> atom.asMessageAtom.applicationId == "Test" }
+        observer.assertValue { observation -> observation.atom!!.asMessageAtom.applicationId == "Test" }
     }
 
     @Test
@@ -262,7 +264,7 @@ class RadixJsonRpcClientTest {
         }.`when`(wsClient).send(any())
         val jsonRpcClient = RadixJsonRpcClient(wsClient)
 
-        val observer = TestObserver<Atom>()
+        val observer = TestObserver<AtomObservation>()
 
         jsonRpcClient.getAtoms(EUID(BigInteger.ONE))
             .subscribe(observer)
