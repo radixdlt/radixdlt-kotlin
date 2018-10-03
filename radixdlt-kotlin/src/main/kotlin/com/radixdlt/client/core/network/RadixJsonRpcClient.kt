@@ -260,19 +260,20 @@ class RadixJsonRpcClient(
      * Retrieves all atoms from a node specified by a query. This includes all past
      * and future atoms. The Observable returned will never complete.
      *
-     * @param atomQuery query specifying which atoms to retrieve
-     * @param <T> atom type
+     * @param destination atoms at a particular destination
      * @return observable of atoms
-    </T> */
-    fun <T : Atom> getAtoms(atomQuery: AtomQuery<T>): Observable<T> {
+     */
+    fun getAtoms(destination: EUID): Observable<Atom> {
         val params = JsonObject()
-        params.add("query", atomQuery.toJson())
+        val query = JsonObject()
+        query.addProperty("destination", destination.bigInteger())
+        params.add("query", query)
 
         return this.jsonRpcSubscribe("Atoms.subscribe", params, "Atoms.subscribeUpdate")
             .map { p -> p.asJsonObject.get("atoms").asJsonArray }
             .flatMapIterable<JsonElement> { array -> array }
             .map<JsonObject> { it.asJsonObject }
-            .map { jsonAtom -> RadixJson.gson.fromJson(jsonAtom, atomQuery.atomClass) }
+            .map { jsonAtom -> RadixJson.gson.fromJson(jsonAtom, Atom::class.java) }
             .map { atom ->
                 atom.putDebug("RECEIVED", System.currentTimeMillis())
                 atom

@@ -3,7 +3,6 @@ package com.radixdlt.client.core.ledger
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomValidationException
-import com.radixdlt.client.core.network.AtomQuery
 import com.radixdlt.client.core.network.IncreasingRetryTimer
 import com.radixdlt.client.core.network.RadixJsonRpcClient
 import io.reactivex.Observable
@@ -21,9 +20,8 @@ class AtomFetcher(
 ) {
 
     fun fetchAtoms(destination: EUID): Observable<Atom> {
-        val atomQuery = AtomQuery(destination, Atom::class.java)
         return clientSelector(destination.shard)
-            .flatMapObservable { client -> client.getAtoms(atomQuery) }
+            .flatMapObservable { client -> client.getAtoms(destination) }
             .doOnError { LOGGER.warn("Error on getAllAtoms: {}", destination) }
             .retryWhen(IncreasingRetryTimer())
             .filter { atom ->
