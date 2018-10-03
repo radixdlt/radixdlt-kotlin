@@ -25,6 +25,10 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
         }
     }
 
+    fun getUnconsumedConsumables(): Collection<Consumable> {
+        return unconsumedConsumables.values
+    }
+
     private fun addConsumables(transactionAtom: TransactionAtom, emitter: ObservableEmitter<TransactionAtom>) {
         transactionAtom.particles!!.asSequence()
             .filter { it.isAbstractConsumable }

@@ -4,13 +4,12 @@ import com.radixdlt.client.application.translate.TransactionAtoms
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomObservation
 import com.radixdlt.client.core.atoms.Consumable
+import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.Observables
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
 
 class ConsumableDataSource(private val atomStore: (EUID) -> (Observable<AtomObservation>)) : ParticleStore {
     private val cache = ConcurrentHashMap<RadixAddress, Observable<Collection<Consumable>>>()
@@ -18,22 +17,19 @@ class ConsumableDataSource(private val atomStore: (EUID) -> (Observable<AtomObse
     override fun getConsumables(address: RadixAddress): Observable<Collection<Consumable>> {
         // TODO: use https://github.com/JakeWharton/RxReplayingShare to disconnect when unsubscribed
         return cache.computeIfAbsentSynchronisedFunction(address) { _ ->
-            Observable.just<Collection<Consumable>>(emptySet()).concatWith(
-                Observables.combineLatest(
-                    Observable.fromCallable {
-                        TransactionAtoms(
-                            address,
-                            Asset.TEST.id
-                        )
-                    },
-                    atomStore(address.getUID())
-                        .filter(AtomObservation::isStore)
-                        .map(AtomObservation::atom)
-                        .filter(Atom::isTransactionAtom)
-                        .map(Atom::asTransactionAtom)
-                ) { transactionAtoms, atom -> transactionAtoms.accept(atom).getUnconsumedConsumables()
-                }.flatMapMaybe { unconsumedMaybe -> unconsumedMaybe }
-            ).debounce(1000, TimeUnit.MILLISECONDS)
+            Observables.combineLatest(
+                Observable.fromCallable { TransactionAtoms(address, Asset.TEST.id) },
+                atomStore(address.getUID())
+                    .filter { o -> o.isHead || o.atom!!.isTransactionAtom }
+            ) { transactionAtoms, atomObservation ->
+                if (atomObservation.isHead) {
+                    return@combineLatest Maybe.just(transactionAtoms.getUnconsumedConsumables())
+                } else {
+                    val atom = atomObservation.atom!!.asTransactionAtom
+                    transactionAtoms.accept(atom)
+                    return@combineLatest Maybe.empty<Collection<Consumable>>()
+                }
+            }.flatMapMaybe { unconsumedMaybe -> unconsumedMaybe }
                 .replay(1).autoConnect()
         }
     }
