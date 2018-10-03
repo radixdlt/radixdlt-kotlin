@@ -33,7 +33,7 @@ repositories {
 ```
 ```
 dependencies {
-    implementation 'com.radixdlt.radixdlt-kotlin:radixdlt-kotlin:0.11.2'
+    implementation 'com.radixdlt:radixdlt-kotlin:0.11.3'
 }
 ```
 
