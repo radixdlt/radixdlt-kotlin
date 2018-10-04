@@ -16,8 +16,8 @@ import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import com.radixdlt.client.core.crypto.Encryptor
-import com.radixdlt.client.core.serialization.RadixJson
 import com.radixdlt.client.core.ledger.ParticleStore
+import com.radixdlt.client.core.serialization.RadixJson
 import io.reactivex.Completable
 import java.nio.charset.StandardCharsets
 import java.util.AbstractMap.SimpleImmutableEntry
@@ -63,7 +63,7 @@ class TokenTransferTranslator(
             }
         }
 
-        val bytesParticle: DataParticle? = atom.dataParticles!!.asSequence()
+        val bytesParticle: DataParticle? = atom.getDataParticles()!!.asSequence()
             .filter { p -> "encryptor" != p.getMetaData("application") }
             .firstOrNull()
 
@@ -72,7 +72,7 @@ class TokenTransferTranslator(
         if (bytesParticle != null) {
             val metaData = HashMap<String, Any>()
 
-            val encryptorParticle: DataParticle? = atom.dataParticles!!.asSequence()
+            val encryptorParticle: DataParticle? = atom.getDataParticles()!!.asSequence()
                 .filter { p -> "encryptor" == p.getMetaData("application") }
                 .firstOrNull()
 

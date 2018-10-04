@@ -34,7 +34,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
                 unconsumedConsumables.remove(dson) ?: throw IllegalStateException("Missing consumable for consumer.")
             }
 
-        atom.consumables!!.asSequence()
+        atom.getConsumables()!!.asSequence()
             .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
             .filter { particle -> particle.assetId == assetId }
             .forEach { particle ->
@@ -73,7 +73,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
                 }
             }
         } else {
-            if (transactionAtom.consumables!!.asSequence().all { p -> p is AtomFeeConsumable }) {
+            if (transactionAtom.getConsumables()!!.asSequence().all { p -> p is AtomFeeConsumable }) {
                 return
             }
 

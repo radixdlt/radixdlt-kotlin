@@ -15,7 +15,7 @@ class DataParticle private constructor(
      * saving space and no way to skip empty maps in Dson yet.
      */
     private val metaData: MetadataMap?
-) {
+) : Particle(1) {
 
     init {
         Objects.requireNonNull(bytes)

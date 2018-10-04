@@ -50,11 +50,11 @@ class DataStoreTranslator private constructor() {
     fun fromAtom(atom: Atom): Any {
 
         // This is here to pass the test, can be removed in the future
-        if (atom.dataParticles == null) {
+        if (atom.getDataParticles() == null) {
             return Any()
         }
 
-        val bytesParticle: DataParticle? = atom.dataParticles!!.asSequence()
+        val bytesParticle: DataParticle? = atom.getDataParticles()!!.asSequence()
             .filter { p -> "encryptor" != p.getMetaData("application") }
             .firstOrNull() ?: return Any()
 
@@ -71,7 +71,7 @@ class DataStoreTranslator private constructor() {
             }
         }
 
-        val encryptorParticle: DataParticle? = atom.dataParticles!!.asSequence()
+        val encryptorParticle: DataParticle? = atom.getDataParticles()!!.asSequence()
             .filter { p -> "encryptor" == p.getMetaData("application") }
             .firstOrNull()
         metaData["encrypted"] = encryptorParticle != null

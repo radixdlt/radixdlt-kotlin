@@ -54,16 +54,13 @@ class AtomBuilder {
     }
 
     fun build(timestamp: Long): UnsignedAtom {
-        return UnsignedAtom(
-            Atom(
-                if (dataParticles.isEmpty()) null else dataParticles,
-                if (consumers.isEmpty()) null else consumers, // Pretty nasty hack here. Need to fix.
-                consumables,
-                uniqueParticle,
-                null,
-                timestamp
-            )
-        )
+        val particles = ArrayList<Particle>()
+        particles.addAll(dataParticles)
+        particles.addAll(consumables)
+        if (uniqueParticle != null) {
+            particles.add(uniqueParticle!!)
+        }
+        return UnsignedAtom(Atom(particles, if (consumers.isEmpty()) null else consumers))
     }
 
     // Temporary method for testing

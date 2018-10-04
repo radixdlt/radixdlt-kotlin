@@ -138,7 +138,7 @@ class RadixJsonRpcClientTest {
             val id = jsonObject.get("id").asString
 
             val atoms = JsonArray()
-            val atom = Atom(null, emptyList(), emptyList(), null, null, 1)
+            val atom = Atom(null, null)
             atoms.add(gson.toJsonTree(atom, Atom::class.java))
 
             val response = JsonObject()
@@ -190,7 +190,7 @@ class RadixJsonRpcClientTest {
 
             val atoms = JsonArray()
             val atom = gson.toJsonTree(
-                Atom(null, emptyList(), emptyList(), null, null, 1),
+                Atom(null, null),
                 Atom::class.java
             )
             atoms.add(atom)
@@ -244,7 +244,7 @@ class RadixJsonRpcClientTest {
                 params.addProperty("subscriberId", subscriberId)
                 val atoms = JsonArray()
                 val atom = gson.toJsonTree(
-                    Atom(null, emptyList(), emptyList(), null, null, 1),
+                    Atom(null, null),
                     Atom::class.java
                 )
                 atoms.add(atom)
@@ -314,7 +314,7 @@ class RadixJsonRpcClientTest {
         val observer = TestObserver<AtomSubmissionUpdate>()
 
         jsonRpcClient.submitAtom(
-            Atom(null, emptyList(), emptyList(), null, null, 1)
+            Atom(null, null)
         ).subscribe(observer)
 
         observer.assertNoErrors()

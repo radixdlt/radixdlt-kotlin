@@ -17,7 +17,7 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixUniverseType
-import com.radixdlt.client.core.atoms.AbstractConsumable
+import com.radixdlt.client.core.atoms.AssetParticle
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomFeeConsumable
 import com.radixdlt.client.core.atoms.ChronoParticle
@@ -26,8 +26,8 @@ import com.radixdlt.client.core.atoms.Consumer
 import com.radixdlt.client.core.atoms.DataParticle
 import com.radixdlt.client.core.atoms.Emission
 import com.radixdlt.client.core.atoms.MetadataMap
+import com.radixdlt.client.core.atoms.Particle
 import com.radixdlt.client.core.atoms.Payload
-import com.radixdlt.client.core.atoms.UniqueParticle
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
@@ -85,38 +85,39 @@ object RadixJson {
         )
     }
 
-    private val ABSTRACT_CONSUMABLE_SERIALIZER = JsonSerializer<AbstractConsumable> { particle, _, context ->
-        when {
-            particle.javaClass == AtomFeeConsumable::class.java -> {
-                val jsonParticle = context.serialize(particle).asJsonObject
-                jsonParticle.addProperty("serializer", -1463653224)
-                jsonParticle.addProperty("version", 100)
-                return@JsonSerializer jsonParticle
-            }
-            particle.javaClass == Consumable::class.java -> {
-                val jsonParticle = context.serialize(particle).asJsonObject
-                jsonParticle.addProperty("serializer", 318720611)
-                jsonParticle.addProperty("version", 100)
-                return@JsonSerializer jsonParticle
-            }
-            particle.javaClass == Emission::class.java -> {
-                val jsonParticle = context.serialize(particle).asJsonObject
-                jsonParticle.addProperty("serializer", 1782261127)
-                jsonParticle.addProperty("version", 100)
-                return@JsonSerializer jsonParticle
-            }
-            else -> throw RuntimeException("Unknown Particle: " + particle.javaClass)
-        }
+    private val particles = HashMap<Class<out Particle>, Long>()
+    init {
+        particles.put(AtomFeeConsumable::class.java, - 1463653224L)
+        particles.put(Consumable::class.java, 318720611L)
+        particles.put(Emission::class.java, 1341978856L)
+        particles.put(DataParticle::class.java, 473758768L)
+        // particles.put(UniqueParticle.class, Long.valueOf("UNIQUEPARTICLE".hashCode()));
+        particles.put(ChronoParticle::class.java, 1080087081L)
+        particles.put(AssetParticle::class.java, - 1034420571L)
     }
 
-    private val ABSTRACT_CONSUMABLE_DESERIALIZER = JsonDeserializer<AbstractConsumable> { json, _, context ->
-        val serializer = json.asJsonObject.get("serializer").asLong
-        return@JsonDeserializer when (serializer) {
-            -1463653224L -> context.deserialize(json.asJsonObject, AtomFeeConsumable::class.java)
-            318720611L -> context.deserialize(json.asJsonObject, Consumable::class.java)
-            1782261127L -> context.deserialize(json.asJsonObject, Emission::class.java)
-            else -> throw RuntimeException("Unknown particle serializer: $serializer")
+    private val PARTICLE_SERIALIZER = JsonSerializer<Particle> { particle, _, context ->
+        val id = particles[particle.javaClass]
+        if (id != null) {
+            val jsonParticle = context.serialize(particle).asJsonObject
+            jsonParticle.addProperty("serializer", id)
+            jsonParticle.addProperty("version", 100)
+            return@JsonSerializer jsonParticle
         }
+
+        throw RuntimeException("Unknown Particle: " + particle.javaClass)
+    }
+
+    private val PARTICLE_DESERIALIZER = JsonDeserializer<Particle> { json, _, context ->
+        val serializer = json.asJsonObject.get("serializer").asLong
+        val c = particles.entries.asSequence().filter { e -> e.value == serializer }
+            .map { it.key }
+            .firstOrNull()
+        if (c != null) {
+            return@JsonDeserializer context.deserialize(json.asJsonObject, c as Class<*>)
+        }
+
+        throw RuntimeException("Unknown particle serializer: $serializer")
     }
 
     private val SERIALIZERS = HashMap<Class<*>, Int>()
@@ -125,9 +126,6 @@ object RadixJson {
         SERIALIZERS[Atom::class.java] = 2019665
         SERIALIZERS[ECKeyPair::class.java] = 547221307
         SERIALIZERS[ECSignature::class.java] = -434788200
-        SERIALIZERS[DataParticle::class.java] = 473758768
-        SERIALIZERS[UniqueParticle::class.java] = "UNIQUEPARTICLE".hashCode()
-        SERIALIZERS[ChronoParticle::class.java] = "CHRONOPARTICLE".hashCode()
         SERIALIZERS[Consumer::class.java] = 214856694
     }
 
@@ -165,8 +163,8 @@ object RadixJson {
             .registerTypeHierarchyAdapter(Base64Encoded::class.java, BASE64_SERIALIZER)
             .registerTypeAdapterFactory(ECKEYPAIR_ADAPTER_FACTORY)
             .registerTypeAdapter(ByteArray::class.java, ByteArraySerializer())
-            .registerTypeAdapter(AbstractConsumable::class.java, ABSTRACT_CONSUMABLE_SERIALIZER)
-            .registerTypeAdapter(AbstractConsumable::class.java, ABSTRACT_CONSUMABLE_DESERIALIZER)
+            .registerTypeAdapter(Particle::class.java, PARTICLE_SERIALIZER)
+            .registerTypeAdapter(Particle::class.java, PARTICLE_DESERIALIZER)
             .registerTypeAdapter(String::class.java, StringCodec())
             .registerTypeAdapter(MetadataMap::class.java, MetadataCodec())
             .registerTypeAdapter(EUID::class.java, EUIDSerializer())

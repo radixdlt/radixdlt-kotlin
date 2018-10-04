@@ -183,7 +183,7 @@ class RadixApplicationAPITest {
         val universe = mock(RadixUniverse::class.java)
         val address = mock(RadixAddress::class.java)
         val atom = mock(Atom::class.java)
-        `when`(atom.dataParticles).thenReturn(null)
+        `when`(atom.getDataParticles()).thenReturn(null)
 
         val ledger = mock(RadixUniverse.Ledger::class.java)
         `when`(ledger.getAtomStore()).thenReturn(object : AtomStore {

@@ -12,7 +12,7 @@ abstract class AbstractConsumable internal constructor(
     val nonce: Long,
     @field:SerializedName("asset_id")
     val assetId: EUID
-) {
+) : Particle(1) {
     val destinations: Set<EUID> = owners!!.asSequence().map { it.getUID() }.toSet()
 
     val ownersPublicKeys: Set<ECPublicKey>

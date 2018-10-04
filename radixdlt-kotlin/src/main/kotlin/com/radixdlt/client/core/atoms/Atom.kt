@@ -18,15 +18,8 @@ class Atom {
         get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
 
     // TODO: These will be turned into a list of CreateParticles in the future
-    val consumables: List<AbstractConsumable>?
-        get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
-
-    val dataParticles: List<DataParticle>?
-        get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
-
-    val uniqueParticle: UniqueParticle?
-    val chronoParticle: ChronoParticle
-    private val asset: AssetParticle?
+    val particles: List<Particle>?
+        get() = field ?: emptyList()
 
     val signatures: Map<String, ECSignature>?
 
@@ -42,7 +35,7 @@ class Atom {
 
     // HACK
     val requiredFirstShard: Set<Long>
-        get() = if (this.consumables != null && this.consumers!!.isNotEmpty()) {
+        get() = if (this.consumers != null && this.consumers!!.isNotEmpty()) {
             consumers!!.asSequence()
                 .flatMap { it.destinations.asSequence() }
                 .map(EUID::shard)
@@ -52,7 +45,10 @@ class Atom {
         }
 
     val timestamp: Long
-        get() = chronoParticle.timestamp
+        get() = this.particles!!.asSequence()
+            .filter { p -> p is ChronoParticle }
+            .map { p -> (p as ChronoParticle).timestamp }
+            .firstOrNull() ?: 0L
 
     val hash: RadixHash
         get() = RadixHash.of(Dson.instance.toDson(this))
@@ -61,49 +57,43 @@ class Atom {
         get() = hash.toEUID()
 
     constructor(
-        dataParticles: List<DataParticle>?,
-        consumers: List<Consumer>?,
-        consumables: List<AbstractConsumable>?,
-        uniqueParticle: UniqueParticle?,
-        asset: AssetParticle?,
-        timestamp: Long
+        particles: List<Particle>?,
+        consumers: List<Consumer>?
     ) {
-        this.dataParticles = dataParticles
-        this.chronoParticle = ChronoParticle(timestamp)
+        this.particles = particles
         this.consumers = consumers
-        this.consumables = consumables
-        this.uniqueParticle = uniqueParticle
-        this.asset = asset
         this.signatures = null
     }
 
     private constructor(
-        dataParticles: List<DataParticle>?,
+        particles: List<Particle>?,
         consumers: List<Consumer>?,
-        consumables: List<AbstractConsumable>?,
-        uniqueParticle: UniqueParticle?,
-        asset: AssetParticle?,
-        timestamp: Long,
         signatureId: EUID,
         signature: ECSignature
     ) {
-        this.dataParticles = dataParticles
+        this.particles = particles
         this.consumers = consumers
-        this.consumables = consumables
-        this.uniqueParticle = uniqueParticle
-        this.asset = asset
-        this.chronoParticle = ChronoParticle(timestamp)
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)
+    }
+
+    fun getConsumables(): List<AbstractConsumable>? {
+        return this.particles!!.asSequence()
+            .filter { p -> p is AbstractConsumable }
+            .map { p -> p as AbstractConsumable }
+            .toList()
+    }
+
+    fun getDataParticles(): List<DataParticle>? {
+        return this.particles!!.asSequence()
+            .filter { p -> p is DataParticle }
+            .map { p -> p as DataParticle }
+            .toList()
     }
 
     fun withSignature(signature: ECSignature, signatureId: EUID): Atom {
         return Atom(
-            dataParticles,
+            particles,
             consumers,
-            consumables,
-            uniqueParticle,
-            asset,
-            timestamp,
             signatureId,
             signature
         )
@@ -118,7 +108,7 @@ class Atom {
     }
 
     fun summary(): Map<Set<ECPublicKey>, Map<EUID, Long>> {
-        return consumers!!.asSequence().plus(consumables!!.asSequence())
+        return consumers!!.asSequence().plus(getConsumables()!!.asSequence())
             .groupBy(AbstractConsumable::ownersPublicKeys)
             .mapValues { it ->
                 it.value.asSequence().groupBy(AbstractConsumable::assetId) {
@@ -130,7 +120,7 @@ class Atom {
     }
 
     fun consumableSummary(): Map<Set<ECPublicKey>, Map<EUID, List<Long>>> {
-        return consumers!!.asSequence().plus(consumables!!.asSequence())
+        return consumers!!.asSequence().plus(getConsumables()!!.asSequence())
             .groupBy(AbstractConsumable::ownersPublicKeys)
             .mapValues { it: Map.Entry<Set<ECPublicKey>, List<AbstractConsumable>> ->
                 it.value.asSequence().groupBy(AbstractConsumable::assetId) {

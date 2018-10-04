@@ -9,7 +9,7 @@ class UniqueParticle(
     private val unique: Payload,
     private val destinations: Set<EUID>,
     private val owners: Set<ECKeyPair>
-) {
+) : Particle(1) {
 
     companion object {
         @JvmStatic

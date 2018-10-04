@@ -17,4 +17,4 @@ class AssetParticle(
     private val description: String,
     private val classification: String,
     private val icon: ByteArray
-)
+) : Particle(1)
