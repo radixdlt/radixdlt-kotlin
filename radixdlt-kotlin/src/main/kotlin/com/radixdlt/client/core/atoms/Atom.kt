@@ -1,6 +1,7 @@
 package com.radixdlt.client.core.atoms
 
 import com.radixdlt.client.core.address.EUID
+import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
 import com.radixdlt.client.core.serialization.Dson
@@ -12,12 +13,6 @@ import java.util.HashMap
  * in a blockchain) and defines the actions that can be issued onto the ledger.
  */
 class Atom {
-    // TODO: Remove as action should be outside of Atom structure
-    val action: String?
-
-    // TODO: Remove when particles define destinations
-    val destinations: Set<EUID>
-
     // TODO: These will be turned into a list of DeleteParticles in the future
     val consumers: List<Consumer>?
         get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
@@ -39,13 +34,17 @@ class Atom {
     private var debug: MutableMap<String, Long>? = HashMap()
 
     val shards: Set<Long>
-        get() = destinations.asSequence().map(EUID::shard).toSet()
+        get() = consumers!!.asSequence()
+            .map(Consumer::owners)
+            .flatMap { it: Set<ECKeyPair>? -> it!!.asSequence()}
+            .map(ECKeyPair::getUID)
+            .map(EUID::shard).toSet()
 
     // HACK
     val requiredFirstShard: Set<Long>
         get() = if (this.consumables != null && this.consumers!!.isNotEmpty()) {
             consumers!!.asSequence()
-                .flatMap { it.destinations!!.asSequence() }
+                .flatMap { it.destinations.asSequence() }
                 .map(EUID::shard)
                 .toSet()
         } else {
@@ -65,7 +64,6 @@ class Atom {
         dataParticles: List<DataParticle>?,
         consumers: List<Consumer>?,
         consumables: List<AbstractConsumable>?,
-        destinations: Set<EUID>,
         uniqueParticle: UniqueParticle?,
         asset: AssetParticle?,
         timestamp: Long
@@ -74,18 +72,15 @@ class Atom {
         this.chronoParticle = ChronoParticle(timestamp)
         this.consumers = consumers
         this.consumables = consumables
-        this.destinations = destinations
         this.uniqueParticle = uniqueParticle
         this.asset = asset
         this.signatures = null
-        this.action = "STORE"
     }
 
     private constructor(
         dataParticles: List<DataParticle>?,
         consumers: List<Consumer>?,
         consumables: List<AbstractConsumable>?,
-        destinations: Set<EUID>,
         uniqueParticle: UniqueParticle?,
         asset: AssetParticle?,
         timestamp: Long,
@@ -95,12 +90,10 @@ class Atom {
         this.dataParticles = dataParticles
         this.consumers = consumers
         this.consumables = consumables
-        this.destinations = destinations
         this.uniqueParticle = uniqueParticle
         this.asset = asset
         this.chronoParticle = ChronoParticle(timestamp)
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)
-        this.action = "STORE"
     }
 
     fun withSignature(signature: ECSignature, signatureId: EUID): Atom {
@@ -108,7 +101,6 @@ class Atom {
             dataParticles,
             consumers,
             consumables,
-            destinations,
             uniqueParticle,
             asset,
             timestamp,
@@ -174,7 +166,6 @@ class Atom {
     }
 
     override fun toString(): String {
-        return ("Atom hid($hid) destinations($destinations) consumables(${consumables?.size}) " +
-            "consumers(${consumers?.size})")
+        return "Atom hid($hid)"
     }
 }

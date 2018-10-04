@@ -40,7 +40,8 @@ class DataStoreTranslator private constructor() {
                 .build()
             atomBuilder.addDataParticle(encryptorParticle)
         }
-        dataStore.getAddresses().forEach { atomBuilder.addDestination(it) }
+        // TODO: add this into data particle
+//        dataStore.getAddresses().forEach { atomBuilder.addDestination(it) }
 
         return Completable.complete()
     }

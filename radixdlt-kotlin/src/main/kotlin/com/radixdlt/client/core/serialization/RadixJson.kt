@@ -26,7 +26,6 @@ import com.radixdlt.client.core.atoms.Consumer
 import com.radixdlt.client.core.atoms.DataParticle
 import com.radixdlt.client.core.atoms.Emission
 import com.radixdlt.client.core.atoms.MetadataMap
-import com.radixdlt.client.core.atoms.Particle
 import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.atoms.UniqueParticle
 import com.radixdlt.client.core.crypto.ECKeyPair
@@ -86,7 +85,7 @@ object RadixJson {
         )
     }
 
-    private val ABSTRACT_CONSUMABLE_SERIALIZER = JsonSerializer<Particle> { particle, _, context ->
+    private val ABSTRACT_CONSUMABLE_SERIALIZER = JsonSerializer<AbstractConsumable> { particle, _, context ->
         when {
             particle.javaClass == AtomFeeConsumable::class.java -> {
                 val jsonParticle = context.serialize(particle).asJsonObject
@@ -110,7 +109,7 @@ object RadixJson {
         }
     }
 
-    private val ABSTRACT_CONSUMABLE_DESERIALIZER = JsonDeserializer<Particle> { json, _, context ->
+    private val ABSTRACT_CONSUMABLE_DESERIALIZER = JsonDeserializer<AbstractConsumable> { json, _, context ->
         val serializer = json.asJsonObject.get("serializer").asLong
         return@JsonDeserializer when (serializer) {
             -1463653224L -> context.deserialize(json.asJsonObject, AtomFeeConsumable::class.java)
