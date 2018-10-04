@@ -1,6 +1,5 @@
 package com.radixdlt.client.core.network
 
-import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -273,16 +272,14 @@ class RadixJsonRpcClient(
 
         return this.jsonRpcSubscribe("Atoms.subscribe", params, "Atoms.subscribeUpdate")
             .map(JsonElement::getAsJsonObject)
-            .flatMapIterable { observedAtomsJson ->
-                val atomsJson: JsonArray = observedAtomsJson.getAsJsonArray("atoms")
-                val atomsObserved: Sequence<AtomObservation> = atomsJson.asSequence() // TODO StreamSupport??? spliterator????
-                    .map { atomJson: JsonElement -> RadixJson.gson.fromJson(atomJson, Atom::class.java) }
-                    .map(AtomObservation.Companion::storeAtom)
-
+            .flatMap { observedAtomsJson ->
+                val atomsJson = observedAtomsJson.getAsJsonArray("atoms")
                 val isHead = observedAtomsJson.has("isHead") && observedAtomsJson.get("isHead").asBoolean
-                val headObserved = if (isHead) sequenceOf(AtomObservation.head()) else emptySequence()
 
-                return@flatMapIterable atomsObserved.plus(headObserved).toList()
+                return@flatMap Observable.fromIterable(atomsJson)
+                    .map { atomJson -> RadixJson.gson.fromJson(atomJson, Atom::class.java) }
+                    .map(AtomObservation.Companion::storeAtom)
+                    .concatWith(Maybe.fromCallable { if (isHead) AtomObservation.head() else null })
             }
     }
 
