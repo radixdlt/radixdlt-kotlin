@@ -1,5 +1,7 @@
 package com.radixdlt.client.core.ledger
 
+import com.radixdlt.client.application.translate.TransactionAtoms
+import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import io.reactivex.Observable
@@ -30,14 +32,24 @@ class InMemoryAtomStore : AtomStore {
     }
 
     /**
-     * Returns an unending stream of atoms which are stored at a particular destination.
+     * Returns an unending stream of validated atoms which are stored at a particular destination.
      *
      * @param address address (which determines shard) to query atoms for
      * @return an Atom Observable
      */
     override fun getAtoms(address: RadixAddress): Observable<Atom> {
         Objects.requireNonNull(address) // not needed in Kotlin
-        return cache.computeIfAbsentSynchronisedFunction(address) { ReplaySubject.create() }
-            .distinct()
+        return Observable.just(TransactionAtoms(address, Asset.TEST.id))
+            .flatMap { txAtoms ->
+                cache.computeIfAbsentSynchronisedFunction(address) { euid -> ReplaySubject.create() }
+                    .distinct()
+                    .flatMap<Atom> { atom ->
+                        if (atom.isTransactionAtom) {
+                            txAtoms.accept(atom.asTransactionAtom).newValidTransactions
+                        } else {
+                            Observable.just(atom)
+                        }
+                    }
+            }
     }
 }

@@ -5,8 +5,11 @@ import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
+import com.radixdlt.client.core.atoms.AbstractConsumable
 import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.AtomFeeConsumable
 import com.radixdlt.client.core.atoms.Consumable
+import com.radixdlt.client.core.atoms.RadixHash
 import com.radixdlt.client.core.atoms.TransactionAtom
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
@@ -15,6 +18,7 @@ import com.radixdlt.client.core.ledger.ParticleStore
 import io.reactivex.Completable
 import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.HashMap
+import java.util.concurrent.TimeUnit
 
 class TokenTransferTranslator(
     private val universe: RadixUniverse,
@@ -75,6 +79,18 @@ class TokenTransferTranslator(
         atomBuilder.type(TransactionAtom::class.java)
 
         return this.particleStore.getConsumables(tokenTransfer.from!!)
+            .filter { p -> (p !is AtomFeeConsumable) }
+            .scanWith({ HashMap<RadixHash, AbstractConsumable>() }) { map, p ->
+                val newMap = HashMap(map)
+                newMap[p.hash] = p
+                return@scanWith newMap
+            }
+            .map { map -> map.values.asSequence()
+                .filter(AbstractConsumable::isConsumable)
+                .map(AbstractConsumable::asConsumable)
+                .toList()
+            }
+            .debounce(1000, TimeUnit.MILLISECONDS)
             .firstOrError()
             .flatMapCompletable { unconsumedConsumables ->
 
@@ -121,15 +137,6 @@ class TokenTransferTranslator(
                 atomBuilder.addParticles(consumables)
 
                 return@flatMapCompletable Completable.complete()
-
-                /*
-                if (withPOWFee) {
-                    // TODO: Replace this with public key of processing node runner
-                    return atomBuilder.buildWithPOWFee(ledger.getMagic(), fromAddress.getPublicKey());
-                } else {
-                    return atomBuilder.build();
-                }
-                */
             }
     }
 }
