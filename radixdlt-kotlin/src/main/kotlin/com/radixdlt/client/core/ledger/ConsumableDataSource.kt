@@ -2,7 +2,6 @@ package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.application.translate.TransactionAtoms
 import com.radixdlt.client.assets.Asset
-import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.Consumable
@@ -11,7 +10,7 @@ import io.reactivex.rxkotlin.Observables
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
-class ConsumableDataSource(private val atomStore: (EUID) -> (Observable<Atom>)) : ParticleStore {
+class ConsumableDataSource(private val atomStore: AtomStore) : ParticleStore {
     private val cache = ConcurrentHashMap<RadixAddress, Observable<Collection<Consumable>>>()
 
     override fun getConsumables(address: RadixAddress): Observable<Collection<Consumable>> {
@@ -25,7 +24,7 @@ class ConsumableDataSource(private val atomStore: (EUID) -> (Observable<Atom>)) 
                             Asset.TEST.id
                         )
                     },
-                    atomStore(address.getUID())
+                    atomStore.getAtoms(address)
                         .filter(Atom::isTransactionAtom)
                         .map(Atom::asTransactionAtom)
                 ) { transactionAtoms, atom ->

@@ -69,7 +69,7 @@ class RadixUniverse private constructor(
          * The Particle Data Store
          * TODO: actually change it into the particle data store
          */
-        private val particleStore = ConsumableDataSource(inMemoryAtomStore::getAtoms)
+        private val particleStore = ConsumableDataSource(inMemoryAtomStore)
 
         override fun getAtomPuller(): AtomPuller = this.atomPuller
 

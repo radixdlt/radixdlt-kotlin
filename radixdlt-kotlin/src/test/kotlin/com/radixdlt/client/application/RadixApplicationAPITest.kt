@@ -10,7 +10,6 @@ import com.radixdlt.client.application.translate.InsufficientFundsException
 import com.radixdlt.client.assets.Amount
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
-import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
 import com.radixdlt.client.core.atoms.Atom
@@ -89,7 +88,7 @@ class RadixApplicationAPITest {
 
     private fun createMockedAPIWhichAlwaysSucceeds(): RadixApplicationAPI {
         return createMockedAPI(createMockedSubmissionWhichAlwaysSucceeds(), object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(address: RadixAddress): Observable<Atom> {
                 return Observable.never()
             }
         })
@@ -149,7 +148,7 @@ class RadixApplicationAPITest {
     fun testStoreWithoutSubscription() {
         val submitter = createMockedSubmissionWhichAlwaysSucceeds()
         val api = createMockedAPI(submitter, object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(address: RadixAddress): Observable<Atom> {
                 return Observable.never()
             }
         })
@@ -164,7 +163,7 @@ class RadixApplicationAPITest {
     fun testStoreWithMultipleSubscribes() {
         val submitter = createMockedSubmissionWhichAlwaysSucceeds()
         val api = createMockedAPI(submitter, object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(address: RadixAddress): Observable<Atom> {
                 return Observable.never()
             }
         })
@@ -203,7 +202,7 @@ class RadixApplicationAPITest {
 
         val ledger = mock(RadixUniverse.Ledger::class.java)
         `when`(ledger.getAtomStore()).thenReturn(object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(address: RadixAddress): Observable<Atom> {
                 return Observable.just(errorAtom, okAtom)
             }
         })
@@ -231,7 +230,7 @@ class RadixApplicationAPITest {
         val ledger = mock(RadixUniverse.Ledger::class.java)
         `when`(universe.ledger).thenReturn(ledger)
         `when`(ledger.getAtomStore()).thenReturn(object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(address: RadixAddress): Observable<Atom> {
                 return Observable.empty()
             }
         })
@@ -257,7 +256,7 @@ class RadixApplicationAPITest {
         val ledger = mock(RadixUniverse.Ledger::class.java)
         `when`(universe.ledger).thenReturn(ledger)
         `when`(ledger.getAtomStore()).thenReturn(object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(address: RadixAddress): Observable<Atom> {
                 return Observable.empty()
             }
         })
@@ -295,7 +294,7 @@ class RadixApplicationAPITest {
         `when`(universe.ledger).thenReturn(ledger)
 
         `when`(ledger.getAtomStore()).thenReturn(object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(address: RadixAddress): Observable<Atom> {
                 return Observable.empty()
             }
         })
@@ -308,13 +307,11 @@ class RadixApplicationAPITest {
 
         val identity = mock(RadixIdentity::class.java)
         val address = mock(RadixAddress::class.java)
-        val euid = mock(EUID::class.java)
-        `when`(address.getUID()).thenReturn(euid)
 
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance) { AtomBuilder() }
         val testObserver = TestObserver.create<Data>()
         api.getData(address).subscribe(testObserver)
-        verify(puller, times(1)).pull(euid)
+        verify(puller, times(1)).pull(address)
     }
 
     @Test
@@ -331,12 +328,10 @@ class RadixApplicationAPITest {
 
         val identity = mock(RadixIdentity::class.java)
         val address = mock(RadixAddress::class.java)
-        val euid = mock(EUID::class.java)
-        `when`(address.getUID()).thenReturn(euid)
 
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance) { AtomBuilder() }
         val testObserver = TestObserver.create<Amount>()
         api.getBalance(address, Asset.TEST).subscribe(testObserver)
-        verify(puller, times(1)).pull(euid)
+        verify(puller, times(1)).pull(address)
     }
 }

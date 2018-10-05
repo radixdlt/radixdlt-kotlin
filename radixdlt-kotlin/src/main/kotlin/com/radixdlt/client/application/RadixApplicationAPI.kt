@@ -100,7 +100,7 @@ class RadixApplicationAPI private constructor(
         Objects.requireNonNull(address)
 
         return if (ledger.getAtomPuller() != null) {
-            ledger.getAtomPuller()!!.pull(address.getUID())
+            ledger.getAtomPuller()!!.pull(address)
         } else {
             Disposables.disposed()
         }
@@ -111,7 +111,7 @@ class RadixApplicationAPI private constructor(
 
         pull(address)
 
-        return ledger.getAtomStore().getAtoms(address.getUID())
+        return ledger.getAtomStore().getAtoms(address)
             .filter(Atom::isMessageAtom)
             .map(Atom::asMessageAtom)
             .map(dataStoreTranslator::fromAtom)
@@ -168,7 +168,7 @@ class RadixApplicationAPI private constructor(
 
         return Observables.combineLatest<TransactionAtoms, TransactionAtom, Observable<TransactionAtom>>(
             Observable.fromCallable { TransactionAtoms(address, tokenClass.id) },
-            ledger.getAtomStore().getAtoms(address.getUID())
+            ledger.getAtomStore().getAtoms(address)
                 .filter(Atom::isTransactionAtom)
                 .map(Atom::asTransactionAtom)
         ) { transactionAtoms, atom ->
