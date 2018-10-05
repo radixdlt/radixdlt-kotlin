@@ -10,7 +10,7 @@ object RadixUniverseConfigs {
 
     @JvmStatic
     val sunstone: RadixUniverseConfig
-        get() = RadixUniverseConfig.fromInputStream(getConfigFileStream("testuniverse.json"))
+        get() = RadixUniverseConfig.fromInputStream(getConfigFileStream("sunstone.json"))
 
     @JvmStatic
     val highgarden: RadixUniverseConfig

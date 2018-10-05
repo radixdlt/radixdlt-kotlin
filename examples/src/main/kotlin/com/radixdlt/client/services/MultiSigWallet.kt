@@ -111,7 +111,7 @@
 //        fun main(args: Array<String>) {
 //
 //            if (args.size < 2) {
-//                println("Usage: java com.radixdlt.client.services.MultiSig <highgarden|sunstone|winterfell|winterfell_local> <keyfile>")
+//                println("Usage: java com.radixdlt.client.services.MultiSig <highgarden|sunstone.json|winterfell|winterfell_local> <keyfile>")
 //                System.exit(-1)
 //            }
 //

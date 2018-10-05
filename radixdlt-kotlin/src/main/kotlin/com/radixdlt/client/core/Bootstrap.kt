@@ -18,7 +18,7 @@ enum class Bootstrap(private val config: RadixUniverseConfig, private val discov
     ),
     SUNSTONE(
         RadixUniverseConfigs.sunstone,
-        PeersFromNodeFinder("https://sunstone.radixdlt.com/node-finder", 443)
+        PeersFromNodeFinder("https://sunstone.json.radixdlt.com/node-finder", 443)
     ),
     WINTERFELL(
         RadixUniverseConfigs.winterfell,
