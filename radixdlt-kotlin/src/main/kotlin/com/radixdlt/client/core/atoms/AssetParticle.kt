@@ -17,4 +17,15 @@ class AssetParticle(
     private val description: String,
     private val classification: String,
     private val icon: ByteArray
-) : Particle(1)
+) : Particle {
+
+    private val spin = 1L
+
+    override fun getSpin(): Long {
+        return spin
+    }
+
+    override fun getDestinations(): Set<EUID> {
+        return setOf(id)
+    }
+}

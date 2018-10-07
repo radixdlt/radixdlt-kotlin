@@ -1,3 +1,8 @@
 package com.radixdlt.client.core.atoms
 
-abstract class Particle internal constructor(private val spin: Long)
+import com.radixdlt.client.core.address.EUID
+
+interface Particle {
+    fun getSpin(): Long
+    fun getDestinations(): Set<EUID>
+}

@@ -15,8 +15,10 @@ import com.google.gson.TypeAdapterFactory
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
+import com.radixdlt.client.core.TokenClassReference
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixUniverseType
+import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.AssetParticle
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomFeeConsumable
@@ -85,19 +87,21 @@ object RadixJson {
         )
     }
 
-    private val particles = HashMap<Class<out Particle>, Long>()
+    private val PARTICLE_SERIALIZER_IDS = HashMap<Class<out Particle>, Long>()
     init {
-        particles.put(AtomFeeConsumable::class.java, - 1463653224L)
-        particles.put(Consumable::class.java, 318720611L)
-        particles.put(Emission::class.java, 1341978856L)
-        particles.put(DataParticle::class.java, 473758768L)
-        // particles.put(UniqueParticle.class, Long.valueOf("UNIQUEPARTICLE".hashCode()));
-        particles.put(ChronoParticle::class.java, 1080087081L)
-        particles.put(AssetParticle::class.java, - 1034420571L)
+//        PARTICLE_SERIALIZER_IDS.put(AtomFeeConsumable::class.java, -1463653224L)
+        PARTICLE_SERIALIZER_IDS[AtomFeeConsumable::class.java] = "FEEPARTICLE".hashCode().toLong()
+        PARTICLE_SERIALIZER_IDS.put(Consumable::class.java, 318720611L)
+        PARTICLE_SERIALIZER_IDS.put(Emission::class.java, 1341978856L)
+        PARTICLE_SERIALIZER_IDS.put(DataParticle::class.java, 473758768L)
+        // PARTICLE_SERIALIZER_IDS.put(UniqueParticle.class, Long.valueOf("UNIQUEPARTICLE".hashCode()));
+//        PARTICLE_SERIALIZER_IDS.put(ChronoParticle::class.java, 1080087081L)
+        PARTICLE_SERIALIZER_IDS[ChronoParticle::class.java] = "CHRONOPARTICLE".hashCode().toLong()
+        PARTICLE_SERIALIZER_IDS.put(AssetParticle::class.java, - 1034420571L)
     }
 
     private val PARTICLE_SERIALIZER = JsonSerializer<Particle> { particle, _, context ->
-        val id = particles[particle.javaClass]
+        val id = PARTICLE_SERIALIZER_IDS[particle.javaClass]
         if (id != null) {
             val jsonParticle = context.serialize(particle).asJsonObject
             jsonParticle.addProperty("serializer", id)
@@ -110,7 +114,7 @@ object RadixJson {
 
     private val PARTICLE_DESERIALIZER = JsonDeserializer<Particle> { json, _, context ->
         val serializer = json.asJsonObject.get("serializer").asLong
-        val c = particles.entries.asSequence().filter { e -> e.value == serializer }
+        val c = PARTICLE_SERIALIZER_IDS.entries.asSequence().filter { e -> e.value == serializer }
             .map { it.key }
             .firstOrNull()
         if (c != null) {
@@ -126,7 +130,9 @@ object RadixJson {
         SERIALIZERS[Atom::class.java] = 2019665
         SERIALIZERS[ECKeyPair::class.java] = 547221307
         SERIALIZERS[ECSignature::class.java] = -434788200
+        SERIALIZERS[TokenClassReference::class.java] = "TOKENCLASSREFERENCE".hashCode()
         SERIALIZERS[Consumer::class.java] = 214856694
+        SERIALIZERS[AccountReference::class.java] = "ACCOUNTREFERENCE".hashCode()
     }
 
     private val ECKEYPAIR_ADAPTER_FACTORY = object : TypeAdapterFactory {

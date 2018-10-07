@@ -28,7 +28,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
     private fun addConsumables(atom: Atom, emitter: ObservableEmitter<Atom>) {
         atom.consumers!!.asSequence()
             .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
-            .filter { particle -> particle.assetId == assetId }
+            .filter { particle -> particle.tokenClass == assetId }
             .forEach { consumer ->
                 val dson = ByteBuffer.wrap(consumer.dson)
                 unconsumedConsumables.remove(dson) ?: throw IllegalStateException("Missing consumable for consumer.")
@@ -36,7 +36,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
 
         atom.getConsumables()!!.asSequence()
             .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
-            .filter { particle -> particle.assetId == assetId }
+            .filter { particle -> particle.tokenClass == assetId }
             .forEach { particle ->
                 val dson = ByteBuffer.wrap(particle.dson)
                 unconsumedConsumables.computeSynchronisedFunction(dson) { _, current ->
@@ -56,7 +56,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
     private fun checkConsumers(transactionAtom: Atom, emitter: ObservableEmitter<Atom>) {
         val missing: ByteBuffer? = transactionAtom.consumers!!.asSequence()
             .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
-            .filter { particle -> particle.assetId == assetId }
+            .filter { particle -> particle.tokenClass == assetId }
             .map(AbstractConsumable::dson)
             .map { ByteBuffer.wrap(it) }
             .filter { dson -> !unconsumedConsumables.containsKey(dson) }

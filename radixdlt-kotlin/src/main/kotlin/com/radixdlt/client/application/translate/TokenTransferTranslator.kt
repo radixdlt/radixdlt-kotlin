@@ -7,6 +7,7 @@ import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
+import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Consumable
@@ -133,9 +134,9 @@ class TokenTransferTranslator(
                     val left = tokenTransfer.subUnitAmount - consumerTotal
 
                     val newConsumer = iterator.next().toConsumer()
-                    consumerTotal += newConsumer.quantity
+                    consumerTotal += newConsumer.amount
 
-                    val amount = Math.min(left, newConsumer.quantity)
+                    val amount = Math.min(left, newConsumer.amount)
                     newConsumer.addConsumerQuantities(
                         amount, setOf(tokenTransfer.to!!.toECKeyPair()),
                         consumerQuantities
@@ -153,7 +154,11 @@ class TokenTransferTranslator(
                 }
 
                 val consumables = consumerQuantities.entries.asSequence()
-                    .map { entry -> Consumable(entry.value, entry.key, System.nanoTime(), Asset.TEST.id) }
+                    .map { entry -> Consumable(entry.value,
+                        entry.key.asSequence().map(ECKeyPair::getPublicKey).map(::AccountReference).toList(),
+                        System.nanoTime(), Asset.TEST.id,
+                        System.currentTimeMillis() * 60000L)
+                    }
                     .toList()
                 atomBuilder.addConsumables(consumables)
 

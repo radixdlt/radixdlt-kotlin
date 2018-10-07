@@ -25,7 +25,9 @@ class DataStoreTranslator private constructor() {
         val dataParticle = DataParticle.DataParticleBuilder()
             .payload(payload)
             .setMetaData("application", application)
+            .accounts(dataStore.getAddresses())
             .build()
+
         atomBuilder.addDataParticle(dataParticle)
         val encryptor = dataStore.data.encryptor
         if (encryptor != null) {
@@ -40,8 +42,6 @@ class DataStoreTranslator private constructor() {
                 .build()
             atomBuilder.addDataParticle(encryptorParticle)
         }
-        // TODO: add this into data particle
-//        dataStore.getAddresses().forEach { atomBuilder.addDestination(it) }
 
         return Completable.complete()
     }

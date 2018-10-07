@@ -1,7 +1,6 @@
 package com.radixdlt.client.core.atoms
 
 import com.radixdlt.client.core.address.EUID
-import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
 import com.radixdlt.client.core.serialization.Dson
@@ -27,17 +26,17 @@ class Atom {
     private var debug: MutableMap<String, Long>? = HashMap()
 
     val shards: Set<Long>
-        get() = consumers!!.asSequence()
-            .map(Consumer::owners)
-            .flatMap { it: Set<ECKeyPair>? -> it!!.asSequence()}
-            .map(ECKeyPair::getUID)
-            .map(EUID::shard).toSet()
+        get() = particles!!.asSequence()
+            .map(Particle::getDestinations)
+            .flatMap { it: Set<EUID> -> it.asSequence() }
+            .map(EUID::shard)
+            .toSet()
 
     // HACK
     val requiredFirstShard: Set<Long>
         get() = if (this.consumers != null && this.consumers!!.isNotEmpty()) {
             consumers!!.asSequence()
-                .flatMap { it.destinations.asSequence() }
+                .flatMap { it.getDestinations().asSequence() }
                 .map(EUID::shard)
                 .toSet()
         } else {
@@ -111,7 +110,7 @@ class Atom {
         return consumers!!.asSequence().plus(getConsumables()!!.asSequence())
             .groupBy(AbstractConsumable::ownersPublicKeys)
             .mapValues { it ->
-                it.value.asSequence().groupBy(AbstractConsumable::assetId) {
+                it.value.asSequence().groupBy(AbstractConsumable::tokenClass) {
                     it.signedQuantity
                 }.mapValues {
                     it.value.sum()
@@ -123,7 +122,7 @@ class Atom {
         return consumers!!.asSequence().plus(getConsumables()!!.asSequence())
             .groupBy(AbstractConsumable::ownersPublicKeys)
             .mapValues { it: Map.Entry<Set<ECPublicKey>, List<AbstractConsumable>> ->
-                it.value.asSequence().groupBy(AbstractConsumable::assetId) {
+                it.value.asSequence().groupBy(AbstractConsumable::tokenClass) {
                     it.signedQuantity
                 }
             }

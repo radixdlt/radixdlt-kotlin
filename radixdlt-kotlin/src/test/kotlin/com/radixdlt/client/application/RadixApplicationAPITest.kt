@@ -17,6 +17,7 @@ import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.CryptoException
+import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.ledger.AtomPuller
 import com.radixdlt.client.core.ledger.AtomStore
 import com.radixdlt.client.core.ledger.AtomSubmitter
@@ -126,7 +127,9 @@ class RadixApplicationAPITest {
     @Test
     fun testStoreData() {
         val api = createMockedAPIWhichAlwaysSucceeds()
+        val key = mock(ECPublicKey::class.java)
         val address = mock(RadixAddress::class.java)
+        `when`(address.publicKey).thenReturn(key)
 
         val encryptedData = mock(Data::class.java)
         val result = api.storeData(encryptedData, address)
@@ -136,7 +139,9 @@ class RadixApplicationAPITest {
     @Test
     fun testStoreData2() {
         val api = createMockedAPIWhichAlwaysSucceeds()
+        val key = mock(ECPublicKey::class.java)
         val address = mock(RadixAddress::class.java)
+        `when`(address.publicKey).thenReturn(key)
 
         val encryptedData = mock(Data::class.java)
         val result = api.storeData(encryptedData, address, address)
@@ -152,6 +157,7 @@ class RadixApplicationAPITest {
             }
         })
         val address = mock(RadixAddress::class.java)
+        `when`(address.publicKey).thenReturn(mock(ECPublicKey::class.java))
 
         val encryptedData = mock(Data::class.java)
         api.storeData(encryptedData, address, address)
@@ -167,6 +173,7 @@ class RadixApplicationAPITest {
             }
         })
         val address = mock(RadixAddress::class.java)
+        `when`(address.publicKey).thenReturn(mock(ECPublicKey::class.java))
 
         val encryptedData = mock(Data::class.java)
         val result = api.storeData(encryptedData, address, address)
@@ -182,6 +189,7 @@ class RadixApplicationAPITest {
         val identity = mock(RadixIdentity::class.java)
         val universe = mock(RadixUniverse::class.java)
         val address = mock(RadixAddress::class.java)
+        `when`(address.publicKey).thenReturn(mock(ECPublicKey::class.java))
         val atom = mock(Atom::class.java)
         `when`(atom.getDataParticles()).thenReturn(null)
 

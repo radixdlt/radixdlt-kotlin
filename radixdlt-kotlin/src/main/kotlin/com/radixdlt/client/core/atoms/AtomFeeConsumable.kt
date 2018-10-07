@@ -1,7 +1,9 @@
 package com.radixdlt.client.core.atoms
 
 import com.radixdlt.client.core.address.EUID
-import com.radixdlt.client.core.crypto.ECKeyPair
 
-class AtomFeeConsumable(quantity: Long, owners: Set<ECKeyPair>, nonce: Long, assetId: EUID) :
-    Consumable(quantity, owners, nonce, assetId)
+class AtomFeeConsumable(quantity: Long, addresses: List<AccountReference>, nonce: Long, assetId: EUID, planck: Long) :
+    Consumable(quantity, addresses, nonce, assetId, planck) {
+    private val service: EUID = EUID(1)
+}
+

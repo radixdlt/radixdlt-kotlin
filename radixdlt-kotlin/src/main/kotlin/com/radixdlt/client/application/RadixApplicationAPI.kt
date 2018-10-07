@@ -187,9 +187,9 @@ class RadixApplicationAPI private constructor(
             .map { it.asSequence() }
             .map { sequence ->
                 sequence.filter { consumable ->
-                    consumable.assetId == tokenClass.id
+                    consumable.tokenClass == tokenClass.id
                 }
-                    .map(Consumable::quantity)
+                    .map(Consumable::amount)
                     .sum()
             }
             .map { balanceInSubUnits -> Amount.subUnitsOf(balanceInSubUnits, tokenClass) }

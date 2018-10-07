@@ -3,41 +3,32 @@ package com.radixdlt.client.core.atoms
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.crypto.ECKeyPair
 
-class Consumer : AbstractConsumable {
+class Consumer(
+    quantity: Long,
+    addresses: List<AccountReference>?,
+    nonce: Long,
+    assetId: EUID,
+    planck: Long
+) : AbstractConsumable(quantity, addresses, nonce, assetId, planck) {
 
     override val signedQuantity: Long
-        get() = -quantity
+        get() = -amount
 
-    constructor(quantity: Long, owner: ECKeyPair, nonce: Long, assetId: EUID) : super(
-        quantity,
-        setOf<ECKeyPair>(owner),
-        nonce,
-        assetId
-    )
-
-    constructor(quantity: Long, owners: Set<ECKeyPair>, nonce: Long, assetId: EUID) : super(
-        quantity,
-        owners,
-        nonce,
-        assetId
-    )
-
-    fun addConsumerQuantities(
-        amount: Long,
+    fun addConsumerQuantities(amount: Long,
         newOwners: Set<ECKeyPair>,
         consumerQuantities: MutableMap<Set<ECKeyPair>, Long>
     ) {
-        if (amount > quantity) {
-            throw IllegalArgumentException("Unable to create consumable with amount $amount (available: $quantity)")
+        if (amount > super.amount) {
+            throw IllegalArgumentException("Unable to create consumable with amount $amount (available: ${super.amount})")
         }
 
-        if (amount == quantity) {
+        if (amount == super.amount) {
             consumerQuantities.mergeAfterSum(newOwners, amount)
             return
         }
 
         consumerQuantities.mergeAfterSum(newOwners, amount)
-        consumerQuantities.mergeAfterSum(owners!!, quantity - amount)
+        consumerQuantities.mergeAfterSum(owners, super.amount - amount)
     }
 }
 

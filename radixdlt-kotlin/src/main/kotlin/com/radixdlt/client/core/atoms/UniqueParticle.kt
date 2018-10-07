@@ -3,13 +3,28 @@ package com.radixdlt.client.core.atoms
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
+import java.util.Objects
 
 class UniqueParticle(
     // TODO: make immutable
     private val unique: Payload,
     private val destinations: Set<EUID>,
     private val owners: Set<ECKeyPair>
-) : Particle(1) {
+) : Particle {
+
+    private val spin: Long = 1L
+
+    init {
+        Objects.requireNonNull(unique)
+    }
+
+    override fun getSpin(): Long {
+        return spin
+    }
+
+    override fun getDestinations(): Set<EUID> {
+        return destinations
+    }
 
     companion object {
         @JvmStatic

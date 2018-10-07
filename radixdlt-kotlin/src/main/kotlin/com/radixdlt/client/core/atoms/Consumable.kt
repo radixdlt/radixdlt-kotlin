@@ -1,28 +1,14 @@
 package com.radixdlt.client.core.atoms
 
 import com.radixdlt.client.core.address.EUID
-import com.radixdlt.client.core.crypto.ECKeyPair
 
-open class Consumable : AbstractConsumable {
+open class Consumable(quantity: Long, addresses: List<AccountReference>, nonce: Long, assetId: EUID, planck: Long) :
+    AbstractConsumable(quantity, addresses, nonce, assetId, planck) {
 
     override val signedQuantity: Long
-        get() = quantity
-
-    constructor(quantity: Long, owner: ECKeyPair, nonce: Long, assetId: EUID) : super(
-        quantity,
-        setOf<ECKeyPair>(owner),
-        nonce,
-        assetId
-    )
-
-    constructor(quantity: Long, owners: Set<ECKeyPair>, nonce: Long, assetId: EUID) : super(
-        quantity,
-        owners,
-        nonce,
-        assetId
-    )
+        get() = super.amount
 
     fun toConsumer(): Consumer {
-        return Consumer(quantity, owners!!, nonce, assetId)
+        return Consumer(super.amount, super.addresses, nonce, tokenClass, planck)
     }
 }

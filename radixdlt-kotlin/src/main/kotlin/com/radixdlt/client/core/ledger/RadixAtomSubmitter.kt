@@ -24,7 +24,7 @@ class RadixAtomSubmitter(private val clientSelector: (Set<Long>) -> (Single<Radi
      */
     override fun submitAtom(atom: Atom): Observable<AtomSubmissionUpdate> {
         val status = clientSelector(atom.requiredFirstShard)
-            .doOnSuccess { client -> LOGGER.info("Found client to submit atom: {}", client.location) }
+            .doOnSuccess { client -> LOGGER.info("Found client to submit atom {}: {}", atom.hid, client.location) }
             .doOnError { throwable ->
                 LOGGER.warn("Error on submitAtom {} {}", atom.hid, throwable.message)
             }

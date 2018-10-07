@@ -32,7 +32,7 @@ class RadixAtomValidatorTest {
         `when`(consumer.isAbstractConsumable).thenReturn(true)
         `when`(consumer.asAbstractConsumable).thenReturn(consumer)
         `when`(consumer.ownersPublicKeys).thenReturn(setOf(publicKey))
-        `when`(consumer.assetId).thenReturn(Asset.TEST.id)
+        `when`(consumer.tokenClass).thenReturn(Asset.TEST.id)
 
         val atom = mock(Atom::class.java)
         `when`(atom.hash).thenReturn(hash)
@@ -59,7 +59,7 @@ class RadixAtomValidatorTest {
         `when`(consumer.isAbstractConsumable).thenReturn(true)
         `when`(consumer.asAbstractConsumable).thenReturn(consumer)
         `when`(consumer.ownersPublicKeys).thenReturn(setOf(publicKey))
-        `when`(consumer.assetId).thenReturn(Asset.TEST.id)
+        `when`(consumer.tokenClass).thenReturn(Asset.TEST.id)
 
         val atom = mock(Atom::class.java)
         `when`(atom.hash).thenReturn(hash)

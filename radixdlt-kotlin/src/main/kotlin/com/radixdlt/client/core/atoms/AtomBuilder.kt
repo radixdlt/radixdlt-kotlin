@@ -60,6 +60,7 @@ class AtomBuilder {
         if (uniqueParticle != null) {
             particles.add(uniqueParticle!!)
         }
+        particles.add(ChronoParticle(timestamp))
         return UnsignedAtom(Atom(particles, if (consumers.isEmpty()) null else consumers))
     }
 

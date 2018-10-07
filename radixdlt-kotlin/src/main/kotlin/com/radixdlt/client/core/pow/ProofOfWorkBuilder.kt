@@ -19,7 +19,7 @@ class ProofOfWorkBuilder {
 
         val buffer = ByteBuffer.allocate(32 + 4 + 8) // in java8 using java.lang.Long.BYTES
 
-        // Consumable getQuantity cannot be 0 so start at 1
+        // Consumable getAmount cannot be 0 so start at 1
         var nonce: Long = 1
         buffer.putInt(magic)
         buffer.put(seed)

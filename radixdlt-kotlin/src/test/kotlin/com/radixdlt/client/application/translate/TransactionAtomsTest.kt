@@ -1,80 +1,105 @@
 package com.radixdlt.client.application.translate
 
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.whenever
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.AbstractConsumable
+import com.radixdlt.client.core.atoms.AccountReference
+import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.Consumer
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
-import com.radixdlt.client.util.any
-import com.radixdlt.client.util.eq
 import io.reactivex.observers.TestObserver
 import org.junit.Test
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 
 class TransactionAtomsTest {
 
     @Test
     fun testConsumerWithNoConsumable() {
-        val keyPair = ECKeyPair(ECPublicKey(ByteArray(33)))
-        val address = mock(RadixAddress::class.java)
-        `when`(address.ownsKey(any(ECKeyPair::class.java))).thenReturn(true)
-        `when`(address.ownsKey(any(ECPublicKey::class.java))).thenReturn(true)
+        val accountReference = mock<AccountReference>()
+        val ecPublicKey = mock<ECPublicKey>()
+        whenever(accountReference.getKey()).thenReturn(ecPublicKey)
 
-        /* Build atom with consumer originating from nowhere */
-        val unsignedAtom = AtomBuilder()
-            .addConsumer(Consumer(100, keyPair, 1, Asset.TEST.id))
-            .addConsumable(Consumable(100, keyPair, 2, Asset.TEST.id))
-            .build()
+        val address = mock<RadixAddress>()
+        whenever(address.ownsKey(any<ECKeyPair>())).thenReturn(true)
+        whenever(address.ownsKey(any<ECPublicKey>())).thenReturn(true)
+
+        val consumer = mock<Consumer>()
+        whenever(consumer.tokenClass).thenReturn(Asset.TEST.id)
+        whenever(consumer.ownersPublicKeys).thenReturn(setOf(ecPublicKey))
+        whenever(consumer.dson).thenReturn(byteArrayOf(0))
+
+        val consumable = mock<Consumable>()
+        whenever(consumable.tokenClass).thenReturn(Asset.TEST.id)
+        whenever(consumable.ownersPublicKeys).thenReturn(setOf(ecPublicKey))
+        whenever(consumable.dson).thenReturn(byteArrayOf(1))
+
+        // Build atom with consumer originating from nowhere
+        val atom = mock<Atom>()
+        whenever(atom.consumers!!).thenReturn(listOf(consumer))
+        whenever(atom.getConsumables()!!).thenReturn(listOf<AbstractConsumable>(consumable))
+
+        // Make sure we don't count it unless we find the matching consumable
+        val transactionAtoms = TransactionAtoms(address, Asset.TEST.id)
 
         val observer = TestObserver.create<Collection<Consumable>>()
-
-        /* Make sure we don't count it unless we find the matching consumable */
-        val transactionAtoms = TransactionAtoms(address, Asset.TEST.id)
-        transactionAtoms.accept(unsignedAtom.rawAtom)
-            .getUnconsumedConsumables().subscribe(observer)
+        transactionAtoms.accept(atom).getUnconsumedConsumables().subscribe(observer)
         observer.assertValueCount(0)
     }
 
     @Test
     fun testConsumerBeforeConsumable() {
-        val publicKey = ECPublicKey(ByteArray(33))
-        val keyPair = ECKeyPair(publicKey)
+        val accountReference = mock<AccountReference>()
+        val ecPublicKey = mock<ECPublicKey>()
+        whenever(accountReference.getKey()).thenReturn(ecPublicKey)
 
-        val otherRaw = ByteArray(33)
-        otherRaw[0] = 1
-        val otherPublicKey = ECPublicKey(otherRaw)
-        val otherKeyPair = ECKeyPair(otherPublicKey)
+        val address = mock<RadixAddress>()
+        whenever(address.ownsKey(ecPublicKey)).thenReturn(true)
 
-        val address = mock(RadixAddress::class.java)
-        `when`(address.ownsKey(eq(keyPair))).thenReturn(true)
-        `when`(address.ownsKey(eq(otherKeyPair))).thenReturn(false)
-        `when`(address.ownsKey(eq(publicKey))).thenReturn(true)
-        `when`(address.ownsKey(eq(otherPublicKey))).thenReturn(false)
+        val consumer = mock<Consumer>()
+        whenever(consumer.tokenClass).thenReturn(Asset.TEST.id)
+        whenever(consumer.ownersPublicKeys).thenReturn(setOf(ecPublicKey))
+        whenever(consumer.dson).thenReturn(byteArrayOf(0))
 
-        /* Atom with consumer originating from nowhere */
-        val unsignedAtom = AtomBuilder()
-            .addConsumer(Consumer(100, keyPair, 1, Asset.TEST.id))
-            .addConsumable(Consumable(100, keyPair, 2, Asset.TEST.id))
-            .build()
+        val consumable = mock<Consumable>()
+        whenever(consumable.tokenClass).thenReturn(Asset.TEST.id)
+        whenever(consumable.ownersPublicKeys).thenReturn(setOf(ecPublicKey))
+        whenever(consumable.dson).thenReturn(byteArrayOf(1))
+        whenever(consumable.asConsumable).thenReturn(consumable)
 
-        /* Atom with consumable for previous atom's consumer */
-        val unsignedAtom2 = AtomBuilder()
-            .addConsumer(Consumer(100, otherKeyPair, 1, Asset.TEST.id))
-            .addConsumable(Consumable(100, keyPair, 1, Asset.TEST.id))
-            .build()
+        val atom = mock<Atom>()
+        whenever(atom.consumers!!).thenReturn(listOf(consumer))
+        whenever(atom.getConsumables()!!).thenReturn(listOf<AbstractConsumable>(consumable))
+
+        val oldConsumable = mock<Consumable>()
+        whenever(oldConsumable.tokenClass).thenReturn(Asset.TEST.id)
+        whenever(oldConsumable.ownersPublicKeys).thenReturn(setOf(ecPublicKey))
+        whenever(oldConsumable.dson).thenReturn(byteArrayOf(0))
+        whenever(oldConsumable.asConsumable).thenReturn(oldConsumable)
+
+        val oldConsumer = mock<Consumer>()
+        whenever(oldConsumer.tokenClass).thenReturn(Asset.TEST.id)
+        whenever(oldConsumer.ownersPublicKeys).thenReturn(
+            setOf(mock())
+        )
+        whenever(oldConsumer.dson).thenReturn(byteArrayOf(2))
+
+        val oldAtom = mock<Atom>()
+        whenever(oldAtom.consumers!!).thenReturn(listOf(oldConsumer))
+        whenever(oldAtom.getConsumables()!!).thenReturn(listOf<AbstractConsumable>(oldConsumable))
 
         val observer = TestObserver.create<Collection<Consumable>>()
 
         /* Make sure we don't count it unless we find the matching consumable */
         val transactionAtoms = TransactionAtoms(address, Asset.TEST.id)
-        transactionAtoms.accept(unsignedAtom.rawAtom)
-        transactionAtoms.accept(unsignedAtom2.rawAtom)
+        transactionAtoms.accept(atom)
+        transactionAtoms.accept(oldAtom)
             .getUnconsumedConsumables()
             .subscribe(observer)
 
-        observer.assertValue { collection -> collection.first().nonce == 2L }
+        observer.assertValue { collection -> collection.stream().findFirst().get().dson[0].toInt() == 1 }
     }
 }
