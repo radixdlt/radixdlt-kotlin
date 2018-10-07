@@ -29,6 +29,7 @@ import com.radixdlt.client.core.atoms.Emission
 import com.radixdlt.client.core.atoms.MetadataMap
 import com.radixdlt.client.core.atoms.Particle
 import com.radixdlt.client.core.atoms.Payload
+import com.radixdlt.client.core.atoms.Spin
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
@@ -72,6 +73,14 @@ object RadixJson {
     private val PROTECTOR_DESERIALIZER = JsonDeserializer<EncryptedPrivateKey> { json, _, _ ->
         val encryptedPrivateKey = Base64.decode(checkPrefix(json.asString, BYT_PREFIX))
         EncryptedPrivateKey(encryptedPrivateKey)
+    }
+
+    private val SPIN_JSON_SERIALIZER = JsonSerializer<Spin> { src, _, _ ->
+        JsonPrimitive(src.ordinalValue())
+    }
+
+    private val SPIN_JSON_DESERIALIZER = JsonDeserializer<Spin> { json, _, _ ->
+        Spin.valueOf(json.asInt)
     }
 
     private val UNIVERSE_TYPE_DESERIALIZER =
@@ -174,6 +183,8 @@ object RadixJson {
             .registerTypeAdapter(EncryptedPrivateKey::class.java, PROTECTOR_DESERIALIZER)
             .registerTypeAdapter(ECPublicKey::class.java, PK_DESERIALIZER)
             .registerTypeAdapter(RadixUniverseType::class.java, UNIVERSE_TYPE_DESERIALIZER)
+            .registerTypeAdapter(Spin::class.java, SPIN_JSON_DESERIALIZER)
+            .registerTypeAdapter(Spin::class.java, SPIN_JSON_SERIALIZER)
             .registerTypeAdapter(NodeRunnerData::class.java, NODE_RUNNER_DATA_JSON_DESERIALIZER)
 
         gson = gsonBuilder.create()

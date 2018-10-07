@@ -10,14 +10,14 @@ open class Consumable(
     nonce: Long,
     assetId: EUID,
     planck: Long,
-    spin: Long
+    spin: Spin
 ) : AbstractConsumable(quantity, addresses, nonce, assetId, planck, spin) {
 
     override val signedQuantity: Long
-        get() = if (getSpin() == 1L) amount else if (getSpin() == 2L) -1 * amount else 0
+        get() = if (getSpin() == Spin.UP) amount else if (getSpin() == Spin.DOWN) -1 * amount else 0
 
     fun toConsumer(): Consumable {
-        return Consumable(super.amount, super.addresses!!, nonce, tokenClass, planck, 2L)
+        return Consumable(super.amount, super.addresses!!, nonce, tokenClass, planck, Spin.DOWN)
     }
 
     fun addConsumerQuantities(

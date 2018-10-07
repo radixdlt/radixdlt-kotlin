@@ -19,9 +19,9 @@ class AssetParticle(
     private val icon: ByteArray
 ) : Particle {
 
-    private val spin = 1L
+    private val spin = Spin.UP
 
-    override fun getSpin(): Long {
+    override fun getSpin(): Spin {
         return spin
     }
 

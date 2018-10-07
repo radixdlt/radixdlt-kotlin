@@ -25,7 +25,7 @@ class DataParticle private constructor(
     /**
      * Arbitrary data, possibly encrypted
      */
-    private val spin = 1L
+    private val spin = Spin.UP
 
     init {
         Objects.requireNonNull(bytes)
@@ -71,7 +71,7 @@ class DataParticle private constructor(
         } else metaData[key]
     }
 
-    override fun getSpin(): Long {
+    override fun getSpin(): Spin {
         return spin
     }
 }

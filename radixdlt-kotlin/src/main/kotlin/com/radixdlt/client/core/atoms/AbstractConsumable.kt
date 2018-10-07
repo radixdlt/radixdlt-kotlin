@@ -14,12 +14,12 @@ abstract class AbstractConsumable internal constructor(
     @field:SerializedName("asset_id")
     val tokenReference: EUID,
     val planck: Long,
-    private val spin: Long
+    private val spin: Spin
 ) : Particle {
 
     private val tokenClassReference = TokenClassReference(tokenReference, EUID(0))
 
-    override fun getSpin(): Long {
+    override fun getSpin(): Spin {
         return spin
     }
 

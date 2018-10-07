@@ -8,10 +8,10 @@ import java.util.Collections
  */
 class ChronoParticle(timestamp: Long) : Particle {
 
-    private val spin = 1L
+    private val spin = Spin.UP
     private val timestamps: Map<String, Long> = Collections.singletonMap("default", timestamp)
 
-    override fun getSpin(): Long {
+    override fun getSpin(): Spin {
         return spin
     }
 

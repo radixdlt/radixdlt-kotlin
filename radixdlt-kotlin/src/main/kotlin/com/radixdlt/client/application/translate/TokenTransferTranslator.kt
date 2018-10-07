@@ -13,6 +13,7 @@ import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.DataParticle
 import com.radixdlt.client.core.atoms.Payload
+import com.radixdlt.client.core.atoms.Spin
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
@@ -164,7 +165,7 @@ class TokenTransferTranslator(
                     .map { entry -> Consumable(entry.value,
                         entry.key.asSequence().map(ECKeyPair::getPublicKey).map(::AccountReference).toList(),
                         System.nanoTime(), Asset.TEST.id,
-                        System.currentTimeMillis() / 60000L + 60000L, 1L)
+                        System.currentTimeMillis() / 60000L + 60000L, Spin.UP)
                     }
                     .toList()
                 atomBuilder.addConsumables(consumables)

@@ -30,9 +30,9 @@ class Atom {
 
     // HACK
     val requiredFirstShard: Set<Long>
-        get() = if (this.particles!!.asSequence().any { p -> p.getSpin() == 0L }) {
+        get() = if (this.particles!!.asSequence().any { p -> p.getSpin() == Spin.DOWN }) {
             particles!!.asSequence()
-                .filter { p -> p.getSpin() == 0L }
+                .filter { p -> p.getSpin() == Spin.DOWN }
                 .flatMap { it.getDestinations().asSequence() }
                 .map(EUID::shard)
                 .toSet()
@@ -65,7 +65,7 @@ class Atom {
     fun getConsumers(): List<Consumable> {
         return this.particles!!.asSequence()
             .filter { p -> p is Consumable }
-            .filter { p -> p.getSpin() == 2L }
+            .filter { p -> p.getSpin() == Spin.DOWN }
             .map { p -> p as Consumable }
             .toList()
     }
@@ -73,7 +73,7 @@ class Atom {
     fun getConsumables(): List<Consumable> {
         return this.particles!!.asSequence()
             .filter { p -> p is Consumable }
-            .filter { p -> p.getSpin() == 1L }
+            .filter { p -> p.getSpin() == Spin.UP }
             .map { p -> p as Consumable }
             .toList()
     }

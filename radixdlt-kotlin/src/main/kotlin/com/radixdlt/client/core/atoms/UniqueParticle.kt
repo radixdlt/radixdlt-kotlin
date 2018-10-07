@@ -12,13 +12,13 @@ class UniqueParticle(
     private val owners: Set<ECKeyPair>
 ) : Particle {
 
-    private val spin: Long = 1L
+    private val spin = Spin.UP
 
     init {
         Objects.requireNonNull(unique)
     }
 
-    override fun getSpin(): Long {
+    override fun getSpin(): Spin {
         return spin
     }
 
