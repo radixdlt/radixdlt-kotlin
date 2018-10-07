@@ -19,7 +19,7 @@ class RadixAtomValidator private constructor() : AtomValidator {
     fun validateSignatures(atom: Atom) {
         val hash = atom.hash
 
-        val exception = atom.consumers!!.asSequence()
+        val exception = atom.getConsumers().asSequence()
             .map { consumer ->
                 if (consumer.ownersPublicKeys.isEmpty()) {
                     return@map AtomValidationException("No owners in particle")

@@ -13,10 +13,9 @@ abstract class AbstractConsumable internal constructor(
     val nonce: Long,
     @field:SerializedName("asset_id")
     val tokenReference: EUID,
-    val planck: Long
+    val planck: Long,
+    private val spin: Long
 ) : Particle {
-
-    private val spin = 1L
 
     private val tokenClassReference = TokenClassReference(tokenReference, EUID(0))
 
@@ -36,24 +35,6 @@ abstract class AbstractConsumable internal constructor(
 
     val owners: Set<ECKeyPair>
         get() = ownersPublicKeys.asSequence().map(ECPublicKey::toECKeyPair).toSet()
-
-    val isAbstractConsumable: Boolean
-        get() = this is AbstractConsumable
-
-    val isConsumable: Boolean
-        get() = this is Consumable
-
-    val isConsumer: Boolean
-        get() = this is Consumer
-
-    val asConsumer: Consumer
-        get() = this as Consumer
-
-    val asConsumable: Consumable
-        get() = this as Consumable
-
-    val asAbstractConsumable: AbstractConsumable
-        get() = this
 
     val hash: RadixHash
         get() = RadixHash.of(dson)

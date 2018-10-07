@@ -307,7 +307,14 @@ class RadixJsonRpcClient(
                     } else {
                         message = null
                     }
-                    AtomSubmissionUpdate.create(atom.hid, state, message)
+
+                    if (state === AtomSubmissionState.VALIDATION_ERROR) {
+                        LOGGER.warn(jsonAtom.toString())
+                    }
+
+                    val update = AtomSubmissionUpdate.create(atom.hid, state, message)
+                    update.putMetaData("jsonRpcParams", params)
+                    return@map update
                 }
                 .takeUntil { it.isComplete }
                 .subscribe(

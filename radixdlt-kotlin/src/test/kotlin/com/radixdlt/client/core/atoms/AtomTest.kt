@@ -8,10 +8,10 @@ import org.junit.Test
 class AtomTest {
     @Test
     fun testNullAtom() {
-        val atom = Atom(null, null)
+        val atom = Atom(null)
         assertTrue(atom.getDataParticles()!!.isEmpty())
-        assertTrue(atom.getConsumables()!!.isEmpty())
-        assertTrue(atom.consumers!!.isEmpty())
+        assertTrue(atom.getConsumables().isEmpty())
+        assertTrue(atom.getConsumers().isEmpty())
         assertNotNull(atom.hash)
         assertNotNull(atom.hid)
         assertNotNull(atom.summary())
@@ -19,6 +19,6 @@ class AtomTest {
         assertEquals(0L, atom.timestamp)
         assertNotNull(atom.toString())
 
-        assertEquals(atom, Atom(null, null))
+        assertEquals(atom, Atom(null))
     }
 }

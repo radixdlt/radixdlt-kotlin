@@ -5,11 +5,9 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.AbstractConsumable
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.Consumable
-import com.radixdlt.client.core.atoms.Consumer
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import io.reactivex.observers.TestObserver
@@ -27,7 +25,7 @@ class TransactionAtomsTest {
         whenever(address.ownsKey(any<ECKeyPair>())).thenReturn(true)
         whenever(address.ownsKey(any<ECPublicKey>())).thenReturn(true)
 
-        val consumer = mock<Consumer>()
+        val consumer = mock<Consumable>()
         whenever(consumer.tokenClass).thenReturn(Asset.TEST.id)
         whenever(consumer.ownersPublicKeys).thenReturn(setOf(ecPublicKey))
         whenever(consumer.dson).thenReturn(byteArrayOf(0))
@@ -39,8 +37,8 @@ class TransactionAtomsTest {
 
         // Build atom with consumer originating from nowhere
         val atom = mock<Atom>()
-        whenever(atom.consumers!!).thenReturn(listOf(consumer))
-        whenever(atom.getConsumables()!!).thenReturn(listOf<AbstractConsumable>(consumable))
+        whenever(atom.getConsumers()).thenReturn(listOf(consumer))
+        whenever(atom.getConsumables()).thenReturn(listOf(consumable))
 
         // Make sure we don't count it unless we find the matching consumable
         val transactionAtoms = TransactionAtoms(address, Asset.TEST.id)
@@ -59,7 +57,7 @@ class TransactionAtomsTest {
         val address = mock<RadixAddress>()
         whenever(address.ownsKey(ecPublicKey)).thenReturn(true)
 
-        val consumer = mock<Consumer>()
+        val consumer = mock<Consumable>()
         whenever(consumer.tokenClass).thenReturn(Asset.TEST.id)
         whenever(consumer.ownersPublicKeys).thenReturn(setOf(ecPublicKey))
         whenever(consumer.dson).thenReturn(byteArrayOf(0))
@@ -68,19 +66,17 @@ class TransactionAtomsTest {
         whenever(consumable.tokenClass).thenReturn(Asset.TEST.id)
         whenever(consumable.ownersPublicKeys).thenReturn(setOf(ecPublicKey))
         whenever(consumable.dson).thenReturn(byteArrayOf(1))
-        whenever(consumable.asConsumable).thenReturn(consumable)
 
         val atom = mock<Atom>()
-        whenever(atom.consumers!!).thenReturn(listOf(consumer))
-        whenever(atom.getConsumables()!!).thenReturn(listOf<AbstractConsumable>(consumable))
+        whenever(atom.getConsumers()).thenReturn(listOf(consumer))
+        whenever(atom.getConsumables()).thenReturn(listOf(consumable))
 
         val oldConsumable = mock<Consumable>()
         whenever(oldConsumable.tokenClass).thenReturn(Asset.TEST.id)
         whenever(oldConsumable.ownersPublicKeys).thenReturn(setOf(ecPublicKey))
         whenever(oldConsumable.dson).thenReturn(byteArrayOf(0))
-        whenever(oldConsumable.asConsumable).thenReturn(oldConsumable)
 
-        val oldConsumer = mock<Consumer>()
+        val oldConsumer = mock<Consumable>()
         whenever(oldConsumer.tokenClass).thenReturn(Asset.TEST.id)
         whenever(oldConsumer.ownersPublicKeys).thenReturn(
             setOf(mock())
@@ -88,8 +84,8 @@ class TransactionAtomsTest {
         whenever(oldConsumer.dson).thenReturn(byteArrayOf(2))
 
         val oldAtom = mock<Atom>()
-        whenever(oldAtom.consumers!!).thenReturn(listOf(oldConsumer))
-        whenever(oldAtom.getConsumables()!!).thenReturn(listOf<AbstractConsumable>(oldConsumable))
+        whenever(oldAtom.getConsumers()).thenReturn(listOf(oldConsumer))
+        whenever(oldAtom.getConsumables()).thenReturn(listOf(oldConsumable))
 
         val observer = TestObserver.create<Collection<Consumable>>()
 

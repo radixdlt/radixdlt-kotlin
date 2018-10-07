@@ -26,7 +26,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
     }
 
     private fun addConsumables(atom: Atom, emitter: ObservableEmitter<Atom>) {
-        atom.consumers!!.asSequence()
+        atom.getConsumers().asSequence()
             .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
             .filter { particle -> particle.tokenClass == assetId }
             .forEach { consumer ->
@@ -34,14 +34,14 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
                 unconsumedConsumables.remove(dson) ?: throw IllegalStateException("Missing consumable for consumer.")
             }
 
-        atom.getConsumables()!!.asSequence()
+        atom.getConsumables().asSequence()
             .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
             .filter { particle -> particle.tokenClass == assetId }
             .forEach { particle ->
                 val dson = ByteBuffer.wrap(particle.dson)
                 unconsumedConsumables.computeSynchronisedFunction(dson) { _, current ->
                     if (current == null) {
-                        particle.asConsumable
+                        particle
                     } else {
                         throw IllegalStateException("Consumable already exists.")
                     }
@@ -54,7 +54,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
     }
 
     private fun checkConsumers(transactionAtom: Atom, emitter: ObservableEmitter<Atom>) {
-        val missing: ByteBuffer? = transactionAtom.consumers!!.asSequence()
+        val missing: ByteBuffer? = transactionAtom.getConsumers().asSequence()
             .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
             .filter { particle -> particle.tokenClass == assetId }
             .map(AbstractConsumable::dson)
@@ -73,7 +73,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
                 }
             }
         } else {
-            if (transactionAtom.getConsumables()!!.asSequence().all { p -> p is AtomFeeConsumable }) {
+            if (transactionAtom.getConsumables().asSequence().all { p -> p is AtomFeeConsumable }) {
                 return
             }
 

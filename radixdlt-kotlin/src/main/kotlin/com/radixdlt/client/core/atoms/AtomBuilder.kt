@@ -6,7 +6,6 @@ import java.util.ArrayList
 class AtomBuilder {
 
     private val consumables = ArrayList<AbstractConsumable>()
-    private val consumers = ArrayList<Consumer>()
     private var dataParticles = ArrayList<DataParticle>()
     private var uniqueParticle: UniqueParticle? = null
 
@@ -17,11 +16,6 @@ class AtomBuilder {
 
     fun addDataParticle(dataParticle: DataParticle): AtomBuilder {
         this.dataParticles.add(dataParticle)
-        return this
-    }
-
-    fun addConsumer(consumer: Consumer): AtomBuilder {
-        this.consumers.add(consumer)
         return this
     }
 
@@ -60,7 +54,7 @@ class AtomBuilder {
             particles.add(uniqueParticle!!)
         }
         particles.add(ChronoParticle(timestamp))
-        return UnsignedAtom(Atom(particles, if (consumers.isEmpty()) null else consumers))
+        return UnsignedAtom(Atom(particles))
     }
 
     // Temporary method for testing

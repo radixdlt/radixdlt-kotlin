@@ -12,11 +12,7 @@ import java.util.HashMap
  * in a blockchain) and defines the actions that can be issued onto the ledger.
  */
 class Atom {
-    // TODO: These will be turned into a list of DeleteParticles in the future
-    val consumers: List<Consumer>?
-        get() = if (field == null) emptyList() else Collections.unmodifiableList(field)
 
-    // TODO: These will be turned into a list of CreateParticles in the future
     val particles: List<Particle>?
         get() = field ?: emptyList()
 
@@ -34,8 +30,9 @@ class Atom {
 
     // HACK
     val requiredFirstShard: Set<Long>
-        get() = if (this.consumers != null && this.consumers!!.isNotEmpty()) {
-            consumers!!.asSequence()
+        get() = if (this.particles!!.asSequence().any { p -> p.getSpin() == 0L }) {
+            particles!!.asSequence()
+                .filter { p -> p.getSpin() == 0L }
                 .flatMap { it.getDestinations().asSequence() }
                 .map(EUID::shard)
                 .toSet()
@@ -55,30 +52,29 @@ class Atom {
     val hid: EUID
         get() = hash.toEUID()
 
-    constructor(
-        particles: List<Particle>?,
-        consumers: List<Consumer>?
-    ) {
+    constructor(particles: List<Particle>?) {
         this.particles = particles
-        this.consumers = consumers
         this.signatures = null
     }
 
-    private constructor(
-        particles: List<Particle>?,
-        consumers: List<Consumer>?,
-        signatureId: EUID,
-        signature: ECSignature
-    ) {
+    private constructor(particles: List<Particle>?, signatureId: EUID, signature: ECSignature) {
         this.particles = particles
-        this.consumers = consumers
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)
     }
 
-    fun getConsumables(): List<AbstractConsumable>? {
+    fun getConsumers(): List<Consumable> {
         return this.particles!!.asSequence()
-            .filter { p -> p is AbstractConsumable }
-            .map { p -> p as AbstractConsumable }
+            .filter({ p -> p is Consumable })
+            .filter({ p -> p.getSpin() == 0L })
+            .map({ p -> p as Consumable })
+            .toList()
+    }
+
+    fun getConsumables(): List<Consumable> {
+        return this.particles!!.asSequence()
+            .filter({ p -> p is Consumable })
+            .filter({ p -> p.getSpin() == 1L })
+            .map({ p -> p as Consumable })
             .toList()
     }
 
@@ -92,7 +88,6 @@ class Atom {
     fun withSignature(signature: ECSignature, signatureId: EUID): Atom {
         return Atom(
             particles,
-            consumers,
             signatureId,
             signature
         )
@@ -107,7 +102,7 @@ class Atom {
     }
 
     fun summary(): Map<Set<ECPublicKey>, Map<EUID, Long>> {
-        return consumers!!.asSequence().plus(getConsumables()!!.asSequence())
+        return this.getConsumers().asSequence().plus(getConsumables().asSequence())
             .groupBy(AbstractConsumable::ownersPublicKeys)
             .mapValues { it ->
                 it.value.asSequence().groupBy(AbstractConsumable::tokenClass) {
@@ -119,7 +114,7 @@ class Atom {
     }
 
     fun consumableSummary(): Map<Set<ECPublicKey>, Map<EUID, List<Long>>> {
-        return consumers!!.asSequence().plus(getConsumables()!!.asSequence())
+        return this.getConsumers().asSequence().plus(getConsumables().asSequence())
             .groupBy(AbstractConsumable::ownersPublicKeys)
             .mapValues { it: Map.Entry<Set<ECPublicKey>, List<AbstractConsumable>> ->
                 it.value.asSequence().groupBy(AbstractConsumable::tokenClass) {
