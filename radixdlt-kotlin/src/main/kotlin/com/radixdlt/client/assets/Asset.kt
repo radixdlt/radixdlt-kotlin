@@ -41,7 +41,7 @@ class Asset private constructor(val iso: String, val subUnits: Int, val id: EUID
          * Radix Token asset. TODO: Read from universe file. Hardcode for now.
          */
         @JvmField
-        val TEST = Asset("TEST", 100000)
+        val TEST = Asset("XRD", 100000)
         @JvmField
         val POW = Asset("POW", 1)
 
