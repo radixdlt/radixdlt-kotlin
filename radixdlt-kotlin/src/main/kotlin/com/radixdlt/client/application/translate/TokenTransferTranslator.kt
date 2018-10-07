@@ -164,7 +164,7 @@ class TokenTransferTranslator(
                     .map { entry -> Consumable(entry.value,
                         entry.key.asSequence().map(ECKeyPair::getPublicKey).map(::AccountReference).toList(),
                         System.nanoTime(), Asset.TEST.id,
-                        System.currentTimeMillis() / 60000L, 1L)
+                        System.currentTimeMillis() / 60000L + 60000L, 1L)
                     }
                     .toList()
                 atomBuilder.addConsumables(consumables)
