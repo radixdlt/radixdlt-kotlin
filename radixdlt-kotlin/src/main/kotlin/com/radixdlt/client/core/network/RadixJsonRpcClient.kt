@@ -329,12 +329,16 @@ class RadixJsonRpcClient(
                             )
                         )
                     },
-                    {
+                    { throwable ->
+                        if (throwable is JsonRpcException) {
+                            LOGGER.warn(throwable.request.toString())
+                            LOGGER.warn(throwable.error.toString())
+                        }
                         emitter.onNext(
                             AtomSubmissionUpdate.create(
                                 atom.hid,
                                 AtomSubmissionState.FAILED,
-                                it.message
+                                throwable.message
                             )
                         )
                         emitter.onComplete()

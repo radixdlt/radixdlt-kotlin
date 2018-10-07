@@ -107,7 +107,12 @@ class TokenTransferTranslator(
                 // Translate attachment to corresponding atom structure
                 val attachment = tokenTransfer.attachment
                 if (attachment != null) {
-                    atomBuilder.addDataParticle(DataParticle.DataParticleBuilder().payload(Payload(attachment.bytes)).build())
+                    atomBuilder.addDataParticle(
+                        DataParticle.DataParticleBuilder()
+                            .payload(Payload(attachment.bytes))
+                            .account(tokenTransfer.from)
+                            .account(tokenTransfer.to!!)
+                            .build())
                     val encryptor = attachment.encryptor
                     if (encryptor != null) {
                         val protectorsJson = JsonArray()
@@ -118,6 +123,8 @@ class TokenTransferTranslator(
                             .payload(encryptorPayload)
                             .setMetaData("application", "encryptor")
                             .setMetaData("contentType", "application/json")
+                            .account(tokenTransfer.from)
+                            .account(tokenTransfer.to)
                             .build()
                         atomBuilder.addDataParticle(encryptorParticle)
                     }

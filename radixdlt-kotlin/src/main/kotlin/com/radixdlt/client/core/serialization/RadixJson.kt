@@ -89,13 +89,11 @@ object RadixJson {
 
     private val PARTICLE_SERIALIZER_IDS = HashMap<Class<out Particle>, Long>()
     init {
-//        PARTICLE_SERIALIZER_IDS.put(AtomFeeConsumable::class.java, -1463653224L)
         PARTICLE_SERIALIZER_IDS[AtomFeeConsumable::class.java] = "FEEPARTICLE".hashCode().toLong()
-        PARTICLE_SERIALIZER_IDS.put(Consumable::class.java, 318720611L)
+        PARTICLE_SERIALIZER_IDS[Consumable::class.java] = "TRANSFERPARTICLE".hashCode().toLong()
         PARTICLE_SERIALIZER_IDS.put(Emission::class.java, 1341978856L)
         PARTICLE_SERIALIZER_IDS.put(DataParticle::class.java, 473758768L)
         // PARTICLE_SERIALIZER_IDS.put(UniqueParticle.class, Long.valueOf("UNIQUEPARTICLE".hashCode()));
-//        PARTICLE_SERIALIZER_IDS.put(ChronoParticle::class.java, 1080087081L)
         PARTICLE_SERIALIZER_IDS[ChronoParticle::class.java] = "CHRONOPARTICLE".hashCode().toLong()
         PARTICLE_SERIALIZER_IDS.put(AssetParticle::class.java, - 1034420571L)
     }
