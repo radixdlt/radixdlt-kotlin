@@ -42,11 +42,10 @@ class AtomBuilder {
         val unsignedAtom = this.build(timestamp)
 
         // Rebuild with atom fee
-        val size = unsignedAtom.rawAtom.toDson().size
         val fee = AtomFeeConsumableBuilder()
             .atom(unsignedAtom)
             .owner(owner)
-            .pow(magic, Math.ceil(Math.log(size * 8.0)).toInt())
+            .pow(magic, POW_LEADING_ZEROES_REQUIRED)
             .build()
         this.addConsumable(fee)
 
@@ -67,5 +66,9 @@ class AtomBuilder {
     // Temporary method for testing
     fun build(): UnsignedAtom {
         return this.build(System.currentTimeMillis())
+    }
+
+    companion object {
+        private val POW_LEADING_ZEROES_REQUIRED = 16
     }
 }

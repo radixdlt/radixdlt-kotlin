@@ -173,6 +173,7 @@ class Dson private constructor() {
             val fieldStream = fields.asSequence()
                 .filter { field -> !field.name.equals("signatures", ignoreCase = true) }
                 .filter { field -> !field.name.equals("serialVersionUID", ignoreCase = true) }
+                .filter { field -> !field.name.equals("spin", ignoreCase = true) } // TODO: This needs to be added back in
                 .filter { field -> !field.name.equals("Companion", ignoreCase = true) } // Kotlin field
                 .filter { field -> !Modifier.isTransient(field.modifiers) }
                 .filter { field ->
