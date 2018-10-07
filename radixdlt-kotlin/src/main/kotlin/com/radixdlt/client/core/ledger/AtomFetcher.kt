@@ -27,6 +27,7 @@ class AtomFetcher(
             .doOnError { LOGGER.warn("Error on getAllAtoms: {}", destination) }
             .retryWhen(IncreasingRetryTimer())
             .filter { atom ->
+                LOGGER.info("Received atom ${atom.hid}")
                 return@filter try {
                     RadixAtomValidator.getInstance().validate(atom)
                     true

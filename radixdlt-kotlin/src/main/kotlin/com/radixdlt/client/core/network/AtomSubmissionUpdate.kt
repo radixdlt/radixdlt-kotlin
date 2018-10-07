@@ -1,6 +1,7 @@
 package com.radixdlt.client.core.network
 
-import com.radixdlt.client.core.address.EUID
+import com.google.gson.JsonElement
+import com.radixdlt.client.core.atoms.Atom
 import java.text.SimpleDateFormat
 import java.util.Collections
 import java.util.Date
@@ -9,9 +10,9 @@ import java.util.Locale
 import java.util.TimeZone
 
 class AtomSubmissionUpdate private constructor(
-    private val hid: EUID,
+    val atom: Atom,
     private val state: AtomSubmissionState,
-    val message: String?
+    val data: JsonElement?
 ) {
     private val metaData = HashMap<String, Any>()
     val timestamp: Long = System.currentTimeMillis()
@@ -54,17 +55,17 @@ class AtomSubmissionUpdate private constructor(
         val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
         sdf.timeZone = TimeZone.getDefault()
 
-        return "${sdf.format(Date(timestamp))} atom $hid $state${if (message != null) ": $message" else ""}"
+        return "${sdf.format(Date(timestamp))} atom ${atom.hid} $state${if (data != null) ": $data" else ""}"
     }
 
     companion object {
 
-        fun create(hid: EUID, code: AtomSubmissionState): AtomSubmissionUpdate {
-            return AtomSubmissionUpdate(hid, code, null)
+        fun create(atom: Atom, code: AtomSubmissionState): AtomSubmissionUpdate {
+            return AtomSubmissionUpdate(atom, code, null)
         }
 
-        fun create(hid: EUID, code: AtomSubmissionState, message: String?): AtomSubmissionUpdate {
-            return AtomSubmissionUpdate(hid, code, message)
+        fun create(atom: Atom, code: AtomSubmissionState, data: JsonElement?): AtomSubmissionUpdate {
+            return AtomSubmissionUpdate(atom, code, data)
         }
     }
 }

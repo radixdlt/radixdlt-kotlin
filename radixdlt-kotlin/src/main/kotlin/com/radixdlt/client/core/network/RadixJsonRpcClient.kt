@@ -3,6 +3,7 @@ package com.radixdlt.client.core.network
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.google.gson.JsonPrimitive
 import com.google.gson.reflect.TypeToken
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixUniverseConfig
@@ -301,18 +302,18 @@ class RadixJsonRpcClient(
                 .filter { p -> p.get("subscriberId").asString == subscriberId }
                 .map { p ->
                     val state = AtomSubmissionState.valueOf(p.get("value").asString)
-                    val message: String?
-                    if (p.has("message")) {
-                        message = p.get("message").asString
+                    val data: JsonElement?
+                    if (p.has("data")) {
+                        data = p.get("data")
                     } else {
-                        message = null
+                        data = null
                     }
 
                     if (state === AtomSubmissionState.VALIDATION_ERROR) {
                         LOGGER.warn(jsonAtom.toString())
                     }
 
-                    val update = AtomSubmissionUpdate.create(atom.hid, state, message)
+                    val update = AtomSubmissionUpdate.create(atom, state, data)
                     update.putMetaData("jsonRpcParams", params)
                     return@map update
                 }
@@ -325,15 +326,12 @@ class RadixJsonRpcClient(
 
             val methodDisposable = this.jsonRpcCall("Universe.submitAtomAndSubscribe", params)
                 .doOnSubscribe {
-                    emitter.onNext(AtomSubmissionUpdate.create(atom.hid, AtomSubmissionState.SUBMITTING))
+                    emitter.onNext(AtomSubmissionUpdate.create(atom, AtomSubmissionState.SUBMITTING))
                 }
                 .subscribe(
                     {
                         emitter.onNext(
-                            AtomSubmissionUpdate.create(
-                                atom.hid,
-                                AtomSubmissionState.SUBMITTED
-                            )
+                            AtomSubmissionUpdate.create(atom, AtomSubmissionState.SUBMITTED)
                         )
                     },
                     { throwable ->
@@ -343,9 +341,9 @@ class RadixJsonRpcClient(
                         }
                         emitter.onNext(
                             AtomSubmissionUpdate.create(
-                                atom.hid,
+                                atom,
                                 AtomSubmissionState.FAILED,
-                                throwable.message
+                                JsonPrimitive(throwable.message)
                             )
                         )
                         emitter.onComplete()

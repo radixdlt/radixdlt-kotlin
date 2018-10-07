@@ -21,6 +21,7 @@ import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
+import com.radixdlt.client.core.serialization.RadixJson
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Observable
@@ -30,6 +31,7 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.disposables.Disposables
 import io.reactivex.observables.ConnectableObservable
 import io.reactivex.rxkotlin.Observables
+import org.slf4j.LoggerFactory
 import java.util.Objects
 
 /**
@@ -65,7 +67,7 @@ class RadixApplicationAPI private constructor(
                     if (update.getState() == AtomSubmissionState.STORED) {
                         return@flatMapCompletable Completable.complete()
                     } else {
-                        return@flatMapCompletable Completable.error(RuntimeException(update.message))
+                        return@flatMapCompletable Completable.error(RuntimeException(update.data.toString()))
                     }
                 }
         }
@@ -290,6 +292,18 @@ class RadixApplicationAPI private constructor(
         val updates = unsignedAtom
             .flatMap(myIdentity::sign)
             .flatMapObservable(ledger.getAtomSubmitter()::submitAtom)
+            .doOnNext {update ->
+                //TODO: retry on collision
+                if (update.getState() == AtomSubmissionState.COLLISION) {
+                    val data = update.data!!.asJsonObject
+                    val jsonPointer = data.getAsJsonPrimitive("pointerToConflict").asString
+                    LOGGER.info("ParticleConflict: pointer({}) cause({}) atom({})",
+                        jsonPointer,
+                        data.getAsJsonPrimitive("cause").asString,
+                        RadixJson.gson.toJson(update.atom)
+                    )
+                }
+            }
             .replay()
 
         updates.connect()
@@ -298,6 +312,8 @@ class RadixApplicationAPI private constructor(
     }
 
     companion object {
+
+        private val LOGGER = LoggerFactory.getLogger(RadixApplicationAPI::class.java)
 
         @JvmStatic
         fun create(identity: RadixIdentity): RadixApplicationAPI {

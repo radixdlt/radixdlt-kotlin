@@ -9,4 +9,8 @@ class AccountReference(key: ECPublicKey) {
     fun getKey(): ECPublicKey {
         return key.getPublicKey()
     }
+
+    override fun toString(): String {
+        return key.getPublicKey().toString()
+    }
 }

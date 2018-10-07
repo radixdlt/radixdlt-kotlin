@@ -45,6 +45,6 @@ abstract class AbstractConsumable internal constructor(
     abstract val signedQuantity: Long
 
     override fun toString(): String {
-        return "${this.javaClass.name} owners($addresses)"
+        return "${this.javaClass.simpleName} owners($addresses) amount($amount) spin($spin)"
     }
 }

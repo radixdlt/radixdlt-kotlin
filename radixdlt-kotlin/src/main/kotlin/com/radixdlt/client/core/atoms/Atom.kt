@@ -64,17 +64,17 @@ class Atom {
 
     fun getConsumers(): List<Consumable> {
         return this.particles!!.asSequence()
-            .filter({ p -> p is Consumable })
-            .filter({ p -> p.getSpin() == 0L })
-            .map({ p -> p as Consumable })
+            .filter { p -> p is Consumable }
+            .filter { p -> p.getSpin() == 2L }
+            .map { p -> p as Consumable }
             .toList()
     }
 
     fun getConsumables(): List<Consumable> {
         return this.particles!!.asSequence()
-            .filter({ p -> p is Consumable })
-            .filter({ p -> p.getSpin() == 1L })
-            .map({ p -> p as Consumable })
+            .filter { p -> p is Consumable }
+            .filter { p -> p.getSpin() == 1L }
+            .map { p -> p as Consumable }
             .toList()
     }
 
