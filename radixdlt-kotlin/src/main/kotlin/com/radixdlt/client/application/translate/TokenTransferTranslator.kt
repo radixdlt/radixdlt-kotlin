@@ -40,7 +40,7 @@ class TokenTransferTranslator(
         val to: RadixAddress?
         if (summary.size == 1) {
             from = if (summary[0].value <= 0L) universe.getAddressFrom(summary[0].key) else null
-            to = if (summary[0].value <= 0L) null else universe.getAddressFrom(summary[0].key)
+            to = if (summary[0].value < 0L) null else universe.getAddressFrom(summary[0].key)
         } else {
             if (summary[0].value > 0) {
                 from = universe.getAddressFrom(summary[1].key)
