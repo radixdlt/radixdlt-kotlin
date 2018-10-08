@@ -235,7 +235,7 @@ class RadixApplicationAPITest {
         })
         `when`(ledger.getParticleStore()).thenReturn(object : ParticleStore {
             override fun getConsumables(address: RadixAddress): Observable<AbstractConsumable> {
-                return Observable.empty()
+                return Observable.never()
             }
         })
 
@@ -246,7 +246,7 @@ class RadixApplicationAPITest {
         val observer = TestObserver.create<Amount>()
 
         api.getBalance(address, Asset.TEST).subscribe(observer)
-        observer.awaitTerminalEvent()
+        observer.awaitCount(1)
         observer.assertValue { amount -> amount.amountInSubunits == 0L }
     }
 

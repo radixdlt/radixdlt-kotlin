@@ -6,6 +6,7 @@ import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.application.objects.UnencryptedData
+import com.radixdlt.client.application.translate.AddressTokenState
 import com.radixdlt.client.application.translate.DataStoreTranslator
 import com.radixdlt.client.application.translate.TokenTransferTranslator
 import com.radixdlt.client.application.translate.TransactionAtoms
@@ -14,10 +15,8 @@ import com.radixdlt.client.assets.Amount
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.AbstractConsumable
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.AtomFeeConsumable
 import com.radixdlt.client.core.atoms.TransactionAtom
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.ECPublicKey
@@ -32,7 +31,6 @@ import io.reactivex.disposables.Disposables
 import io.reactivex.observables.ConnectableObservable
 import io.reactivex.rxkotlin.Observables
 import java.util.Objects
-import java.util.concurrent.TimeUnit
 
 /**
  * The Radix Dapp API, a high level api which dapps can utilize. The class hides
@@ -189,14 +187,7 @@ class RadixApplicationAPI private constructor(
 
         pull(address)
 
-        return this.ledger.getParticleStore().getConsumables(address)
-            .filter { p -> (p !is AtomFeeConsumable) }
-            .filter { p -> p.ownersPublicKeys.asSequence().all(address::ownsKey) }
-            .map(AbstractConsumable::signedQuantity)
-            .scan { a, b -> a + b }.startWith(0L)
-            .debounce(1000, TimeUnit.MILLISECONDS)
-            .map { balanceInSubUnits -> Amount.subUnitsOf(balanceInSubUnits, tokenClass) }
-            .share()
+        return tokenTransferTranslator.getTokenState(address).map(AddressTokenState::balance)
     }
 
     /**

@@ -5,25 +5,26 @@ import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.AbstractConsumable
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.AtomFeeConsumable
 import com.radixdlt.client.core.atoms.Consumable
-import com.radixdlt.client.core.atoms.RadixHash
 import com.radixdlt.client.core.atoms.TransactionAtom
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import com.radixdlt.client.core.ledger.ParticleStore
+import com.radixdlt.client.core.ledger.computeIfAbsentSynchronisedFunction
 import io.reactivex.Completable
+import io.reactivex.Observable
 import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.HashMap
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.ConcurrentHashMap
 
 class TokenTransferTranslator(
     private val universe: RadixUniverse,
     private val particleStore: ParticleStore
 ) {
+
+    private val cache = ConcurrentHashMap<RadixAddress, AddressTokenReducer>()
 
     fun fromAtom(transactionAtom: TransactionAtom): TokenTransfer {
         val summary = transactionAtom.summary().entries.asSequence()
@@ -75,22 +76,17 @@ class TokenTransferTranslator(
         )
     }
 
+    fun getTokenState(address: RadixAddress?): Observable<AddressTokenState> {
+        return cache.computeIfAbsentSynchronisedFunction(address!!) { addr ->
+            AddressTokenReducer(addr, particleStore)
+        }.state
+    }
+
     fun translate(tokenTransfer: TokenTransfer, atomBuilder: AtomBuilder): Completable {
         atomBuilder.type(TransactionAtom::class.java)
 
-        return this.particleStore.getConsumables(tokenTransfer.from!!)
-            .filter { p -> (p !is AtomFeeConsumable) }
-            .scanWith({ HashMap<RadixHash, AbstractConsumable>() }) { map, p ->
-                val newMap = HashMap(map)
-                newMap[p.hash] = p
-                return@scanWith newMap
-            }
-            .map { map -> map.values.asSequence()
-                .filter(AbstractConsumable::isConsumable)
-                .map(AbstractConsumable::asConsumable)
-                .toList()
-            }
-            .debounce(1000, TimeUnit.MILLISECONDS)
+        return this.getTokenState(tokenTransfer.from)
+            .map(AddressTokenState::unconsumedConsumables)
             .firstOrError()
             .flatMapCompletable { unconsumedConsumables ->
 
