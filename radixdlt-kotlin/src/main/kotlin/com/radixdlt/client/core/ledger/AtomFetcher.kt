@@ -22,8 +22,9 @@ class AtomFetcher(
 
     fun fetchAtoms(destination: EUID): Observable<Atom> {
         val atomQuery = AtomQuery(destination, Atom::class.java)
-        return clientSelector(destination.shard)
-            .flatMapObservable { client -> client.getAtoms(atomQuery) }
+        return Observable.fromCallable { clientSelector(destination.shard) }
+            .flatMapSingle { c -> c }
+            .flatMap { client -> client.getAtoms(atomQuery) }
             .doOnError { LOGGER.warn("Error on getAllAtoms: {}", destination) }
             .retryWhen(IncreasingRetryTimer())
             .filter { atom ->
