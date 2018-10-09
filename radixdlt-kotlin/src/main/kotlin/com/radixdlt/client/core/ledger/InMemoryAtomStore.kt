@@ -1,6 +1,8 @@
 package com.radixdlt.client.core.ledger
 
-import com.radixdlt.client.core.address.EUID
+import com.radixdlt.client.application.translate.TransactionAtoms
+import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import io.reactivex.Observable
 import io.reactivex.subjects.ReplaySubject
@@ -15,7 +17,7 @@ class InMemoryAtomStore : AtomStore {
     /**
      * The In Memory Atom Data Store
      */
-    private val cache = ConcurrentHashMap<EUID, ReplaySubject<Atom>>()
+    private val cache = ConcurrentHashMap<RadixAddress, ReplaySubject<Atom>>()
 
     /**
      * Store an atom under a given destination
@@ -24,20 +26,30 @@ class InMemoryAtomStore : AtomStore {
      * @param destination destination to store under
      * @param atom the atom to store
      */
-    fun store(destination: EUID, atom: Atom) {
-        cache.computeIfAbsentSynchronisedFunction(destination) { ReplaySubject.create() }
+    fun store(address: RadixAddress, atom: Atom) {
+        cache.computeIfAbsentSynchronisedFunction(address) { ReplaySubject.create() }
             .onNext(atom)
     }
 
     /**
-     * Returns an unending stream of atoms which are stored at a particular destination.
+     * Returns an unending stream of validated atoms which are stored at a particular destination.
      *
-     * @param destination destination (which determines shard) to query atoms for
+     * @param address address (which determines shard) to query atoms for
      * @return an Atom Observable
      */
-    override fun getAtoms(destination: EUID?): Observable<Atom> {
-        Objects.requireNonNull(destination!!)
-        return cache.computeIfAbsentSynchronisedFunction(destination) { ReplaySubject.create() }
-            .distinct()
+    override fun getAtoms(address: RadixAddress): Observable<Atom> {
+        Objects.requireNonNull(address) // not needed in Kotlin
+        return Observable.just(TransactionAtoms(address, Asset.TEST.id))
+            .flatMap { txAtoms ->
+                cache.computeIfAbsentSynchronisedFunction(address) { euid -> ReplaySubject.create() }
+                    .distinct()
+                    .flatMap<Atom> { atom ->
+                        if (atom.isTransactionAtom) {
+                            txAtoms.accept(atom.asTransactionAtom).newValidTransactions
+                        } else {
+                            Observable.just(atom)
+                        }
+                    }
+            }
     }
 }

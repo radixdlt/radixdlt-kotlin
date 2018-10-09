@@ -1,39 +1,26 @@
 package com.radixdlt.client.core.ledger
 
-import com.radixdlt.client.application.translate.TransactionAtoms
-import com.radixdlt.client.assets.Asset
-import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
+import com.radixdlt.client.core.atoms.AbstractConsumable
 import com.radixdlt.client.core.atoms.Atom
-import com.radixdlt.client.core.atoms.Consumable
+import com.radixdlt.client.core.atoms.TransactionAtom
 import io.reactivex.Observable
-import io.reactivex.rxkotlin.Observables
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
 
-class ConsumableDataSource(private val atomStore: (EUID) -> (Observable<Atom>)) : ParticleStore {
-    private val cache = ConcurrentHashMap<RadixAddress, Observable<Collection<Consumable>>>()
+class ConsumableDataSource(private val atomStore: AtomStore) : ParticleStore {
+    private val cache = ConcurrentHashMap<RadixAddress, Observable<AbstractConsumable>>()
 
-    override fun getConsumables(address: RadixAddress): Observable<Collection<Consumable>> {
+    override fun getConsumables(address: RadixAddress): Observable<AbstractConsumable> {
         // TODO: use https://github.com/JakeWharton/RxReplayingShare to disconnect when unsubscribed
-        return cache.computeIfAbsentSynchronisedFunction(address) { _ ->
-            Observable.just<Collection<Consumable>>(emptySet()).concatWith(
-                Observables.combineLatest(
-                    Observable.fromCallable {
-                        TransactionAtoms(
-                            address,
-                            Asset.TEST.id
-                        )
-                    },
-                    atomStore(address.getUID())
-                        .filter(Atom::isTransactionAtom)
-                        .map(Atom::asTransactionAtom)
-                ) { transactionAtoms, atom ->
-                    transactionAtoms.accept(atom)
-                        .getUnconsumedConsumables()
-                }.flatMapMaybe({ unconsumedMaybe -> unconsumedMaybe })
-            ).debounce(1000, TimeUnit.MILLISECONDS)
-                .replay(1).autoConnect()
+        return cache.computeIfAbsentSynchronisedFunction(address) { addr ->
+            atomStore.getAtoms(address)
+                .filter(Atom::isTransactionAtom)
+                .map(Atom::asTransactionAtom)
+                .flatMapIterable(TransactionAtom::getAbstractConsumables)
+                .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
+                .cache()
+                //.replay(1)
+                //.autoConnect()
         }
     }
 }

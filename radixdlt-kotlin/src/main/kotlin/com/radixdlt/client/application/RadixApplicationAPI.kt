@@ -6,6 +6,7 @@ import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.application.objects.UnencryptedData
+import com.radixdlt.client.application.translate.AddressTokenState
 import com.radixdlt.client.application.translate.DataStoreTranslator
 import com.radixdlt.client.application.translate.TokenTransferTranslator
 import com.radixdlt.client.application.translate.TransactionAtoms
@@ -16,7 +17,6 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.TransactionAtom
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.ECPublicKey
@@ -100,7 +100,7 @@ class RadixApplicationAPI private constructor(
         Objects.requireNonNull(address)
 
         return if (ledger.getAtomPuller() != null) {
-            ledger.getAtomPuller()!!.pull(address.getUID())
+            ledger.getAtomPuller()!!.pull(address)
         } else {
             Disposables.disposed()
         }
@@ -111,7 +111,7 @@ class RadixApplicationAPI private constructor(
 
         pull(address)
 
-        return ledger.getAtomStore().getAtoms(address.getUID())
+        return ledger.getAtomStore().getAtoms(address)
             .filter(Atom::isMessageAtom)
             .map(Atom::asMessageAtom)
             .map(dataStoreTranslator::fromAtom)
@@ -168,7 +168,7 @@ class RadixApplicationAPI private constructor(
 
         return Observables.combineLatest<TransactionAtoms, TransactionAtom, Observable<TransactionAtom>>(
             Observable.fromCallable { TransactionAtoms(address, tokenClass.id) },
-            ledger.getAtomStore().getAtoms(address.getUID())
+            ledger.getAtomStore().getAtoms(address)
                 .filter(Atom::isTransactionAtom)
                 .map(Atom::asTransactionAtom)
         ) { transactionAtoms, atom ->
@@ -187,17 +187,7 @@ class RadixApplicationAPI private constructor(
 
         pull(address)
 
-        return this.ledger.getParticleStore().getConsumables(address)
-            .map { it.asSequence() }
-            .map { sequence ->
-                sequence.filter { consumable ->
-                    consumable.assetId == tokenClass.id
-                }
-                    .map(Consumable::quantity)
-                    .sum()
-            }
-            .map { balanceInSubUnits -> Amount.subUnitsOf(balanceInSubUnits, tokenClass) }
-            .share()
+        return tokenTransferTranslator.getTokenState(address).map(AddressTokenState::balance)
     }
 
     /**

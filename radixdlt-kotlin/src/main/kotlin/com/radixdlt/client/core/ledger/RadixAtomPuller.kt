@@ -1,6 +1,6 @@
 package com.radixdlt.client.core.ledger
 
-import com.radixdlt.client.core.address.EUID
+import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
@@ -13,25 +13,23 @@ class RadixAtomPuller(
     /**
      * The mechanism by which to fetch atoms
      */
-    private val fetcher: (EUID) -> (Observable<Atom>),
+    private val fetcher: (RadixAddress) -> (Observable<Atom>),
     /**
      * The mechanism by which to merge or store atoms
      */
-    private val atomStore: (EUID, Atom) -> Unit
+    private val atomStore: (RadixAddress, Atom) -> Unit
 ) : AtomPuller {
 
     /**
      * Atoms retrieved from the network
      */
-    private val cache = ConcurrentHashMap<EUID, Observable<Atom>>()
+    private val cache = ConcurrentHashMap<RadixAddress, Observable<Atom>>()
 
-    override fun pull(euid: EUID): Disposable {
-        return cache.computeIfAbsentSynchronisedFunction(
-            euid
-        ) { destination ->
+    override fun pull(address: RadixAddress): Disposable {
+        return cache.computeIfAbsentSynchronisedFunction(address) { destination ->
             val fetchedAtoms = fetcher(destination)
                 .publish().refCount(2)
-            fetchedAtoms.subscribe { atom -> atomStore(euid, atom) }
+            fetchedAtoms.subscribe { atom -> atomStore(address, atom) }
             fetchedAtoms
         }.subscribe()
     }

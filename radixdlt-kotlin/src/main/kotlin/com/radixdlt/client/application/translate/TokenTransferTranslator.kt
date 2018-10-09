@@ -12,14 +12,19 @@ import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import com.radixdlt.client.core.ledger.ParticleStore
+import com.radixdlt.client.core.ledger.computeIfAbsentSynchronisedFunction
 import io.reactivex.Completable
+import io.reactivex.Observable
 import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.HashMap
+import java.util.concurrent.ConcurrentHashMap
 
 class TokenTransferTranslator(
     private val universe: RadixUniverse,
     private val particleStore: ParticleStore
 ) {
+
+    private val cache = ConcurrentHashMap<RadixAddress, AddressTokenReducer>()
 
     fun fromAtom(transactionAtom: TransactionAtom): TokenTransfer {
         val summary = transactionAtom.summary().entries.asSequence()
@@ -71,10 +76,17 @@ class TokenTransferTranslator(
         )
     }
 
+    fun getTokenState(address: RadixAddress?): Observable<AddressTokenState> {
+        return cache.computeIfAbsentSynchronisedFunction(address!!) { addr ->
+            AddressTokenReducer(addr, particleStore)
+        }.state
+    }
+
     fun translate(tokenTransfer: TokenTransfer, atomBuilder: AtomBuilder): Completable {
         atomBuilder.type(TransactionAtom::class.java)
 
-        return this.particleStore.getConsumables(tokenTransfer.from!!)
+        return this.getTokenState(tokenTransfer.from)
+            .map(AddressTokenState::unconsumedConsumables)
             .firstOrError()
             .flatMapCompletable { unconsumedConsumables ->
 
@@ -121,15 +133,6 @@ class TokenTransferTranslator(
                 atomBuilder.addParticles(consumables)
 
                 return@flatMapCompletable Completable.complete()
-
-                /*
-                if (withPOWFee) {
-                    // TODO: Replace this with public key of processing node runner
-                    return atomBuilder.buildWithPOWFee(ledger.getMagic(), fromAddress.getPublicKey());
-                } else {
-                    return atomBuilder.build();
-                }
-                */
             }
     }
 }

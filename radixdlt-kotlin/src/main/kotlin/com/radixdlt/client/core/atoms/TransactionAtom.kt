@@ -52,6 +52,13 @@ class TransactionAtom : PayloadAtom {
         timestamp: Long
     ) : super(particles, destinations, payload, encryptor, timestamp, signatureId, signature)
 
+    fun getAbstractConsumables(): List<AbstractConsumable> {
+        return particles!!.asSequence()
+            .filter { it.isAbstractConsumable }
+            .map { it.asAbstractConsumable }
+            .toList()
+    }
+
     fun summary(): Map<Set<ECPublicKey>, Map<EUID, Long>> {
         return particles!!.asSequence()
             .filter(Particle::isAbstractConsumable)
