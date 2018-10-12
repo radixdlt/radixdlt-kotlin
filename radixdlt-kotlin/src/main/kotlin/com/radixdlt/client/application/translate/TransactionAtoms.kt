@@ -2,10 +2,10 @@ package com.radixdlt.client.application.translate
 
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.AbstractConsumable
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomFeeConsumable
 import com.radixdlt.client.core.atoms.Consumable
+import com.radixdlt.client.core.atoms.Spin
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import org.slf4j.LoggerFactory
@@ -26,22 +26,22 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
     }
 
     private fun addConsumables(atom: Atom, emitter: ObservableEmitter<Atom>) {
-        atom.getConsumers().asSequence()
-            .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
-            .filter { particle -> particle.tokenClass == assetId }
-            .forEach { consumer ->
-                val dson = ByteBuffer.wrap(consumer.dson)
+        atom.getConsumables(Spin.DOWN).asSequence()
+            .filter { particle -> particle.getOwnersPublicKeys().asSequence().all(address::ownsKey) }
+            .filter { particle -> particle.getTokenClass() == assetId }
+            .forEach { down ->
+                val dson = ByteBuffer.wrap(down.getDson())
                 unconsumedConsumables.remove(dson) ?: throw IllegalStateException("Missing consumable for consumer.")
             }
 
-        atom.getConsumables().asSequence()
-            .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
-            .filter { particle -> particle.tokenClass == assetId }
-            .forEach { particle ->
-                val dson = ByteBuffer.wrap(particle.dson)
+        atom.getConsumables(Spin.UP).asSequence()
+            .filter { up -> up.getOwnersPublicKeys().asSequence().all(address::ownsKey) }
+            .filter { up -> up.getTokenClass() == assetId }
+            .forEach { up ->
+                val dson = ByteBuffer.wrap(up.getDson())
                 unconsumedConsumables.computeSynchronisedFunction(dson) { _, current ->
                     if (current == null) {
-                        particle
+                        up
                     } else {
                         throw IllegalStateException("Consumable already exists.")
                     }
@@ -54,10 +54,10 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
     }
 
     private fun checkConsumers(transactionAtom: Atom, emitter: ObservableEmitter<Atom>) {
-        val missing: ByteBuffer? = transactionAtom.getConsumers().asSequence()
-            .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
-            .filter { particle -> particle.tokenClass == assetId }
-            .map(AbstractConsumable::dson)
+        val missing: ByteBuffer? = transactionAtom.getConsumables(Spin.DOWN).asSequence()
+            .filter { down -> down.getOwnersPublicKeys().asSequence().all(address::ownsKey) }
+            .filter { down -> down.getTokenClass() == assetId }
+            .map(Consumable::getDson)
             .map { ByteBuffer.wrap(it) }
             .filter { dson -> !unconsumedConsumables.containsKey(dson) }
             .firstOrNull()
@@ -73,7 +73,7 @@ class TransactionAtoms(private val address: RadixAddress, private val assetId: E
                 }
             }
         } else {
-            if (transactionAtom.getConsumables().asSequence().all { p -> p is AtomFeeConsumable }) {
+            if (transactionAtom.getConsumables(Spin.UP).asSequence().all { p -> p is AtomFeeConsumable }) {
                 return
             }
 

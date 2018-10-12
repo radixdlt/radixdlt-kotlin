@@ -10,8 +10,8 @@ class AtomTest {
     fun testNullAtom() {
         val atom = Atom(null)
         assertTrue(atom.getDataParticles()!!.isEmpty())
-        assertTrue(atom.getConsumables().isEmpty())
-        assertTrue(atom.getConsumers().isEmpty())
+        assertTrue(atom.getConsumables(Spin.UP).isEmpty())
+        assertTrue(atom.getConsumables(Spin.DOWN).isEmpty())
         assertNotNull(atom.hash)
         assertNotNull(atom.hid)
         assertNotNull(atom.summary())

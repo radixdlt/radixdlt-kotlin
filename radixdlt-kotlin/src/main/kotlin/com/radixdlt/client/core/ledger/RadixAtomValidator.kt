@@ -4,6 +4,7 @@ import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomValidationException
 import com.radixdlt.client.core.atoms.AtomValidator
+import com.radixdlt.client.core.atoms.Spin
 import com.radixdlt.client.core.crypto.ECSignature
 
 class RadixAtomValidator private constructor() : AtomValidator {
@@ -19,18 +20,18 @@ class RadixAtomValidator private constructor() : AtomValidator {
     fun validateSignatures(atom: Atom) {
         val hash = atom.hash
 
-        val exception = atom.getConsumers().asSequence()
-            .map { consumer ->
-                if (consumer.ownersPublicKeys.isEmpty()) {
+        val exception = atom.getConsumables(Spin.DOWN).asSequence()
+            .map { down ->
+                if (down.getOwnersPublicKeys().isEmpty()) {
                     return@map AtomValidationException("No owners in particle")
                 }
 
-                if (consumer.tokenClass == Asset.POW.id) {
+                if (down.getTokenClass() == Asset.POW.id) {
                     return@map null
                 }
 
                 val consumerException: AtomValidationException? =
-                    consumer.ownersPublicKeys.asSequence().map keyMap@{ owner ->
+                    down.getOwnersPublicKeys().asSequence().map keyMap@{ owner ->
                         val signature: ECSignature = atom.getSignature(owner.getUID())
                             ?: return@keyMap AtomValidationException("Missing signature")
 

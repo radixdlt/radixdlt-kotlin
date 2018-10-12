@@ -5,7 +5,7 @@ import java.util.ArrayList
 
 class AtomBuilder {
 
-    private val consumables = ArrayList<AbstractConsumable>()
+    private val consumables = ArrayList<Consumable>()
     private var dataParticles = ArrayList<DataParticle>()
     private var uniqueParticle: UniqueParticle? = null
 

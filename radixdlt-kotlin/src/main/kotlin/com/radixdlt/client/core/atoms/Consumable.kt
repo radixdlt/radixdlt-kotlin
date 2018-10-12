@@ -1,23 +1,27 @@
 package com.radixdlt.client.core.atoms
 
+import com.google.gson.annotations.SerializedName
+import com.radixdlt.client.core.TokenClassReference
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.crypto.ECKeyPair
+import com.radixdlt.client.core.crypto.ECPublicKey
+import com.radixdlt.client.core.serialization.Dson
 import com.radixdlt.client.core.util.mergeAfterSum
 
 open class Consumable(
-    quantity: Long,
-    addresses: List<AccountReference>,
-    nonce: Long,
-    assetId: EUID,
-    planck: Long,
-    spin: Spin
-) : AbstractConsumable(quantity, addresses, nonce, assetId, planck, spin) {
+    val amount: Long,
+    val addresses: List<AccountReference>?,
+    val nonce: Long,
+    tokenId: EUID,
+    val planck: Long,
+    private val spin: Spin
+) : Particle {
 
-    override val signedQuantity: Long
-        get() = if (getSpin() == Spin.UP) amount else if (getSpin() == Spin.DOWN) -1 * amount else 0
+    @SerializedName("token_reference")
+    private val tokenClassReference: TokenClassReference = TokenClassReference(tokenId, EUID(0))
 
-    fun toConsumer(): Consumable {
-        return Consumable(super.amount, super.addresses!!, nonce, tokenClass, planck, Spin.DOWN)
+    fun spinDown(): Consumable {
+        return Consumable(this.amount, addresses, nonce, getTokenClass(), planck, Spin.DOWN)
     }
 
     fun addConsumerQuantities(
@@ -25,16 +29,54 @@ open class Consumable(
         newOwners: Set<ECKeyPair>,
         consumerQuantities: MutableMap<Set<ECKeyPair>, Long>
     ) {
-        if (amount > super.amount) {
-            throw IllegalArgumentException("Unable to create consumable with amount $amount (available: ${super.amount})")
+        if (amount > this.amount) {
+            throw IllegalArgumentException(
+                "Unable to create consumable with amount $amount (available: ${this.amount})"
+            )
         }
 
-        if (amount == super.amount) {
+        if (amount == this.amount) {
             consumerQuantities.mergeAfterSum(newOwners, amount)
             return
         }
 
         consumerQuantities.mergeAfterSum(newOwners, amount)
-        consumerQuantities.mergeAfterSum(owners, super.amount - amount)
+        consumerQuantities.mergeAfterSum(getOwners(), this.amount - amount)
+    }
+
+    override fun getSpin(): Spin {
+        return spin
+    }
+
+    fun getTokenClass(): EUID {
+        return tokenClassReference.token
+    }
+
+    fun getSignedAmount(): Long {
+        return amount * if (getSpin() === Spin.UP) 1 else -1
+    }
+
+    override fun getDestinations(): Set<EUID> {
+        return getOwnersPublicKeys().asSequence().map { it.getUID() }.toSet()
+    }
+
+    fun getOwnersPublicKeys(): Set<ECPublicKey> {
+        return addresses?.asSequence()?.map { it.getKey() }?.toSet() ?: emptySet()
+    }
+
+    fun getOwners(): Set<ECKeyPair> {
+        return getOwnersPublicKeys().asSequence().map { it.toECKeyPair() }.toSet()
+    }
+
+    fun getHash(): RadixHash {
+        return RadixHash.of(getDson())
+    }
+
+    fun getDson(): ByteArray {
+        return Dson.instance.toDson(this)
+    }
+
+    override fun toString(): String {
+        return "${this.javaClass.simpleName} owners($addresses) amount($amount) spin($spin)"
     }
 }

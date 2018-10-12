@@ -189,7 +189,7 @@ class RadixApplicationAPI private constructor(
             .map { it.asSequence() }
             .map { sequence ->
                 sequence.filter { consumable ->
-                    consumable.tokenClass == tokenClass.id
+                    consumable.getTokenClass() == tokenClass.id
                 }
                     .map(Consumable::amount)
                     .sum()

@@ -141,16 +141,16 @@ class TokenTransferTranslator(
                 while (consumerTotal < tokenTransfer.subUnitAmount && iterator.hasNext()) {
                     val left = tokenTransfer.subUnitAmount - consumerTotal
 
-                    val newConsumer = iterator.next().toConsumer()
-                    consumerTotal += newConsumer.amount
+                    val down = iterator.next().spinDown()
+                    consumerTotal += down.amount
 
-                    val amount = Math.min(left, newConsumer.amount)
-                    newConsumer.addConsumerQuantities(
+                    val amount = Math.min(left, down.amount)
+                    down.addConsumerQuantities(
                         amount, setOf(tokenTransfer.to!!.toECKeyPair()),
                         consumerQuantities
                     )
 
-                    atomBuilder.addConsumable(newConsumer)
+                    atomBuilder.addConsumable(down)
                 }
 
                 if (consumerTotal < tokenTransfer.subUnitAmount) {

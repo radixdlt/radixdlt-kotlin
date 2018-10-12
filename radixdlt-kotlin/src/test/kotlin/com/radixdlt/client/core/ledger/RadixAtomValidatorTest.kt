@@ -6,6 +6,7 @@ import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomValidationException
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.RadixHash
+import com.radixdlt.client.core.atoms.Spin
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.util.any
@@ -18,7 +19,6 @@ import java.util.Arrays
 class RadixAtomValidatorTest {
 
     @Test
-    @Throws(AtomValidationException::class)
     fun testSignatureValidation() {
         val hash = mock(RadixHash::class.java)
 
@@ -29,13 +29,13 @@ class RadixAtomValidatorTest {
         `when`(publicKey.getUID()).thenReturn(EUID(1))
 
         val consumer = mock(Consumable::class.java)
-        `when`(consumer.ownersPublicKeys).thenReturn(setOf(publicKey))
-        `when`(consumer.tokenClass).thenReturn(Asset.TEST.id)
+        `when`(consumer.getOwnersPublicKeys()).thenReturn(setOf(publicKey))
+        `when`(consumer.getTokenClass()).thenReturn(Asset.TEST.id)
 
         val atom = mock(Atom::class.java)
         `when`(atom.hash).thenReturn(hash)
         `when`(atom.getSignature(any())).thenReturn(null)
-        `when`(atom.getConsumers()).thenReturn(Arrays.asList(consumer))
+        `when`(atom.getConsumables(Spin.DOWN)).thenReturn(Arrays.asList(consumer))
 
         val validator = RadixAtomValidator.getInstance()
         assertThatThrownBy { validator.validateSignatures(atom) }

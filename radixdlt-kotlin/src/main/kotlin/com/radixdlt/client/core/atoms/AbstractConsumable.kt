@@ -42,8 +42,6 @@ abstract class AbstractConsumable internal constructor(
     val dson: ByteArray
         get() = Dson.instance.toDson(this)
 
-    abstract val signedQuantity: Long
-
     override fun toString(): String {
         return "${this.javaClass.simpleName} owners($addresses) amount($amount) spin($spin)"
     }

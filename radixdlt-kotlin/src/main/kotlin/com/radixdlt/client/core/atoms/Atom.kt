@@ -62,18 +62,10 @@ class Atom {
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)
     }
 
-    fun getConsumers(): List<Consumable> {
+    fun getConsumables(spin: Spin): List<Consumable> {
         return this.particles!!.asSequence()
             .filter { p -> p is Consumable }
-            .filter { p -> p.getSpin() == Spin.DOWN }
-            .map { p -> p as Consumable }
-            .toList()
-    }
-
-    fun getConsumables(): List<Consumable> {
-        return this.particles!!.asSequence()
-            .filter { p -> p is Consumable }
-            .filter { p -> p.getSpin() == Spin.UP }
+            .filter { p -> p.getSpin() == spin }
             .map { p -> p as Consumable }
             .toList()
     }
@@ -102,11 +94,11 @@ class Atom {
     }
 
     fun summary(): Map<Set<ECPublicKey>, Map<EUID, Long>> {
-        return this.getConsumers().asSequence().plus(getConsumables().asSequence())
-            .groupBy(AbstractConsumable::ownersPublicKeys)
+        return this.getConsumables(Spin.UP).asSequence().plus(getConsumables(Spin.DOWN).asSequence())
+            .groupBy(Consumable::getOwnersPublicKeys)
             .mapValues { it ->
-                it.value.asSequence().groupBy(AbstractConsumable::tokenClass) {
-                    it.signedQuantity
+                it.value.asSequence().groupBy(Consumable::getTokenClass) {
+                    it.getSignedAmount()
                 }.mapValues {
                     it.value.sum()
                 }
@@ -114,11 +106,11 @@ class Atom {
     }
 
     fun consumableSummary(): Map<Set<ECPublicKey>, Map<EUID, List<Long>>> {
-        return this.getConsumers().asSequence().plus(getConsumables().asSequence())
-            .groupBy(AbstractConsumable::ownersPublicKeys)
-            .mapValues { it: Map.Entry<Set<ECPublicKey>, List<AbstractConsumable>> ->
-                it.value.asSequence().groupBy(AbstractConsumable::tokenClass) {
-                    it.signedQuantity
+        return this.getConsumables(Spin.UP).asSequence().plus(getConsumables(Spin.DOWN).asSequence())
+            .groupBy(Consumable::getOwnersPublicKeys)
+            .mapValues { it: Map.Entry<Set<ECPublicKey>, List<Consumable>> ->
+                it.value.asSequence().groupBy(Consumable::getTokenClass) {
+                    it.getSignedAmount()
                 }
             }
     }

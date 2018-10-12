@@ -10,7 +10,7 @@ import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.MacMismatchException
 import io.reactivex.Single
 
-class BaseRadixIdentity(private val myKey: ECKeyPair) : RadixIdentity {
+internal class BaseRadixIdentity(private val myKey: ECKeyPair) : RadixIdentity {
 
     override fun sign(atom: UnsignedAtom): Single<Atom> {
         return Single.create { emitter ->
