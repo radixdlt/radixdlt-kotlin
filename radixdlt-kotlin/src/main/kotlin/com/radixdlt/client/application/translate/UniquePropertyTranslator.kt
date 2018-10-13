@@ -21,7 +21,7 @@ class UniquePropertyTranslator {
         val payload = Payload(uniqueProperty.unique)
         val ecPublicKey = uniqueProperty.address.publicKey
         val uniqueParticle = UniqueParticle.create(payload, ecPublicKey)
-        atomBuilder.setUniqueParticle(uniqueParticle)
+        atomBuilder.addParticle(uniqueParticle)
         return Completable.complete()
     }
 }

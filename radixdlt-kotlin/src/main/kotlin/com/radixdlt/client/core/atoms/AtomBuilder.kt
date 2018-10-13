@@ -5,27 +5,15 @@ import java.util.ArrayList
 
 class AtomBuilder {
 
-    private val consumables = ArrayList<Consumable>()
-    private var dataParticles = ArrayList<DataParticle>()
-    private var uniqueParticle: UniqueParticle? = null
+    private val particles = ArrayList<Particle>()
 
-    fun setUniqueParticle(uniqueParticle: UniqueParticle): AtomBuilder {
-        this.uniqueParticle = uniqueParticle
+    fun addParticles(particles: List<Particle>): AtomBuilder {
+        this.particles.addAll(particles)
         return this
     }
 
-    fun addDataParticle(dataParticle: DataParticle): AtomBuilder {
-        this.dataParticles.add(dataParticle)
-        return this
-    }
-
-    fun addConsumable(consumable: Consumable): AtomBuilder {
-        this.consumables.add(consumable)
-        return this
-    }
-
-    fun <T : Consumable> addConsumables(particles: List<T>): AtomBuilder {
-        this.consumables.addAll(particles)
+    fun addParticle(particle: Particle): AtomBuilder {
+        this.particles.add(particle)
         return this
     }
 
@@ -41,18 +29,13 @@ class AtomBuilder {
             .owner(owner)
             .pow(magic, POW_LEADING_ZEROES_REQUIRED)
             .build()
-        this.addConsumable(fee)
+        this.addParticle(fee)
 
         return this.build(timestamp)
     }
 
     fun build(timestamp: Long): UnsignedAtom {
-        val particles = ArrayList<Particle>()
-        particles.addAll(dataParticles)
-        particles.addAll(consumables)
-        if (uniqueParticle != null) {
-            particles.add(uniqueParticle!!)
-        }
+        val particles = ArrayList(this.particles)
         particles.add(ChronoParticle(timestamp))
         return UnsignedAtom(Atom(particles))
     }
@@ -63,6 +46,6 @@ class AtomBuilder {
     }
 
     companion object {
-        private val POW_LEADING_ZEROES_REQUIRED = 16
+        private const val POW_LEADING_ZEROES_REQUIRED = 16
     }
 }

@@ -28,7 +28,7 @@ class DataStoreTranslator private constructor() {
             .accounts(dataStore.getAddresses())
             .build()
 
-        atomBuilder.addDataParticle(dataParticle)
+        atomBuilder.addParticle(dataParticle)
         val encryptor = dataStore.data.encryptor
         if (encryptor != null) {
             val protectorsJson = JsonArray()
@@ -41,7 +41,7 @@ class DataStoreTranslator private constructor() {
                 .setMetaData("contentType", "application/json")
                 .accounts(dataStore.getAddresses())
                 .build()
-            atomBuilder.addDataParticle(encryptorParticle)
+            atomBuilder.addParticle(encryptorParticle)
         }
 
         return Completable.complete()

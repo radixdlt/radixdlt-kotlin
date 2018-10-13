@@ -29,6 +29,6 @@ class DataStoreTranslatorTest {
         dataStoreTranslator.translate(dataStore, atomBuilder).subscribe(testObserver)
         testObserver.assertNoErrors()
         testObserver.assertComplete()
-        verify(atomBuilder, times(2)).addDataParticle(any())
+        verify(atomBuilder, times(2)).addParticle(any())
     }
 }

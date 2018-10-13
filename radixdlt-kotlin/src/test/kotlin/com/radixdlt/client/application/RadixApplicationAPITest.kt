@@ -52,8 +52,8 @@ class RadixApplicationAPITest {
         val identity = mock(RadixIdentity::class.java)
 
         val atomBuilder = mock(AtomBuilder::class.java)
-        `when`(atomBuilder.addDataParticle(anyOrNull())).thenReturn(atomBuilder)
-        `when`(atomBuilder.addDataParticle(anyOrNull())).thenReturn(atomBuilder)
+        `when`(atomBuilder.addParticle(anyOrNull())).thenReturn(atomBuilder)
+        `when`(atomBuilder.addParticle(anyOrNull())).thenReturn(atomBuilder)
         val atom = mock(Atom::class.java)
         `when`(identity.sign(anyOrNull())).thenReturn(Single.just(atom))
 

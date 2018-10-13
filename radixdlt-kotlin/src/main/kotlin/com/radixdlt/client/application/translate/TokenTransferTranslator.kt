@@ -120,7 +120,7 @@ class TokenTransferTranslator(
                 // Translate attachment to corresponding atom structure
                 val attachment = tokenTransfer.attachment
                 if (attachment != null) {
-                    atomBuilder.addDataParticle(
+                    atomBuilder.addParticle(
                         DataParticle.DataParticleBuilder()
                             .payload(Payload(attachment.bytes))
                             .account(tokenTransfer.from!!)
@@ -139,7 +139,7 @@ class TokenTransferTranslator(
                             .account(tokenTransfer.from)
                             .account(tokenTransfer.to)
                             .build()
-                        atomBuilder.addDataParticle(encryptorParticle)
+                        atomBuilder.addParticle(encryptorParticle)
                     }
                 }
 
@@ -162,7 +162,7 @@ class TokenTransferTranslator(
                         consumerQuantities
                     )
 
-                    atomBuilder.addConsumable(down)
+                    atomBuilder.addParticle(down)
                 }
 
                 if (consumerTotal < tokenTransfer.subUnitAmount) {
@@ -180,7 +180,7 @@ class TokenTransferTranslator(
                         System.currentTimeMillis() / 60000L + 60000L, Spin.UP)
                     }
                     .toList()
-                atomBuilder.addConsumables(consumables)
+                atomBuilder.addParticles(consumables)
 
                 return@flatMapCompletable Completable.complete()
             }
