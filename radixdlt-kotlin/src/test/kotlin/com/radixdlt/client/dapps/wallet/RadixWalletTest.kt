@@ -1,8 +1,8 @@
 package com.radixdlt.client.dapps.wallet
 
 import com.radixdlt.client.application.RadixApplicationAPI
-import com.radixdlt.client.assets.Amount
-import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.application.objects.Amount
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.util.any
 import io.reactivex.Completable
@@ -41,7 +41,7 @@ class RadixWalletTest {
         val api = mock(RadixApplicationAPI::class.java)
         val result = mock(RadixApplicationAPI.Result::class.java)
         `when`(result.toCompletable()).thenReturn(Completable.complete())
-        `when`(api.getMyBalance(any())).thenReturn(Observable.just(Amount.of(BigDecimal("1.0"), Asset.TEST)))
+        `when`(api.getMyBalance(any())).thenReturn(Observable.just(Amount.of(BigDecimal("1.0"), Token.TEST)))
         `when`(api.sendTokens(any(), any(), any(), any<ByteArray>())).thenReturn(result)
         val radixWallet = RadixWallet(api)
         val radixAddress = mock(RadixAddress::class.java)

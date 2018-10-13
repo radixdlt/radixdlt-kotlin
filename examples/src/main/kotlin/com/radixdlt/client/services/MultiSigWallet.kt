@@ -4,7 +4,7 @@
 //import com.google.gson.JsonDeserializer
 //import com.google.gson.JsonPrimitive
 //import com.google.gson.JsonSerializer
-//import com.radixdlt.client.assets.Asset
+//import com.radixdlt.client.application.objects.Asset
 //import com.radixdlt.client.core.Bootstrap
 //import com.radixdlt.client.core.RadixUniverse
 //import com.radixdlt.client.core.address.EUID

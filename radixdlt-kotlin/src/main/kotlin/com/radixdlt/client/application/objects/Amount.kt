@@ -1,18 +1,14 @@
-package com.radixdlt.client.assets
+package com.radixdlt.client.application.objects
 
 import java.math.BigDecimal
 
 /**
  * Class mainly for formatting amounts in error messages and other English text.
  */
-class Amount(val asset: Asset, val amountInSubunits: Long) {
-
-    fun getTokenClass(): Asset {
-        return asset
-    }
+class Amount(val token: Token, val amountInSubunits: Long) {
 
     fun lte(amount: Amount): Boolean {
-        if (amount.getTokenClass() != this.getTokenClass()) {
+        if (amount.token != this.token) {
             throw IllegalArgumentException("Only amounts with the same token class can be compared.")
         }
 
@@ -20,7 +16,7 @@ class Amount(val asset: Asset, val amountInSubunits: Long) {
     }
 
     fun gte(amount: Amount): Boolean {
-        if (amount.getTokenClass() != this.getTokenClass()) {
+        if (amount.token != this.token) {
             throw IllegalArgumentException("Only amounts with the same token class can be compared.")
         }
 
@@ -34,32 +30,32 @@ class Amount(val asset: Asset, val amountInSubunits: Long) {
 
     override fun equals(other: Any?): Boolean {
         if (other is Amount) {
-            return other.amountInSubunits == this.amountInSubunits && other.asset == this.asset
+            return other.amountInSubunits == this.amountInSubunits && other.token == this.token
         }
 
         return false
     }
 
     override fun toString(): String {
-        return "${formattedAmount()} ${asset.iso}"
+        return "${formattedAmount()} ${token.iso}"
     }
 
     private fun formattedAmount(): String {
-        val remainder = amountInSubunits % asset.subUnits
+        val remainder = amountInSubunits % token.subUnits
 
         if (remainder == 0L) {
             // Whole number
-            return (amountInSubunits / asset.subUnits).toString()
+            return (amountInSubunits / token.subUnits).toString()
         }
 
-        if (isPowerOfTen(asset.subUnits)) {
+        if (isPowerOfTen(token.subUnits)) {
             // Decimal format
-            return BigDecimal.valueOf(amountInSubunits).divide(BigDecimal.valueOf(asset.subUnits.toLong())).toString()
+            return BigDecimal.valueOf(amountInSubunits).divide(BigDecimal.valueOf(token.subUnits.toLong())).toString()
         }
 
         // Fraction format
-        val quotient = amountInSubunits / asset.subUnits
-        val fraction = remainder.toString() + "/" + asset.subUnits
+        val quotient = amountInSubunits / token.subUnits
+        val fraction = remainder.toString() + "/" + token.subUnits
         return if (quotient == 0L) {
             fraction
         } else quotient.toString() + " and " + fraction
@@ -74,23 +70,23 @@ class Amount(val asset: Asset, val amountInSubunits: Long) {
     }
 
     companion object {
-        fun subUnitsOf(amountInSubunits: Long, tokenClass: Asset): Amount {
+        fun subUnitsOf(amountInSubunits: Long, tokenClass: Token): Amount {
             return Amount(tokenClass, amountInSubunits)
         }
 
-        fun of(amount: Long, tokenClass: Asset): Amount {
+        fun of(amount: Long, tokenClass: Token): Amount {
             return Amount(tokenClass, tokenClass.subUnits * amount)
         }
 
-        fun of(amount: BigDecimal, tokenClass: Asset): Amount {
-            val subUnitAmount = amount.multiply(BigDecimal.valueOf(tokenClass.subUnits.toLong())).stripTrailingZeros()
+        fun of(amount: BigDecimal, token: Token): Amount {
+            val subUnitAmount = amount.multiply(BigDecimal.valueOf(token.subUnits.toLong())).stripTrailingZeros()
             if (subUnitAmount.scale() > 0) {
                 throw IllegalArgumentException(
-                    "Amount $amount cannot be used for $tokenClass which has a subunit value of ${tokenClass.subUnits}"
+                    "Amount $amount cannot be used for $token which has a subunit value of ${token.subUnits}"
                 )
             }
 
-            return Amount(tokenClass, subUnitAmount.longValueExact())
+            return Amount(token, subUnitAmount.longValueExact())
         }
     }
 }

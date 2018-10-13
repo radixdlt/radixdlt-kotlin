@@ -1,8 +1,8 @@
 package com.radixdlt.client.application.actions
 
+import com.radixdlt.client.application.objects.Amount
 import com.radixdlt.client.application.objects.Data
-import com.radixdlt.client.assets.Amount
-import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.address.RadixAddress
 import java.util.Collections
 import java.util.HashMap
@@ -10,7 +10,7 @@ import java.util.HashMap
 class TokenTransfer private constructor(
     val from: RadixAddress?,
     val to: RadixAddress?,
-    val tokenClass: Asset,
+    val token: Token,
     val subUnitAmount: Long,
     val attachment: Data?,
     private val metaData: Map<String, Any>
@@ -23,13 +23,13 @@ class TokenTransfer private constructor(
     override fun toString(): String {
         val timestamp = metaData["timestamp"] as Long
         return ("$timestamp $from -> $to ${Amount.subUnitsOf(
-            subUnitAmount, tokenClass)}${if (attachment == null) "" else " $attachment"}")
+            subUnitAmount, token)}${if (attachment == null) "" else " $attachment"}")
     }
 
     companion object {
 
         @JvmStatic
-        fun create(from: RadixAddress?, to: RadixAddress?, tokenClass: Asset, subUnitAmount: Long): TokenTransfer {
+        fun create(from: RadixAddress?, to: RadixAddress?, tokenClass: Token, subUnitAmount: Long): TokenTransfer {
             return TokenTransfer(from, to, tokenClass, subUnitAmount, null, emptyMap())
         }
 
@@ -37,7 +37,7 @@ class TokenTransfer private constructor(
         fun create(
             from: RadixAddress?,
             to: RadixAddress?,
-            tokenClass: Asset,
+            tokenClass: Token,
             subUnitAmount: Long,
             attachment: Data?
         ): TokenTransfer {
@@ -48,7 +48,7 @@ class TokenTransfer private constructor(
         fun create(
             from: RadixAddress?,
             to: RadixAddress?,
-            tokenClass: Asset,
+            tokenClass: Token,
             subUnitAmount: Long,
             timestamp: Long?
         ): TokenTransfer {
@@ -62,7 +62,7 @@ class TokenTransfer private constructor(
         fun create(
             from: RadixAddress?,
             to: RadixAddress?,
-            tokenClass: Asset,
+            tokenClass: Token,
             subUnitAmount: Long,
             attachment: Data?,
             timestamp: Long?

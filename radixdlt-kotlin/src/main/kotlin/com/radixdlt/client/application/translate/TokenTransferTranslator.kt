@@ -4,7 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 import com.radixdlt.client.application.actions.TokenTransfer
 import com.radixdlt.client.application.objects.Data
-import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
@@ -38,11 +38,11 @@ class TokenTransferTranslator(
 
     fun fromAtom(atom: Atom): TokenTransfer {
         val summary = atom.summary().entries.asSequence()
-            .filter { entry -> entry.value.containsKey(Asset.TEST.id) }
+            .filter { entry -> entry.value.containsKey(Token.TEST.id) }
             .map { entry ->
                 SimpleImmutableEntry<ECPublicKey, Long>(
                     entry.key.iterator().next(),
-                    entry.value[Asset.TEST.id]
+                    entry.value[Token.TEST.id]
                 )
             }
             .toList()
@@ -101,7 +101,7 @@ class TokenTransferTranslator(
         }
 
         return TokenTransfer.create(
-            from, to, Asset.TEST, Math.abs(summary[0].value), attachment, atom.timestamp
+            from, to, Token.TEST, Math.abs(summary[0].value), attachment, atom.timestamp
         )
     }
 
@@ -168,7 +168,7 @@ class TokenTransferTranslator(
                 if (consumerTotal < tokenTransfer.subUnitAmount) {
                     return@flatMapCompletable Completable.error(
                         InsufficientFundsException(
-                            tokenTransfer.tokenClass, consumerTotal, tokenTransfer.subUnitAmount
+                            tokenTransfer.token, consumerTotal, tokenTransfer.subUnitAmount
                         )
                     )
                 }
@@ -176,7 +176,7 @@ class TokenTransferTranslator(
                 val consumables = consumerQuantities.entries.asSequence()
                     .map { entry -> Consumable(entry.value,
                         entry.key.asSequence().map(ECKeyPair::getPublicKey).map(::AccountReference).toList(),
-                        System.nanoTime(), Asset.TEST.id,
+                        System.nanoTime(), Token.TEST.id,
                         System.currentTimeMillis() / 60000L + 60000L, Spin.UP)
                     }
                     .toList()

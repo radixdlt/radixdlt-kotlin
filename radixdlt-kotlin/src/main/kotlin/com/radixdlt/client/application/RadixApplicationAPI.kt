@@ -4,15 +4,15 @@ import com.radixdlt.client.application.actions.DataStore
 import com.radixdlt.client.application.actions.TokenTransfer
 import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
+import com.radixdlt.client.application.objects.Amount
 import com.radixdlt.client.application.objects.Data
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.application.objects.UnencryptedData
 import com.radixdlt.client.application.translate.AddressTokenState
 import com.radixdlt.client.application.translate.DataStoreTranslator
 import com.radixdlt.client.application.translate.TokenTransferTranslator
 import com.radixdlt.client.application.translate.TransactionAtoms
 import com.radixdlt.client.application.translate.UniquePropertyTranslator
-import com.radixdlt.client.assets.Amount
-import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
@@ -157,11 +157,11 @@ class RadixApplicationAPI private constructor(
         return Result(updates)
     }
 
-    fun getMyTokenTransfers(tokenClass: Asset): Observable<TokenTransfer> {
+    fun getMyTokenTransfers(tokenClass: Token): Observable<TokenTransfer> {
         return getTokenTransfers(myAddress, tokenClass)
     }
 
-    fun getTokenTransfers(address: RadixAddress, tokenClass: Asset): Observable<TokenTransfer> {
+    fun getTokenTransfers(address: RadixAddress, tokenClass: Token): Observable<TokenTransfer> {
         Objects.requireNonNull(address)
         Objects.requireNonNull(tokenClass)
 
@@ -175,11 +175,11 @@ class RadixApplicationAPI private constructor(
             .flatMap { atoms -> atoms.map { tokenTransferTranslator.fromAtom(it) } }
     }
 
-    fun getMyBalance(tokenClass: Asset): Observable<Amount> {
+    fun getMyBalance(tokenClass: Token): Observable<Amount> {
         return getBalance(myAddress, tokenClass)
     }
 
-    fun getBalance(address: RadixAddress, tokenClass: Asset): Observable<Amount> {
+    fun getBalance(address: RadixAddress, tokenClass: Token): Observable<Amount> {
         Objects.requireNonNull(address)
         Objects.requireNonNull(tokenClass)
 
@@ -249,7 +249,7 @@ class RadixApplicationAPI private constructor(
         Objects.requireNonNull(to)
         Objects.requireNonNull(amount)
 
-        val tokenTransfer = TokenTransfer.create(from, to, amount.getTokenClass(), amount.amountInSubunits, attachment)
+        val tokenTransfer = TokenTransfer.create(from, to, amount.token, amount.amountInSubunits, attachment)
         val uniqueProperty: UniqueProperty?
         if (unique != null) {
             // Unique Property must be the from address so that all validation occurs in a single shard.

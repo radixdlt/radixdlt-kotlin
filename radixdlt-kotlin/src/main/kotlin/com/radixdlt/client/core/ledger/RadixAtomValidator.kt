@@ -1,6 +1,6 @@
 package com.radixdlt.client.core.ledger
 
-import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomValidationException
 import com.radixdlt.client.core.atoms.AtomValidator
@@ -26,7 +26,7 @@ class RadixAtomValidator private constructor() : AtomValidator {
                     return@map AtomValidationException("No owners in particle")
                 }
 
-                if (down.getTokenClass() == Asset.POW.id) {
+                if (down.getTokenClass() == Token.POW.id) {
                     return@map null
                 }
 

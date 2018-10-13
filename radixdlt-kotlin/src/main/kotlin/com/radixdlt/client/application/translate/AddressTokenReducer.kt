@@ -1,7 +1,7 @@
 package com.radixdlt.client.application.translate
 
-import com.radixdlt.client.assets.Amount
-import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.application.objects.Amount
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AtomFeeConsumable
 import com.radixdlt.client.core.atoms.Consumable
@@ -33,7 +33,7 @@ class AddressTokenReducer(address: RadixAddress, particleStore: ParticleStore) {
             .map { consumables ->
                 val balanceInSubUnits =
                     consumables.asSequence().map(Consumable::amount).sum()
-                val balance = Amount.subUnitsOf(balanceInSubUnits, Asset.TEST)
+                val balance = Amount.subUnitsOf(balanceInSubUnits, Token.TEST)
                 AddressTokenState(balance, consumables)
             }
             .replay(1)

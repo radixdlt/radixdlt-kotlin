@@ -1,7 +1,7 @@
 package com.radixdlt.client.core.atoms
 
 import com.google.gson.annotations.SerializedName
-import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.crypto.ECKeyPair
 
@@ -17,7 +17,7 @@ class TokenParticle(
 ) : Particle {
 
     private val spin: Spin = Spin.UP
-    private val id: EUID = Asset.calcEUID(iso)
+    private val id: EUID = Token.calcEUID(iso)
 
     // TODO: fix this to be an account
     override fun getDestinations(): Set<EUID> {

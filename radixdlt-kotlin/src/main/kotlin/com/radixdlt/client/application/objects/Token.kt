@@ -1,11 +1,11 @@
-package com.radixdlt.client.assets
+package com.radixdlt.client.application.objects
 
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.RadixHash
 import java.nio.charset.StandardCharsets
 import java.util.Objects
 
-class Asset private constructor(val iso: String, val subUnits: Int, val id: EUID) {
+class Token private constructor(val iso: String, val subUnits: Int, val id: EUID) {
 
     init {
         Objects.requireNonNull(iso)
@@ -16,10 +16,12 @@ class Asset private constructor(val iso: String, val subUnits: Int, val id: EUID
         }
     }
 
-    constructor(iso: String, subUnits: Int) : this(iso, subUnits, calcEUID(iso))
+    constructor(iso: String, subUnits: Int) : this(iso, subUnits,
+        calcEUID(iso)
+    )
 
     override fun equals(other: Any?): Boolean {
-        if (other !is Asset) {
+        if (other !is Token) {
             return false
         }
 
@@ -38,12 +40,12 @@ class Asset private constructor(val iso: String, val subUnits: Int, val id: EUID
 
         private val CHARSET = StandardCharsets.UTF_8
         /**
-         * Radix Token asset. TODO: Read from universe file. Hardcode for now.
+         * Radix Token token. TODO: Read from universe file. Hardcode for now.
          */
         @JvmField
-        val TEST = Asset("XRD", 100000)
+        val TEST = Token("XRD", 100000)
         @JvmField
-        val POW = Asset("POW", 1)
+        val POW = Token("POW", 1)
 
         fun calcEUID(isoCode: String): EUID {
             return RadixHash.of(isoCode.toByteArray(CHARSET)).toEUID()

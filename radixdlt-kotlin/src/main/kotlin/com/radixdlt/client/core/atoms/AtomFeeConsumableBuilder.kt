@@ -1,6 +1,6 @@
 package com.radixdlt.client.core.atoms
 
-import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.pow.ProofOfWorkBuilder
 import java.util.Objects
@@ -39,7 +39,7 @@ class AtomFeeConsumableBuilder {
             pow.nonce,
             listOf(AccountReference(owner!!)),
             System.nanoTime(),
-            Asset.POW.id,
+            Token.POW.id,
             System.currentTimeMillis() * 60000
         )
     }

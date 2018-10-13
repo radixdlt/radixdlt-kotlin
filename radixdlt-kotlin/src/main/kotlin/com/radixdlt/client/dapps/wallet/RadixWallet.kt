@@ -2,9 +2,9 @@ package com.radixdlt.client.dapps.wallet
 
 import com.radixdlt.client.application.RadixApplicationAPI
 import com.radixdlt.client.application.actions.TokenTransfer
+import com.radixdlt.client.application.objects.Amount
 import com.radixdlt.client.application.objects.Data
-import com.radixdlt.client.assets.Amount
-import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import io.reactivex.Completable
@@ -45,7 +45,7 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      *
      * @return an unending Observable of balances
      */
-    fun getBalance(): Observable<Amount> = api.getMyBalance(Asset.TEST)
+    fun getBalance(): Observable<Amount> = api.getMyBalance(Token.TEST)
 
     /**
      * Returns an unending stream of the latest balance of an account
@@ -54,7 +54,7 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      * @param address myAddress to get balance from
      * @return an unending Observable of balances
      */
-    fun getBalance(address: RadixAddress): Observable<Amount> = api.getBalance(address, Asset.TEST)
+    fun getBalance(address: RadixAddress): Observable<Amount> = api.getBalance(address, Token.TEST)
 
     /**
      * Returns an unending stream of transfers which have occurred and will
@@ -62,7 +62,7 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      *
      * @return an unending Observable of transfers
      */
-    fun getTransactions(): Observable<TokenTransfer> = api.getTokenTransfers(api.myAddress, Asset.TEST)
+    fun getTransactions(): Observable<TokenTransfer> = api.getTokenTransfers(api.myAddress, Token.TEST)
 
     /**
      * Returns an unending stream of transfers which have occurred and will
@@ -71,7 +71,7 @@ class RadixWallet(private val api: RadixApplicationAPI) {
      * @param address myAddress to get transfers from
      * @return an unending Observable of transfers
      */
-    fun getTransactions(address: RadixAddress): Observable<TokenTransfer> = api.getTokenTransfers(address, Asset.TEST)
+    fun getTransactions(address: RadixAddress): Observable<TokenTransfer> = api.getTokenTransfers(address, Token.TEST)
 
     /**
      * Immediately try and transfer TEST from user's account to another myAddress. If there is
@@ -103,7 +103,7 @@ class RadixWallet(private val api: RadixApplicationAPI) {
             null
         }
 
-        val result = api.sendTokens(toAddress, Amount.of(amount, Asset.TEST), attachment)
+        val result = api.sendTokens(toAddress, Amount.of(amount, Token.TEST), attachment)
         return SendResult(result)
     }
 
@@ -163,9 +163,9 @@ class RadixWallet(private val api: RadixApplicationAPI) {
 
         val uniqueBytes = unique?.toByteArray()
 
-        val amountToSend = Amount.of(amount, Asset.TEST)
+        val amountToSend = Amount.of(amount, Token.TEST)
 
-        val result = api.getMyBalance(Asset.TEST)
+        val result = api.getMyBalance(Token.TEST)
             .filter(amountToSend::lte)
             .firstOrError()
             .map { api.sendTokens(toAddress, amountToSend, attachment, uniqueBytes) }

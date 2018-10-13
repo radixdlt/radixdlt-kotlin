@@ -3,7 +3,7 @@ package com.radixdlt.client.application.translate
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import com.radixdlt.client.application.actions.TokenTransfer
-import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AtomBuilder
@@ -28,11 +28,11 @@ class TokenTransferTranslatorTest {
         val tokenTransfer = mock<TokenTransfer>()
         whenever(tokenTransfer.subUnitAmount).thenReturn(10L)
         whenever(tokenTransfer.from).thenReturn(address)
-        whenever(tokenTransfer.tokenClass).thenReturn(Asset.TEST)
+        whenever(tokenTransfer.token).thenReturn(Token.TEST)
 
         val observer = TestObserver.create<Any>()
         transferTranslator.translate(tokenTransfer, AtomBuilder()).subscribe(observer)
         observer.awaitTerminalEvent()
-        observer.assertError(InsufficientFundsException(Asset.TEST, 0, 10))
+        observer.assertError(InsufficientFundsException(Token.TEST, 0, 10))
     }
 }

@@ -3,11 +3,11 @@ package com.radixdlt.client.application
 import com.nhaarman.mockitokotlin2.anyOrNull
 import com.radixdlt.client.application.RadixApplicationAPI.Result
 import com.radixdlt.client.application.identity.RadixIdentity
+import com.radixdlt.client.application.objects.Amount
 import com.radixdlt.client.application.objects.Data
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.application.objects.UnencryptedData
 import com.radixdlt.client.application.translate.DataStoreTranslator
-import com.radixdlt.client.assets.Amount
-import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
@@ -276,7 +276,7 @@ class RadixApplicationAPITest {
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
         val observer = TestObserver.create<Amount>()
 
-        api.getBalance(address, Asset.TEST).subscribe(observer)
+        api.getBalance(address, Token.TEST).subscribe(observer)
         observer.awaitCount(1)
         observer.assertValue { amount -> amount.amountInSubunits == 0L }
     }
@@ -330,7 +330,7 @@ class RadixApplicationAPITest {
 
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance) { AtomBuilder() }
         val testObserver = TestObserver.create<Amount>()
-        api.getBalance(address, Asset.TEST).subscribe(testObserver)
+        api.getBalance(address, Token.TEST).subscribe(testObserver)
         verify(puller, times(1)).pull(address)
     }
 }

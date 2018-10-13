@@ -1,6 +1,6 @@
 //package com.radixdlt.client.services
 //
-//import com.radixdlt.client.assets.Asset
+//import com.radixdlt.client.application.objects.Asset
 //import com.radixdlt.client.core.Bootstrap
 //import com.radixdlt.client.core.RadixUniverse
 //import com.radixdlt.client.core.address.RadixAddress

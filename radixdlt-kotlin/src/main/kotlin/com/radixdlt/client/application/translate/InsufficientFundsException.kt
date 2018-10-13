@@ -1,14 +1,14 @@
 package com.radixdlt.client.application.translate
 
-import com.radixdlt.client.assets.Amount
-import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.application.objects.Amount
+import com.radixdlt.client.application.objects.Token
 
 class InsufficientFundsException(
-    private val asset: Asset,
+    private val token: Token,
     val available: Long,
     val requestedAmount: Long
 ) : Exception(
-    "Requested ${Amount.subUnitsOf(requestedAmount, asset)} but only ${Amount.subUnitsOf(available, asset)} available."
+    "Requested ${Amount.subUnitsOf(requestedAmount, token)} but only ${Amount.subUnitsOf(available, token)} available."
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -17,7 +17,7 @@ class InsufficientFundsException(
         }
 
         val o = other as InsufficientFundsException?
-        return this.asset == o!!.asset && this.available == o.available && this.requestedAmount == o.requestedAmount
+        return this.token == o!!.token && this.available == o.available && this.requestedAmount == o.requestedAmount
     }
 
     override fun hashCode(): Int {

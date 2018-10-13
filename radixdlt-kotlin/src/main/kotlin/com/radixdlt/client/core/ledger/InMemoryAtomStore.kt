@@ -1,7 +1,7 @@
 package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.application.translate.TransactionAtoms
-import com.radixdlt.client.assets.Asset
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomFeeConsumable
@@ -40,7 +40,7 @@ class InMemoryAtomStore : AtomStore {
      */
     override fun getAtoms(address: RadixAddress): Observable<Atom> {
         Objects.requireNonNull(address) // not needed in Kotlin
-        return Observable.just(TransactionAtoms(address, Asset.TEST.id))
+        return Observable.just(TransactionAtoms(address, Token.TEST.id))
             .flatMap { txAtoms ->
                 cache.computeIfAbsentSynchronisedFunction(address) { euid -> ReplaySubject.create() }
                     .distinct()

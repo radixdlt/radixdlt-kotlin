@@ -1,5 +1,7 @@
 package com.radixdlt.client.assets
 
+import com.radixdlt.client.application.objects.Amount
+import com.radixdlt.client.application.objects.Token
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -10,7 +12,7 @@ import java.math.BigDecimal
 class AmountTest {
     @Test
     fun testBigDecimal() {
-        val asset = mock(Asset::class.java)
+        val asset = mock(Token::class.java)
         `when`<Int>(asset.subUnits).thenReturn(1)
         assertThatThrownBy { Amount.of(BigDecimal("1.1"), asset) }.isInstanceOf(IllegalArgumentException::class.java)
         assertEquals(Amount.of(BigDecimal("1.00"), asset), Amount.of(1, asset))
@@ -18,24 +20,24 @@ class AmountTest {
 
     @Test
     fun testXRD() {
-        assertEquals("0 XRD", Amount.subUnitsOf(0, Asset.TEST).toString())
-        assertEquals("0.00001 XRD", Amount.subUnitsOf(1, Asset.TEST).toString())
-        assertEquals("0.1 XRD", Amount.subUnitsOf(10000, Asset.TEST).toString())
-        assertEquals("1.1 XRD", Amount.subUnitsOf(110000, Asset.TEST).toString())
-        assertEquals("1.23456 XRD", Amount.subUnitsOf(123456, Asset.TEST).toString())
+        assertEquals("0 XRD", Amount.subUnitsOf(0, Token.TEST).toString())
+        assertEquals("0.00001 XRD", Amount.subUnitsOf(1, Token.TEST).toString())
+        assertEquals("0.1 XRD", Amount.subUnitsOf(10000, Token.TEST).toString())
+        assertEquals("1.1 XRD", Amount.subUnitsOf(110000, Token.TEST).toString())
+        assertEquals("1.23456 XRD", Amount.subUnitsOf(123456, Token.TEST).toString())
     }
 
     @Test
     fun testPOW() {
-        assertEquals("0 POW", Amount.subUnitsOf(0, Asset.POW).toString())
-        assertEquals("11 POW", Amount.subUnitsOf(11, Asset.POW).toString())
-        assertEquals("12345 POW", Amount.subUnitsOf(12345, Asset.POW).toString())
+        assertEquals("0 POW", Amount.subUnitsOf(0, Token.POW).toString())
+        assertEquals("11 POW", Amount.subUnitsOf(11, Token.POW).toString())
+        assertEquals("12345 POW", Amount.subUnitsOf(12345, Token.POW).toString())
     }
 
     @Test
     fun testUnusualSubUnits() {
         // 1 foot = 12 inches
-        val foot = Asset("FOOT", 12)
+        val foot = Token("FOOT", 12)
         assertEquals("0 FOOT", Amount.subUnitsOf(0, foot).toString())
         assertEquals("1/12 FOOT", Amount.subUnitsOf(1, foot).toString())
         assertEquals("6/12 FOOT", Amount.subUnitsOf(6, foot).toString())
