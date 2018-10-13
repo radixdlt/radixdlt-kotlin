@@ -8,6 +8,7 @@ import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.RadixHash
 import com.radixdlt.client.core.atoms.particles.Consumable
+import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.atoms.particles.Spin
 import com.radixdlt.client.core.ledger.ParticleStore
 import io.reactivex.Observable
@@ -28,8 +29,8 @@ class AddressTokenReducerTest {
         whenever(consumable.getSpin()).thenReturn(Spin.UP)
         whenever(consumable.getTokenClass()).thenReturn(EUID(1))
 
-        whenever(store.getConsumables(address)).thenReturn(
-            Observable.just<Consumable>(consumable).concatWith(Observable.never())
+        whenever(store.getParticles(address)).thenReturn(
+            Observable.just<Particle>(consumable).concatWith(Observable.never())
         )
         val reducer = AddressTokenReducer(address, store)
 
@@ -43,6 +44,6 @@ class AddressTokenReducerTest {
         reducer.state.subscribe(testObserver2)
         testObserver2.assertValue { state -> state.balance[EUID(1)] == 10L }
 
-        verify(store, times(1)).getConsumables(address)
+        verify(store, times(1)).getParticles(address)
     }
 }

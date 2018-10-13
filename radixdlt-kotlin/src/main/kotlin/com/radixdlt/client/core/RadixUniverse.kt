@@ -8,11 +8,11 @@ import com.radixdlt.client.core.ledger.AtomPuller
 import com.radixdlt.client.core.ledger.AtomStore
 import com.radixdlt.client.core.ledger.AtomSubmitter
 import com.radixdlt.client.core.ledger.ClientSelector
-import com.radixdlt.client.core.ledger.ConsumableDataSource
 import com.radixdlt.client.core.ledger.InMemoryAtomStore
 import com.radixdlt.client.core.ledger.ParticleStore
 import com.radixdlt.client.core.ledger.RadixAtomPuller
 import com.radixdlt.client.core.ledger.RadixAtomSubmitter
+import com.radixdlt.client.core.ledger.RadixParticleStore
 import com.radixdlt.client.core.network.PeerDiscovery
 import com.radixdlt.client.core.network.RadixNetwork
 
@@ -80,11 +80,11 @@ class RadixUniverse private constructor(
          * The Particle Data Store
          * TODO: actually change it into the particle data store
          */
-        private val particleStore = ConsumableDataSource(inMemoryAtomStore)
+        private val particleStore = RadixParticleStore(inMemoryAtomStore)
 
         override fun getAtomPuller(): AtomPuller = this.atomPuller
 
-        override fun getParticleStore(): ParticleStore = this.particleStore
+        override fun getParticleStore(): RadixParticleStore = this.particleStore
 
         override fun getAtomStore(): AtomStore = inMemoryAtomStore
 

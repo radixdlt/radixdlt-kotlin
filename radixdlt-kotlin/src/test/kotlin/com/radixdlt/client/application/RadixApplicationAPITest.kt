@@ -12,8 +12,8 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.particles.Consumable
 import com.radixdlt.client.core.atoms.UnsignedAtom
+import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.crypto.CryptoException
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.ledger.AtomPuller
@@ -43,7 +43,7 @@ class RadixApplicationAPITest {
         `when`(ledger.getAtomStore()).thenReturn(atomStore)
 
         `when`(ledger.getParticleStore()).thenReturn(object : ParticleStore {
-            override fun getConsumables(address: RadixAddress): Observable<Consumable> {
+            override fun getParticles(address: RadixAddress): Observable<Particle> {
                 return Observable.empty()
             }
         })
@@ -198,7 +198,7 @@ class RadixApplicationAPITest {
         })
 
         `when`(ledger.getParticleStore()).thenReturn(object : ParticleStore {
-            override fun getConsumables(address: RadixAddress): Observable<Consumable> {
+            override fun getParticles(address: RadixAddress): Observable<Particle> {
                 return Observable.empty()
             }
         })
@@ -240,7 +240,7 @@ class RadixApplicationAPITest {
 
         // Extra in Kotlin so that test passes due to null parameter check in kotlin
         `when`(ledger.getParticleStore()).thenReturn(object : ParticleStore {
-            override fun getConsumables(address: RadixAddress): Observable<Consumable> {
+            override fun getParticles(address: RadixAddress): Observable<Particle> {
                 return Observable.empty()
             }
         })
@@ -265,7 +265,7 @@ class RadixApplicationAPITest {
             }
         })
         `when`(ledger.getParticleStore()).thenReturn(object : ParticleStore {
-            override fun getConsumables(address: RadixAddress): Observable<Consumable> {
+            override fun getParticles(address: RadixAddress): Observable<Particle> {
                 return Observable.never()
             }
         })
@@ -299,7 +299,7 @@ class RadixApplicationAPITest {
         })
 
         `when`(ledger.getParticleStore()).thenReturn(object : ParticleStore {
-            override fun getConsumables(address: RadixAddress): Observable<Consumable> {
+            override fun getParticles(address: RadixAddress): Observable<Particle> {
                 return Observable.empty()
             }
         })
@@ -321,7 +321,7 @@ class RadixApplicationAPITest {
         `when`(ledger.getAtomPuller()).thenReturn(puller)
         val particleStore = mock(ParticleStore::class.java)
 
-        `when`(particleStore.getConsumables(anyOrNull())).thenReturn(Observable.never())
+        `when`(particleStore.getParticles(anyOrNull())).thenReturn(Observable.never())
         `when`(ledger.getParticleStore()).thenReturn(particleStore)
         `when`(universe.ledger).thenReturn(ledger)
 
