@@ -19,7 +19,6 @@ import com.radixdlt.client.core.TokenClassReference
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixUniverseType
 import com.radixdlt.client.core.atoms.AccountReference
-import com.radixdlt.client.core.atoms.AssetParticle
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomFeeConsumable
 import com.radixdlt.client.core.atoms.ChronoParticle
@@ -30,6 +29,7 @@ import com.radixdlt.client.core.atoms.MetadataMap
 import com.radixdlt.client.core.atoms.Particle
 import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.atoms.Spin
+import com.radixdlt.client.core.atoms.TokenParticle
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
@@ -99,11 +99,11 @@ object RadixJson {
     init {
         PARTICLE_SERIALIZER_IDS[AtomFeeConsumable::class.java] = "FEEPARTICLE".hashCode().toLong()
         PARTICLE_SERIALIZER_IDS[Consumable::class.java] = "TRANSFERPARTICLE".hashCode().toLong()
-        PARTICLE_SERIALIZER_IDS.put(Emission::class.java, 1341978856L)
-        PARTICLE_SERIALIZER_IDS.put(DataParticle::class.java, 473758768L)
+        PARTICLE_SERIALIZER_IDS[Emission::class.java] = 1341978856L
+        PARTICLE_SERIALIZER_IDS[DataParticle::class.java] = 473758768L
         // PARTICLE_SERIALIZER_IDS.put(UniqueParticle.class, Long.valueOf("UNIQUEPARTICLE".hashCode()));
         PARTICLE_SERIALIZER_IDS[ChronoParticle::class.java] = "CHRONOPARTICLE".hashCode().toLong()
-        PARTICLE_SERIALIZER_IDS.put(AssetParticle::class.java, - 1034420571L)
+        PARTICLE_SERIALIZER_IDS[TokenParticle::class.java] = - 1034420571L
     }
 
     private val PARTICLE_SERIALIZER = JsonSerializer<Particle> { particle, _, context ->
@@ -190,13 +190,6 @@ object RadixJson {
         gson = gsonBuilder.create()
     }
 
-    private fun serializedValue(type: String, value: String): JsonObject {
-        val element = JsonObject()
-        element.addProperty("serializer", type)
-        element.addProperty("value", value)
-        return element
-    }
-
     private class EUIDSerializer : JsonDeserializer<EUID>, JsonSerializer<EUID> {
         override fun serialize(src: EUID, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
             return JsonPrimitive(UID_PREFIX + src.toString())
@@ -204,7 +197,7 @@ object RadixJson {
 
         @Throws(JsonParseException::class)
         override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): EUID {
-            return EUID(Int128.from(Hex.decode(checkPrefix(json.asString, UID_PREFIX))));
+            return EUID(Int128.from(Hex.decode(checkPrefix(json.asString, UID_PREFIX))))
         }
     }
 
@@ -215,7 +208,7 @@ object RadixJson {
 
         @Throws(JsonParseException::class)
         override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): ByteArray {
-            return Base64.decode(checkPrefix(json.asString, BYT_PREFIX));
+            return Base64.decode(checkPrefix(json.asString, BYT_PREFIX))
         }
     }
 

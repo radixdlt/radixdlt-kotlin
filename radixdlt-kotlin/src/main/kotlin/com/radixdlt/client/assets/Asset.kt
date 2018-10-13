@@ -45,7 +45,7 @@ class Asset private constructor(val iso: String, val subUnits: Int, val id: EUID
         @JvmField
         val POW = Asset("POW", 1)
 
-        private fun calcEUID(isoCode: String): EUID {
+        fun calcEUID(isoCode: String): EUID {
             return RadixHash.of(isoCode.toByteArray(CHARSET)).toEUID()
         }
     }
