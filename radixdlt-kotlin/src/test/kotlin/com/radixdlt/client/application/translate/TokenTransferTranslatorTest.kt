@@ -7,7 +7,7 @@ import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.Consumable
+import com.radixdlt.client.core.atoms.particles.Consumable
 import com.radixdlt.client.core.ledger.ParticleStore
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver

@@ -1,8 +1,9 @@
-package com.radixdlt.client.core.atoms
+package com.radixdlt.client.core.atoms.particles
 
 import com.google.gson.annotations.SerializedName
 import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.address.EUID
+import com.radixdlt.client.core.atoms.AccountReference
 
 class TokenParticle(
     accountReference: AccountReference,

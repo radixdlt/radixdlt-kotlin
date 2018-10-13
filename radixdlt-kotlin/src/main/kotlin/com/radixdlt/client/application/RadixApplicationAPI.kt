@@ -18,8 +18,8 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.TokenParticle
 import com.radixdlt.client.core.atoms.UnsignedAtom
+import com.radixdlt.client.core.atoms.particles.TokenParticle
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
@@ -193,9 +193,17 @@ class RadixApplicationAPI private constructor(
     // TODO: refactor to access a TokenTranslator
     fun createToken(name: String, iso: String, description: String, subUnits: Int): Result {
         val tokenParticle =
-            TokenParticle(AccountReference(myPublicKey), name, iso, description, subUnits.toLong(), null)
+            TokenParticle(
+                AccountReference(myPublicKey),
+                name,
+                iso,
+                description,
+                subUnits.toLong(),
+                null
+            )
         val atomBuilder = atomBuilderSupplier()
         atomBuilder.addParticle(tokenParticle)
+
         val unsignedAtom = atomBuilder.buildWithPOWFee(universe.magic, myPublicKey)
         val updates = myIdentity.sign(unsignedAtom)
             .flatMapObservable {

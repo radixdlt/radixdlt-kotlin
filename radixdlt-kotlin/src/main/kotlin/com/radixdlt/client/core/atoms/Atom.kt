@@ -1,6 +1,11 @@
 package com.radixdlt.client.core.atoms
 
 import com.radixdlt.client.core.address.EUID
+import com.radixdlt.client.core.atoms.particles.ChronoParticle
+import com.radixdlt.client.core.atoms.particles.Consumable
+import com.radixdlt.client.core.atoms.particles.DataParticle
+import com.radixdlt.client.core.atoms.particles.Particle
+import com.radixdlt.client.core.atoms.particles.Spin
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.ECSignature
 import com.radixdlt.client.core.serialization.Dson
@@ -101,7 +106,8 @@ class Atom {
     }
 
     fun summary(): Map<Set<ECPublicKey>, Map<EUID, Long>> {
-        return this.getConsumables(Spin.UP).asSequence().plus(getConsumables(Spin.DOWN).asSequence())
+        return this.getConsumables(Spin.UP).asSequence().plus(getConsumables(
+            Spin.DOWN).asSequence())
             .groupBy(Consumable::getOwnersPublicKeys)
             .mapValues { it ->
                 it.value.asSequence().groupBy(Consumable::getTokenClass) {
@@ -113,7 +119,8 @@ class Atom {
     }
 
     fun consumableSummary(): Map<Set<ECPublicKey>, Map<EUID, List<Long>>> {
-        return this.getConsumables(Spin.UP).asSequence().plus(getConsumables(Spin.DOWN).asSequence())
+        return this.getConsumables(Spin.UP).asSequence().plus(getConsumables(
+            Spin.DOWN).asSequence())
             .groupBy(Consumable::getOwnersPublicKeys)
             .mapValues { it: Map.Entry<Set<ECPublicKey>, List<Consumable>> ->
                 it.value.asSequence().groupBy(Consumable::getTokenClass) {

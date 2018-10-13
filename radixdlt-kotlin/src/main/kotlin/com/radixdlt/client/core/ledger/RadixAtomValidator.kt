@@ -4,7 +4,7 @@ import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomValidationException
 import com.radixdlt.client.core.atoms.AtomValidator
-import com.radixdlt.client.core.atoms.Spin
+import com.radixdlt.client.core.atoms.particles.Spin
 import com.radixdlt.client.core.crypto.ECSignature
 
 class RadixAtomValidator private constructor() : AtomValidator {

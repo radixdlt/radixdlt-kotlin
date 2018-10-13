@@ -1,6 +1,7 @@
-package com.radixdlt.client.core.atoms
+package com.radixdlt.client.core.atoms.particles
 
 import com.radixdlt.client.core.address.EUID
+import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import java.util.Objects
@@ -29,7 +30,11 @@ class UniqueParticle(
     companion object {
         @JvmStatic
         fun create(unique: Payload, key: ECPublicKey): UniqueParticle {
-            return UniqueParticle(unique, setOf(key.getUID()), setOf(key.toECKeyPair()))
+            return UniqueParticle(
+                unique,
+                setOf(key.getUID()),
+                setOf(key.toECKeyPair())
+            )
         }
     }
 }

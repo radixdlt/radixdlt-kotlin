@@ -5,9 +5,9 @@ import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.Consumable
+import com.radixdlt.client.core.atoms.particles.Consumable
 import com.radixdlt.client.core.atoms.RadixHash
-import com.radixdlt.client.core.atoms.Spin
+import com.radixdlt.client.core.atoms.particles.Spin
 import com.radixdlt.client.core.ledger.ParticleStore
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver

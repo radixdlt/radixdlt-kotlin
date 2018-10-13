@@ -10,10 +10,10 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.Consumable
-import com.radixdlt.client.core.atoms.DataParticle
+import com.radixdlt.client.core.atoms.particles.Consumable
+import com.radixdlt.client.core.atoms.particles.DataParticle
 import com.radixdlt.client.core.atoms.Payload
-import com.radixdlt.client.core.atoms.Spin
+import com.radixdlt.client.core.atoms.particles.Spin
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
@@ -174,10 +174,15 @@ class TokenTransferTranslator(
                 }
 
                 val consumables = consumerQuantities.entries.asSequence()
-                    .map { entry -> Consumable(entry.value,
-                        entry.key.asSequence().map(ECKeyPair::getPublicKey).map(::AccountReference).toList(),
-                        System.nanoTime(), Token.TEST.id,
-                        System.currentTimeMillis() / 60000L + 60000L, Spin.UP)
+                    .map { entry ->
+                        Consumable(
+                            entry.value,
+                            entry.key.asSequence().map(ECKeyPair::getPublicKey).map(::AccountReference).toList(),
+                            System.nanoTime(),
+                            Token.TEST.id,
+                            System.currentTimeMillis() / 60000L + 60000L,
+                            Spin.UP
+                        )
                     }
                     .toList()
                 atomBuilder.addParticles(consumables)

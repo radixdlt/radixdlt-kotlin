@@ -1,5 +1,7 @@
 package com.radixdlt.client.core.atoms
 
+import com.radixdlt.client.core.atoms.particles.ChronoParticle
+import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.crypto.ECPublicKey
 import java.util.ArrayList
 

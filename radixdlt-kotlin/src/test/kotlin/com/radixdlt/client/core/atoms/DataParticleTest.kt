@@ -1,5 +1,6 @@
 package com.radixdlt.client.core.atoms
 
+import com.radixdlt.client.core.atoms.particles.DataParticle
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
