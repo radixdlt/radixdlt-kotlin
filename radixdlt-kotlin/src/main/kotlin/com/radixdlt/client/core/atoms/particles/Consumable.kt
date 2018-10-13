@@ -1,8 +1,6 @@
 package com.radixdlt.client.core.atoms.particles
 
 import com.google.gson.annotations.SerializedName
-import com.radixdlt.client.core.TokenClassReference
-import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.RadixHash
 import com.radixdlt.client.core.crypto.ECKeyPair
@@ -14,13 +12,11 @@ open class Consumable(
     val amount: Long,
     address: AccountReference,
     val nonce: Long,
-    tokenId: EUID,
+    @SerializedName("token_reference")
+    val tokenReference: String,
     val planck: Long,
     private val spin: Spin
 ) : Particle {
-
-    @SerializedName("token_reference")
-    private val tokenClassReference: TokenClassReference = TokenClassReference(tokenId, EUID(0))
 
     private val addresses: List<AccountReference> = listOf(address)
 
@@ -36,7 +32,7 @@ open class Consumable(
             this.amount,
             address,
             nonce,
-            getTokenClass(),
+            tokenReference,
             planck,
             Spin.DOWN
         )
@@ -64,10 +60,6 @@ open class Consumable(
 
     override fun getSpin(): Spin {
         return spin
-    }
-
-    fun getTokenClass(): EUID {
-        return tokenClassReference.token
     }
 
     fun getSignedAmount(): Long {

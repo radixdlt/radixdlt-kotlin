@@ -47,13 +47,19 @@ object RadixWalletExample {
             .subscribe { println(it) }
 
         // Subscribe to current and future total balance
-        wallet.getBalance()
-            .subscribe { balance -> println("My Balance: $balance") }
+        wallet.getBalance(api.myAddress)
+            .subscribe { balance -> println("My Balance:\n $balance") }
+
+        /*
+        val result = api.createFixedSupplyToken("Test", "Josh", "Just for kicks", 1);
+        result.toObservable().subscribe(System.out::println);
+        */
 
         // If specified, send money to another myAddress
         @Suppress("SENSELESS_COMPARISON")
         if (TO_ADDRESS_BASE58 != null) {
             val toAddress = RadixAddress.fromString(TO_ADDRESS_BASE58)
+//            api.sendTokens(toAddress, Amount.)
             wallet.sendWhenAvailable(AMOUNT, MESSAGE, toAddress)
                 .toObservable()
                 .subscribe(System.out::println, Throwable::printStackTrace)

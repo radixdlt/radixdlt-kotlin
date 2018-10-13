@@ -44,5 +44,9 @@ class Token(val iso: String) {
         fun calcEUID(isoCode: String): EUID {
             return RadixHash.of(isoCode.toByteArray(CHARSET)).toEUID()
         }
+
+        fun of(reference: String): Token {
+            return Token(reference)
+        }
     }
 }

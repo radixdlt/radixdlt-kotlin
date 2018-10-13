@@ -32,17 +32,17 @@ class AddressTokenReducer(address: RadixAddress, particleStore: ParticleStore) {
             .debounce(1000, TimeUnit.MILLISECONDS)
             .map { consumables ->
 
-                val balance: Map<EUID, Long> = consumables
+                val balance: Map<String, Long> = consumables
                     .asSequence()
-                    .groupBy(Consumable::getTokenClass) {
+                    .groupBy(Consumable::tokenReference) {
                         it.amount
                     }.mapValues {
                         it.value.sum()
                     }
 
-                val consumableLists: Map<EUID, List<Consumable>> = consumables
+                val consumableLists: Map<String, List<Consumable>> = consumables
                     .asSequence()
-                    .groupBy(Consumable::getTokenClass)
+                    .groupBy(Consumable::tokenReference)
 
                 AddressTokenState(balance, consumableLists)
             }

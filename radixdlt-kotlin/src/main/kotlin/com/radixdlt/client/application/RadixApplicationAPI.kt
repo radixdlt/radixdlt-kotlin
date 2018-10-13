@@ -13,7 +13,6 @@ import com.radixdlt.client.application.translate.DataStoreTranslator
 import com.radixdlt.client.application.translate.TokenTransferTranslator
 import com.radixdlt.client.application.translate.UniquePropertyTranslator
 import com.radixdlt.client.core.RadixUniverse
-import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.AtomBuilder
@@ -33,6 +32,8 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.disposables.Disposables
 import io.reactivex.observables.ConnectableObservable
 import org.slf4j.LoggerFactory
+import java.math.BigDecimal
+import java.math.MathContext
 import java.util.Objects
 
 /**
@@ -172,13 +173,20 @@ class RadixApplicationAPI private constructor(
             .flatMapIterable(tokenTransferTranslator::fromAtom)
     }
 
-    fun getBalance(address: RadixAddress): Observable<Map<EUID, Long>> {
+    fun getBalance(address: RadixAddress): Observable<Map<String, BigDecimal>> {
         Objects.requireNonNull(address)
 
         pull(address)
 
         return tokenTransferTranslator.getTokenState(address)
             .map(AddressTokenState::balance)
+            .map { map ->
+                map.entries.asSequence().associateBy(Map.Entry<String, Long>::key) { e ->
+                    BigDecimal.valueOf(e.value).divide(
+                        BigDecimal.valueOf(Token.SUB_UNITS.toLong()), MathContext.UNLIMITED
+                    )
+                }
+            }
     }
 
     fun getMyBalance(token: Token): Observable<Amount> {
@@ -189,11 +197,11 @@ class RadixApplicationAPI private constructor(
         Objects.requireNonNull(token)
 
         return getBalance(address)
-            .map { balances -> Amount.subUnitsOf(balances[token.id] ?: 0L , token)}
+            .map { balances -> Amount.of(balances[token.iso] ?: BigDecimal.ZERO , token) }
     }
 
     // TODO: refactor to access a TokenTranslator
-    fun createToken(name: String, iso: String, description: String): Result {
+    fun createFixedSupplyToken(name: String, iso: String, description: String, fixedSupply: Long): Result {
         val account = AccountReference(myPublicKey)
         val token = TokenParticle(
             account,
@@ -204,10 +212,10 @@ class RadixApplicationAPI private constructor(
             null
         )
         val minted = Minted(
-            10000,
+            fixedSupply * Token.SUB_UNITS,
             account,
             System.currentTimeMillis(),
-            Token.calcEUID(iso),
+            iso,
             System.currentTimeMillis() / 60000L + 60000
         )
 

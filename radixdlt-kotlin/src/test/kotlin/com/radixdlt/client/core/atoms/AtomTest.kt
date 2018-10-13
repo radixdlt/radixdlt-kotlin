@@ -15,8 +15,6 @@ class AtomTest {
         assertTrue(atom.getConsumables(Spin.DOWN).isEmpty())
         assertNotNull(atom.hash)
         assertNotNull(atom.hid)
-        assertNotNull(atom.summary())
-        assertNotNull(atom.consumableSummary())
         assertEquals(0L, atom.timestamp)
         assertNotNull(atom.toString())
 

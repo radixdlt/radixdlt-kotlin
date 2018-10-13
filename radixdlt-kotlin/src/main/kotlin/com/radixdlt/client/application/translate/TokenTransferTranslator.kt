@@ -97,7 +97,7 @@ class TokenTransferTranslator(
                 }
 
                 val amount = Math.abs(summary[0].value)
-                return@map TokenTransfer.create(from, to, Token.TEST, amount, attachment, atom.timestamp)
+                return@map TokenTransfer.create(from, to, Token.of(e.key), amount, attachment, atom.timestamp)
             }
             .toList()
     }
@@ -112,7 +112,7 @@ class TokenTransferTranslator(
         return this.getTokenState(tokenTransfer.from)
             .map(AddressTokenState::unconsumedConsumables)
             .map { u ->
-                if (u.containsKey(tokenTransfer.token.id)) u[tokenTransfer.token.id] else emptyList()
+                if (u.containsKey(tokenTransfer.token.iso)) u[tokenTransfer.token.iso] else emptyList()
             }
             .firstOrError()
             .flatMapCompletable { unconsumedConsumables ->
@@ -176,7 +176,7 @@ class TokenTransferTranslator(
                             entry.value,
                             AccountReference(entry.key.getPublicKey()),
                             System.nanoTime(),
-                            Token.TEST.id,
+                            tokenTransfer.token.iso,
                             System.currentTimeMillis() / 60000L + 60000L,
                             Spin.UP
                         )
