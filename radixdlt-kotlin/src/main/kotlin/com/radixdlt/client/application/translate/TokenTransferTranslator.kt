@@ -20,16 +20,21 @@ import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import com.radixdlt.client.core.crypto.Encryptor
 import com.radixdlt.client.core.ledger.ParticleStore
 import com.radixdlt.client.core.serialization.RadixJson
+import com.radixdlt.client.core.ledger.computeIfAbsentSynchronisedFunction
 import io.reactivex.Completable
+import io.reactivex.Observable
 import java.nio.charset.StandardCharsets
 import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.ArrayList
 import java.util.HashMap
+import java.util.concurrent.ConcurrentHashMap
 
 class TokenTransferTranslator(
     private val universe: RadixUniverse,
     private val particleStore: ParticleStore
 ) {
+
+    private val cache = ConcurrentHashMap<RadixAddress, AddressTokenReducer>()
 
     fun fromAtom(atom: Atom): TokenTransfer {
         val summary = atom.summary().entries.asSequence()
@@ -54,7 +59,7 @@ class TokenTransferTranslator(
         val to: RadixAddress?
         if (summary.size == 1) {
             from = if (summary[0].value <= 0L) universe.getAddressFrom(summary[0].key) else null
-            to = if (summary[0].value <= 0L) null else universe.getAddressFrom(summary[0].key)
+            to = if (summary[0].value < 0L) null else universe.getAddressFrom(summary[0].key)
         } else {
             if (summary[0].value > 0) {
                 from = universe.getAddressFrom(summary[1].key)
@@ -100,8 +105,15 @@ class TokenTransferTranslator(
         )
     }
 
+    fun getTokenState(address: RadixAddress?): Observable<AddressTokenState> {
+        return cache.computeIfAbsentSynchronisedFunction(address!!) { addr ->
+            AddressTokenReducer(addr, particleStore)
+        }.state
+    }
+
     fun translate(tokenTransfer: TokenTransfer, atomBuilder: AtomBuilder): Completable {
-        return this.particleStore.getConsumables(tokenTransfer.from!!)
+        return this.getTokenState(tokenTransfer.from)
+            .map(AddressTokenState::unconsumedConsumables)
             .firstOrError()
             .flatMapCompletable { unconsumedConsumables ->
 
@@ -171,15 +183,6 @@ class TokenTransferTranslator(
                 atomBuilder.addConsumables(consumables)
 
                 return@flatMapCompletable Completable.complete()
-
-                /*
-                if (withPOWFee) {
-                    // TODO: Replace this with public key of processing node runner
-                    return atomBuilder.buildWithPOWFee(ledger.getMagic(), fromAddress.getPublicKey());
-                } else {
-                    return atomBuilder.build();
-                }
-                */
             }
     }
 

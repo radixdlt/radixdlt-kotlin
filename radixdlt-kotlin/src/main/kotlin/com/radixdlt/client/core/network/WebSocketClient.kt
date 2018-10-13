@@ -90,7 +90,7 @@ class WebSocketClient(private val okHttpClient: () -> OkHttpClient, val endpoint
                 LOGGER.error(t!!.toString())
                 this@WebSocketClient.status.onNext(RadixClientStatus.FAILURE)
 
-                this@WebSocketClient.messages.onError(IOException())
+                this@WebSocketClient.messages.onError(IOException("Connection Failure."))
             }
         })
     }

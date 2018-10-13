@@ -142,8 +142,8 @@ class RadixJsonRpcClient(
                                 RuntimeException("Received bad json rpc message: " + received.toString())
                             )
                         }
-                    }, { _ ->
-                        emitter.onError(RuntimeException("Lost connection."))
+                    }, { err ->
+                        emitter.onError(RuntimeException(err.message))
                     })
             }
         )
