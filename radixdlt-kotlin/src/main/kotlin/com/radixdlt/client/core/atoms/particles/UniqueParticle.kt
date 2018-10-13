@@ -23,8 +23,8 @@ class UniqueParticle(
         return spin
     }
 
-    override fun getDestinations(): Set<EUID> {
-        return destinations
+    override fun getAddresses(): Set<ECPublicKey> {
+        return owners.asSequence().map(ECKeyPair::getPublicKey).toSet()
     }
 
     companion object {

@@ -1,8 +1,8 @@
 package com.radixdlt.client.core.atoms.particles
 
-import com.radixdlt.client.core.address.EUID
+import com.radixdlt.client.core.crypto.ECPublicKey
 
 interface Particle {
     fun getSpin(): Spin
-    fun getDestinations(): Set<EUID>
+    fun getAddresses(): Set<ECPublicKey>
 }

@@ -29,8 +29,9 @@ class Atom {
 
     val shards: Set<Long>
         get() = particles!!.asSequence()
-            .map(Particle::getDestinations)
-            .flatMap { it: Set<EUID> -> it.asSequence() }
+            .map(Particle::getAddresses)
+            .flatMap { it -> it.asSequence() }
+            .map(ECPublicKey::getUID)
             .map(EUID::shard)
             .toSet()
 
@@ -39,12 +40,19 @@ class Atom {
         get() = if (this.particles!!.asSequence().any { p -> p.getSpin() == Spin.DOWN }) {
             particles!!.asSequence()
                 .filter { p -> p.getSpin() == Spin.DOWN }
-                .flatMap { it.getDestinations().asSequence() }
+                .flatMap { it.getAddresses().asSequence() }
+                .map(ECPublicKey::getUID)
                 .map(EUID::shard)
                 .toSet()
         } else {
             shards
         }
+
+    val addresses: List<ECPublicKey>
+        get() = particles!!.asSequence()
+            .map { it.getAddresses() }
+            .flatMap { it.asSequence() }
+            .toList()
 
     val timestamp: Long
         get() = this.particles!!.asSequence()

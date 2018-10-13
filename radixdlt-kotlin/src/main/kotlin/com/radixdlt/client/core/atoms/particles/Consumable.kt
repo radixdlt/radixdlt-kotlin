@@ -27,6 +27,10 @@ open class Consumable(
     val address: AccountReference
         get() = addresses[0]
 
+    override fun getAddresses(): Set<ECPublicKey> {
+        return addresses.asSequence().map(AccountReference::getKey).toSet()
+    }
+
     fun spinDown(): Consumable {
         return Consumable(
             this.amount,
@@ -70,20 +74,12 @@ open class Consumable(
         return amount * if (getSpin() === Spin.UP) 1 else -1
     }
 
-    override fun getDestinations(): Set<EUID> {
-        return getOwnersPublicKeys().asSequence().map { it.getUID() }.toSet()
-    }
-
     fun getOwnersPublicKeys(): Set<ECPublicKey> {
         return addresses.asSequence().map { it.getKey() }.toSet() ?: emptySet()
     }
 
     fun getOwner(): ECPublicKey {
         return addresses[0].getKey()
-    }
-
-    fun getOwners(): Set<ECKeyPair> {
-        return getOwnersPublicKeys().asSequence().map { it.toECKeyPair() }.toSet()
     }
 
     fun getHash(): RadixHash {

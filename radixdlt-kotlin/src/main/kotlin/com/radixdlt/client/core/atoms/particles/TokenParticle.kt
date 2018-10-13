@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.AccountReference
+import com.radixdlt.client.core.crypto.ECPublicKey
 
 class TokenParticle(
     accountReference: AccountReference,
@@ -26,8 +27,8 @@ class TokenParticle(
     }
 
     // TODO: fix this to be an account
-    override fun getDestinations(): Set<EUID> {
-        return setOf(uid)
+    override fun getAddresses(): Set<ECPublicKey> {
+        return setOf(addresses[0].getKey())
     }
 
     override fun getSpin(): Spin {
