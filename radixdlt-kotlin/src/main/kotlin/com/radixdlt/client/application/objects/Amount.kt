@@ -41,32 +41,15 @@ class Amount(val token: Token, val amountInSubunits: Long) {
     }
 
     private fun formattedAmount(): String {
-        val remainder = amountInSubunits % token.subUnits
+        val remainder = amountInSubunits % Token.SUB_UNITS
 
-        if (remainder == 0L) {
+        return if (remainder == 0L) {
             // Whole number
-            return (amountInSubunits / token.subUnits).toString()
-        }
-
-        if (isPowerOfTen(token.subUnits)) {
+            (amountInSubunits / Token.SUB_UNITS).toString()
+        } else {
             // Decimal format
-            return BigDecimal.valueOf(amountInSubunits).divide(BigDecimal.valueOf(token.subUnits.toLong())).toString()
+            BigDecimal.valueOf(amountInSubunits).divide(BigDecimal.valueOf(Token.SUB_UNITS.toLong())).toString()
         }
-
-        // Fraction format
-        val quotient = amountInSubunits / token.subUnits
-        val fraction = remainder.toString() + "/" + token.subUnits
-        return if (quotient == 0L) {
-            fraction
-        } else quotient.toString() + " and " + fraction
-    }
-
-    private fun isPowerOfTen(value: Int): Boolean {
-        var valueCalculation = value
-        while (valueCalculation > 9 && valueCalculation % 10 == 0) {
-            valueCalculation /= 10
-        }
-        return valueCalculation == 1
     }
 
     companion object {
@@ -74,15 +57,15 @@ class Amount(val token: Token, val amountInSubunits: Long) {
             return Amount(tokenClass, amountInSubunits)
         }
 
-        fun of(amount: Long, tokenClass: Token): Amount {
-            return Amount(tokenClass, tokenClass.subUnits * amount)
+        fun of(amount: Long, token: Token): Amount {
+            return Amount(token, Token.SUB_UNITS * amount)
         }
 
         fun of(amount: BigDecimal, token: Token): Amount {
-            val subUnitAmount = amount.multiply(BigDecimal.valueOf(token.subUnits.toLong())).stripTrailingZeros()
+            val subUnitAmount = amount.multiply(BigDecimal.valueOf(Token.SUB_UNITS.toLong())).stripTrailingZeros()
             if (subUnitAmount.scale() > 0) {
                 throw IllegalArgumentException(
-                    "Amount $amount cannot be used for $token which has a subunit value of ${token.subUnits}"
+                    "Amount $amount cannot be used for $token which has a subunit value of ${Token.SUB_UNITS}"
                 )
             }
 

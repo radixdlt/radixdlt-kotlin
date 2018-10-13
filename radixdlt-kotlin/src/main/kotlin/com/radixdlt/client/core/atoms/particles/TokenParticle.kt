@@ -11,8 +11,6 @@ class TokenParticle(
     private val name: String,
     private val iso: String,
     private val description: String,
-    @field:SerializedName("sub_units")
-    private val subUnits: Long,
     @field:SerializedName("mint_permissions")
     private val mintPermissions: MintPermissions,
     private val icon: ByteArray?

@@ -200,14 +200,13 @@ class RadixApplicationAPI private constructor(
     }
 
     // TODO: refactor to access a TokenTranslator
-    fun createToken(name: String, iso: String, description: String, subUnits: Int): Result {
+    fun createToken(name: String, iso: String, description: String): Result {
         val account = AccountReference(myPublicKey)
         val token = TokenParticle(
             account,
             name,
             iso,
             description,
-            subUnits.toLong(),
             TokenParticle.MintPermissions.SAME_ATOM_ONLY,
             null
         )
