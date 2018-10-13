@@ -8,6 +8,12 @@ fun MutableMap<Set<ECKeyPair>, Long>.mergeAfterSum(key: Set<ECKeyPair>, value: L
     return newValue
 }
 
+fun MutableMap<ECKeyPair, Long>.mergeAfterSum(key: ECKeyPair, value: Long): Long {
+    val newValue = if (this.containsKey(key)) this.getValue(key) + value else value
+    this[key] = newValue
+    return newValue
+}
+
 fun <K, V> MutableMap<K, V>.mergeAfterFunction(key: K, value: V, function: (t: V, u: V) -> V): V {
     val newValue: V = if (this.containsKey(key)) function(this.getValue(key), value) else value
     this[key] = newValue

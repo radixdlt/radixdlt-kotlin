@@ -10,9 +10,9 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.atoms.particles.Consumable
 import com.radixdlt.client.core.atoms.particles.DataParticle
-import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.atoms.particles.Spin
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
@@ -145,7 +145,7 @@ class TokenTransferTranslator(
 
                 var consumerTotal: Long = 0
                 val iterator = unconsumedConsumables.iterator()
-                val consumerQuantities = HashMap<Set<ECKeyPair>, Long>()
+                val consumerQuantities = HashMap<ECKeyPair, Long>()
 
                 // HACK for now
                 // TODO: remove this, create a ConsumersCreator
@@ -157,10 +157,7 @@ class TokenTransferTranslator(
                     consumerTotal += down.amount
 
                     val amount = Math.min(left, down.amount)
-                    down.addConsumerQuantities(
-                        amount, setOf(tokenTransfer.to!!.toECKeyPair()),
-                        consumerQuantities
-                    )
+                    down.addConsumerQuantities(amount, tokenTransfer.to!!.toECKeyPair(), consumerQuantities)
 
                     atomBuilder.addParticle(down)
                 }
@@ -177,7 +174,7 @@ class TokenTransferTranslator(
                     .map { entry ->
                         Consumable(
                             entry.value,
-                            entry.key.asSequence().map(ECKeyPair::getPublicKey).map(::AccountReference).toList(),
+                            AccountReference(entry.key.getPublicKey()),
                             System.nanoTime(),
                             Token.TEST.id,
                             System.currentTimeMillis() / 60000L + 60000L,

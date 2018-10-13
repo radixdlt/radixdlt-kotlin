@@ -12,7 +12,7 @@ import com.radixdlt.client.core.util.mergeAfterSum
 
 open class Consumable(
     val amount: Long,
-    val addresses: List<AccountReference>?,
+    private val address: AccountReference,
     val nonce: Long,
     tokenId: EUID,
     val planck: Long,
@@ -22,10 +22,12 @@ open class Consumable(
     @SerializedName("token_reference")
     private val tokenClassReference: TokenClassReference = TokenClassReference(tokenId, EUID(0))
 
+    private val addresses: List<AccountReference> = listOf(address)
+
     fun spinDown(): Consumable {
         return Consumable(
             this.amount,
-            addresses,
+            address,
             nonce,
             getTokenClass(),
             planck,
@@ -33,10 +35,12 @@ open class Consumable(
         )
     }
 
+    fun getAddress(): AccountReference = addresses[0]
+
     fun addConsumerQuantities(
         amount: Long,
-        newOwners: Set<ECKeyPair>,
-        consumerQuantities: MutableMap<Set<ECKeyPair>, Long>
+        newOwner: ECKeyPair,
+        consumerQuantities: MutableMap<ECKeyPair, Long>
     ) {
         if (amount > this.amount) {
             throw IllegalArgumentException(
@@ -45,12 +49,12 @@ open class Consumable(
         }
 
         if (amount == this.amount) {
-            consumerQuantities.mergeAfterSum(newOwners, amount)
+            consumerQuantities.mergeAfterSum(newOwner, amount)
             return
         }
 
-        consumerQuantities.mergeAfterSum(newOwners, amount)
-        consumerQuantities.mergeAfterSum(getOwners(), this.amount - amount)
+        consumerQuantities.mergeAfterSum(newOwner, amount)
+        consumerQuantities.mergeAfterSum(getAddress().getKey().toECKeyPair(), this.amount - amount)
     }
 
     override fun getSpin(): Spin {
@@ -70,7 +74,7 @@ open class Consumable(
     }
 
     fun getOwnersPublicKeys(): Set<ECPublicKey> {
-        return addresses?.asSequence()?.map { it.getKey() }?.toSet() ?: emptySet()
+        return addresses.asSequence().map { it.getKey() }.toSet() ?: emptySet()
     }
 
     fun getOwners(): Set<ECKeyPair> {
