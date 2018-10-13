@@ -1,8 +1,8 @@
 package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.Consumable
 import io.reactivex.Observable
 import java.util.concurrent.ConcurrentHashMap
 
@@ -13,8 +13,8 @@ class ConsumableDataSource(private val atomStore: AtomStore) : ParticleStore {
         // TODO: use https://github.com/JakeWharton/RxReplayingShare to disconnect when unsubscribed
         return cache.computeIfAbsentSynchronisedFunction(address) { addr ->
             atomStore.getAtoms(address)
-                .flatMapIterable(TransactionAtom::getConsumables)
-                .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
+                .flatMapIterable(Atom::getConsumables)
+                .filter { particle -> particle.getOwnersPublicKeys().asSequence().all(address::ownsKey) }
                 .cache()
                 //.replay(1)
                 //.autoConnect()

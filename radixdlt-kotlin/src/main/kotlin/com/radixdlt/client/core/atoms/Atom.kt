@@ -62,6 +62,13 @@ class Atom {
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)
     }
 
+    fun getConsumables(): List<Consumable> {
+        return this.particles!!.asSequence()
+            .filter { p -> p is Consumable }
+            .map { p -> p as Consumable }
+            .toList()
+    }
+
     fun getConsumables(spin: Spin): List<Consumable> {
         return this.particles!!.asSequence()
             .filter { p -> p is Consumable }

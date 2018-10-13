@@ -12,6 +12,7 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.CryptoException
 import com.radixdlt.client.core.crypto.ECPublicKey
@@ -21,7 +22,6 @@ import com.radixdlt.client.core.ledger.AtomSubmitter
 import com.radixdlt.client.core.ledger.ParticleStore
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
-import com.radixdlt.client.util.any
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.observers.TestObserver
@@ -188,18 +188,18 @@ class RadixApplicationAPITest {
         val address = mock(RadixAddress::class.java)
         `when`(address.publicKey).thenReturn(mock(ECPublicKey::class.java))
         val atom = mock(Atom::class.java)
-        `when`(atom.getDataParticles()).thenReturn(null)
+        `when`(atom.getDataParticles()).thenReturn(emptyList())
 
         val ledger = mock(RadixUniverse.Ledger::class.java)
         `when`(ledger.getAtomStore()).thenReturn(object : AtomStore {
-            override fun getAtoms(destination: EUID?): Observable<Atom> {
+            override fun getAtoms(address: RadixAddress): Observable<Atom> {
                 return Observable.just(atom, atom, atom)
             }
         })
 
         `when`(ledger.getParticleStore()).thenReturn(object : ParticleStore {
-            override fun getConsumables(address: RadixAddress): Observable<Collection<Consumable>> {
-                return Observable.just(emptySet())
+            override fun getConsumables(address: RadixAddress): Observable<Consumable> {
+                return Observable.empty()
             }
         })
 

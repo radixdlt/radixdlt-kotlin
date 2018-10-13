@@ -5,9 +5,9 @@ import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.AbstractConsumable
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.RadixHash
+import com.radixdlt.client.core.atoms.Spin
 import com.radixdlt.client.core.ledger.ParticleStore
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
@@ -21,14 +21,13 @@ class AddressTokenReducerTest {
         val store = mock<ParticleStore>()
         val consumable = mock<Consumable>()
         val hash = mock<RadixHash>()
-        whenever(consumable.signedQuantity).thenReturn(10L)
-        whenever(consumable.quantity).thenReturn(10L)
-        whenever(consumable.hash).thenReturn(hash)
-        whenever(consumable.isConsumable).thenReturn(true)
-        whenever(consumable.asConsumable).thenReturn(consumable)
+        whenever(consumable.getSignedAmount()).thenReturn(10L)
+        whenever(consumable.amount).thenReturn(10L)
+        whenever(consumable.getHash()).thenReturn(hash)
+        whenever(consumable.getSpin()).thenReturn(Spin.UP)
 
         whenever(store.getConsumables(address)).thenReturn(
-            Observable.just<AbstractConsumable>(consumable).concatWith(Observable.never())
+            Observable.just<Consumable>(consumable).concatWith(Observable.never())
         )
         val reducer = AddressTokenReducer(address, store)
 

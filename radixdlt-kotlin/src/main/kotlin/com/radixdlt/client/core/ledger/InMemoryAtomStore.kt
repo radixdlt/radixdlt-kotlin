@@ -4,6 +4,7 @@ import com.radixdlt.client.application.translate.TransactionAtoms
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.AtomFeeConsumable
 import io.reactivex.Observable
 import io.reactivex.subjects.ReplaySubject
 import java.util.Objects
@@ -44,8 +45,9 @@ class InMemoryAtomStore : AtomStore {
                 cache.computeIfAbsentSynchronisedFunction(address) { euid -> ReplaySubject.create() }
                     .distinct()
                     .flatMap<Atom> { atom ->
-                        if (atom.isTransactionAtom) {
-                            txAtoms.accept(atom.asTransactionAtom).newValidTransactions
+                        if (!atom.getConsumables().isEmpty() && !atom.getConsumables().asSequence()
+                                .all { c -> c is AtomFeeConsumable }) {
+                            txAtoms.accept(atom).newValidTransactions
                         } else {
                             Observable.just(atom)
                         }

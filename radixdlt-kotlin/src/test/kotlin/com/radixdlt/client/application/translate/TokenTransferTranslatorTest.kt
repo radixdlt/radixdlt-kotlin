@@ -6,8 +6,8 @@ import com.radixdlt.client.application.actions.TokenTransfer
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.AbstractConsumable
 import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.ledger.ParticleStore
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
@@ -21,7 +21,7 @@ class TokenTransferTranslatorTest {
         val address = mock<RadixAddress>()
 
         val transferTranslator = TokenTransferTranslator(universe, object : ParticleStore {
-            override fun getConsumables(address: RadixAddress): Observable<AbstractConsumable> {
+            override fun getConsumables(address: RadixAddress): Observable<Consumable> {
                 return Observable.never()
             }
         })
