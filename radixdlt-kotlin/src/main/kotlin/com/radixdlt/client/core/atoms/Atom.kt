@@ -48,6 +48,12 @@ class Atom {
             shards
         }
 
+    fun particles(spin: Spin): List<Particle> {
+        return particles!!.asSequence()
+            .filter { p -> p.getSpin() === spin }
+            .toList()
+    }
+
     val addresses: List<ECPublicKey>
         get() = particles!!.asSequence()
             .map { it.getAddresses() }

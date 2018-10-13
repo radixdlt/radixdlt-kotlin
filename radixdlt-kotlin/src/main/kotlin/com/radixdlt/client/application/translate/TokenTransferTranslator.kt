@@ -19,8 +19,8 @@ import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import com.radixdlt.client.core.crypto.Encryptor
 import com.radixdlt.client.core.ledger.ParticleStore
-import com.radixdlt.client.core.ledger.computeIfAbsentSynchronisedFunction
 import com.radixdlt.client.core.serialization.RadixJson
+import com.radixdlt.client.core.util.computeIfAbsentSynchronisedFunction
 import io.reactivex.Completable
 import io.reactivex.Observable
 import java.nio.charset.StandardCharsets

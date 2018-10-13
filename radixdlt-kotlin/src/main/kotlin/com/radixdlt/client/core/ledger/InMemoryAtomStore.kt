@@ -1,10 +1,9 @@
 package com.radixdlt.client.core.ledger
 
-import com.radixdlt.client.application.objects.Token
-import com.radixdlt.client.application.translate.TransactionAtoms
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
-import com.radixdlt.client.core.atoms.particles.AtomFeeConsumable
+import com.radixdlt.client.core.serialization.Dson
+import com.radixdlt.client.core.util.computeIfAbsentSynchronisedFunction
 import io.reactivex.Observable
 import io.reactivex.subjects.ReplaySubject
 import java.util.Objects
@@ -39,19 +38,13 @@ class InMemoryAtomStore : AtomStore {
      * @return an Atom Observable
      */
     override fun getAtoms(address: RadixAddress): Observable<Atom> {
-        Objects.requireNonNull(address) // not needed in Kotlin
-        return Observable.just(TransactionAtoms(address, Token.TEST.id))
-            .flatMap { txAtoms ->
+        Objects.requireNonNull(address)
+        // TODO: move atom filter outside of class
+        return Observable.fromCallable { ValidAtomFilter(address, Dson.instance) }
+            .flatMap { atomFilter ->
                 cache.computeIfAbsentSynchronisedFunction(address) { _ -> ReplaySubject.create() }
                     .distinct()
-                    .flatMap<Atom> { atom ->
-                        if (!atom.getConsumables().isEmpty() && !atom.getConsumables().asSequence()
-                                .all { c -> c is AtomFeeConsumable }) {
-                            txAtoms.accept(atom).newValidTransactions
-                        } else {
-                            Observable.just(atom)
-                        }
-                    }
+                    .flatMap(atomFilter::filter)
             }
     }
 }

@@ -11,13 +11,11 @@ import com.radixdlt.client.application.objects.UnencryptedData
 import com.radixdlt.client.application.translate.AddressTokenState
 import com.radixdlt.client.application.translate.DataStoreTranslator
 import com.radixdlt.client.application.translate.TokenTransferTranslator
-import com.radixdlt.client.application.translate.TransactionAtoms
 import com.radixdlt.client.application.translate.UniquePropertyTranslator
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
-import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.atoms.particles.Minted
@@ -34,7 +32,6 @@ import io.reactivex.annotations.Nullable
 import io.reactivex.disposables.Disposable
 import io.reactivex.disposables.Disposables
 import io.reactivex.observables.ConnectableObservable
-import io.reactivex.rxkotlin.Observables
 import org.slf4j.LoggerFactory
 import java.util.Objects
 
@@ -171,12 +168,8 @@ class RadixApplicationAPI private constructor(
 
         pull(address)
 
-        return Observables.combineLatest<TransactionAtoms, Atom, Observable<Atom>>(
-            Observable.fromCallable { TransactionAtoms(address, tokenClass.id) },
-            ledger.getAtomStore().getAtoms(address)) { transactionAtoms, atom ->
-            transactionAtoms.accept(atom).newValidTransactions
-        }
-            .flatMap { atoms -> atoms.flatMapIterable { tokenTransferTranslator.fromAtom(it) } }
+        return ledger.getAtomStore().getAtoms(address)
+            .flatMapIterable(tokenTransferTranslator::fromAtom)
     }
 
     fun getBalance(address: RadixAddress): Observable<Map<EUID, Long>> {
