@@ -5,20 +5,17 @@ import com.radixdlt.client.core.atoms.RadixHash
 import java.nio.charset.StandardCharsets
 import java.util.Objects
 
-class Token private constructor(val iso: String, val subUnits: Int, val id: EUID) {
+class Token(val iso: String, val subUnits: Int) {
+
+    val id: EUID = calcEUID(iso)
 
     init {
         Objects.requireNonNull(iso)
-        Objects.requireNonNull(id)
 
         if (subUnits == 0) {
             throw IllegalArgumentException("Integer assets should have subUnits set to 1 for mathematical reasons")
         }
     }
-
-    constructor(iso: String, subUnits: Int) : this(iso, subUnits,
-        calcEUID(iso)
-    )
 
     override fun equals(other: Any?): Boolean {
         if (other !is Token) {

@@ -3,25 +3,23 @@ package com.radixdlt.client.core.atoms
 import com.google.gson.annotations.SerializedName
 import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.address.EUID
-import com.radixdlt.client.core.crypto.ECKeyPair
 
 class TokenParticle(
-    private val owners: Set<ECKeyPair>,
+    accountReference: AccountReference,
+    private val name: String,
+    private val iso: String,
+    private val description: String,
     @field:SerializedName("sub_units")
     private val subUnits: Long,
-    @field:SerializedName("maximum_units")
-    private val iso: String,
-    private val label: String,
-    private val description: String,
-    private val icon: ByteArray
+    private val icon: ByteArray?
 ) : Particle {
-
+    private val uid: EUID = Token.calcEUID(iso)
     private val spin: Spin = Spin.UP
-    private val id: EUID = Token.calcEUID(iso)
+    private val addresses: List<AccountReference> = listOf(accountReference)
 
     // TODO: fix this to be an account
     override fun getDestinations(): Set<EUID> {
-        return setOf(id)
+        return setOf(uid)
     }
 
     override fun getSpin(): Spin {
