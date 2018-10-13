@@ -24,7 +24,6 @@ import com.radixdlt.client.core.serialization.RadixJson
 import io.reactivex.Completable
 import io.reactivex.Observable
 import java.nio.charset.StandardCharsets
-import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.concurrent.ConcurrentHashMap
@@ -36,73 +35,71 @@ class TokenTransferTranslator(
 
     private val cache = ConcurrentHashMap<RadixAddress, AddressTokenReducer>()
 
-    fun fromAtom(atom: Atom): TokenTransfer {
-        val summary = atom.summary().entries.asSequence()
-            .filter { entry -> entry.value.containsKey(Token.TEST.id) }
-            .map { entry ->
-                SimpleImmutableEntry<ECPublicKey, Long>(
-                    entry.key.iterator().next(),
-                    entry.value[Token.TEST.id]
-                )
+    fun fromAtom(atom: Atom): List<TokenTransfer> {
+        return atom.tokenSummary().entries.asSequence()
+            .map { e ->
+                val summary = ArrayList<Map.Entry<ECPublicKey, Long>>(e.value.entries)
+
+                if (summary.isEmpty()) {
+                    throw IllegalStateException("Invalid atom: ${RadixJson.gson.toJson(atom)}")
+                }
+
+                if (summary.size > 2) {
+                    throw IllegalStateException(
+                        "More than two participants in token transfer. Unable to handle: $summary"
+                    )
+                }
+
+                val from: RadixAddress?
+                val to: RadixAddress?
+                if (summary.size == 1) {
+                    from = if (summary[0].value <= 0L) universe.getAddressFrom(summary[0].key) else null
+                    to = if (summary[0].value < 0L) null else universe.getAddressFrom(summary[0].key)
+                } else {
+                    if (summary[0].value > 0) {
+                        from = universe.getAddressFrom(summary[1].key)
+                        to = universe.getAddressFrom(summary[0].key)
+                    } else {
+                        from = universe.getAddressFrom(summary[0].key)
+                        to = universe.getAddressFrom(summary[1].key)
+                    }
+                }
+
+                val bytesParticle: DataParticle? = atom.getDataParticles()!!.asSequence()
+                    .filter { p -> "encryptor" != p.getMetaData("application") }
+                    .firstOrNull()
+
+                // Construct attachment from atom
+                val attachment: Data?
+                if (bytesParticle != null) {
+                    val metaData = HashMap<String, Any>()
+
+                    val encryptorParticle: DataParticle? = atom.getDataParticles()!!.asSequence()
+                        .filter { p -> "encryptor" == p.getMetaData("application") }
+                        .firstOrNull()
+
+                    metaData["encrypted"] = encryptorParticle != null
+
+                    val encryptor: Encryptor? = if (encryptorParticle != null) {
+                        val encryptorBytes = encryptorParticle.bytes!!.toUtf8String()
+                        val protectorsJson = JSON_PARSER.parse(encryptorBytes).asJsonArray
+                        val protectors = ArrayList<EncryptedPrivateKey>()
+                        protectorsJson.forEach { protectorJson ->
+                            protectors.add(EncryptedPrivateKey.fromBase64(protectorJson.asString))
+                        }
+                        Encryptor(protectors)
+                    } else {
+                        null
+                    }
+                    attachment = Data.raw(encryptorParticle?.bytes?.bytes, metaData, encryptor)
+                } else {
+                    attachment = null
+                }
+
+                val amount = Math.abs(summary[0].value)
+                return@map TokenTransfer.create(from, to, Token.TEST, amount, attachment, atom.timestamp)
             }
             .toList()
-
-        if (summary.isEmpty()) {
-            throw IllegalStateException("Invalid atom: ${RadixJson.gson.toJson(atom)}")
-        }
-
-        if (summary.size > 2) {
-            throw IllegalStateException("More than two participants in token transfer. Unable to handle: $summary")
-        }
-
-        val from: RadixAddress?
-        val to: RadixAddress?
-        if (summary.size == 1) {
-            from = if (summary[0].value <= 0L) universe.getAddressFrom(summary[0].key) else null
-            to = if (summary[0].value < 0L) null else universe.getAddressFrom(summary[0].key)
-        } else {
-            if (summary[0].value > 0) {
-                from = universe.getAddressFrom(summary[1].key)
-                to = universe.getAddressFrom(summary[0].key)
-            } else {
-                from = universe.getAddressFrom(summary[0].key)
-                to = universe.getAddressFrom(summary[1].key)
-            }
-        }
-
-        val bytesParticle: DataParticle? = atom.getDataParticles()!!.asSequence()
-            .filter { p -> "encryptor" != p.getMetaData("application") }
-            .firstOrNull()
-
-        // Construct attachment from atom
-        val attachment: Data?
-        if (bytesParticle != null) {
-            val metaData = HashMap<String, Any>()
-
-            val encryptorParticle: DataParticle? = atom.getDataParticles()!!.asSequence()
-                .filter { p -> "encryptor" == p.getMetaData("application") }
-                .firstOrNull()
-
-            metaData["encrypted"] = encryptorParticle != null
-
-            val encryptor: Encryptor? = if (encryptorParticle != null) {
-                val protectorsJson = JSON_PARSER.parse(encryptorParticle.bytes!!.toUtf8String()).asJsonArray
-                val protectors = ArrayList<EncryptedPrivateKey>()
-                protectorsJson.forEach { protectorJson ->
-                    protectors.add(EncryptedPrivateKey.fromBase64(protectorJson.asString))
-                }
-                Encryptor(protectors)
-            } else {
-                null
-            }
-            attachment = Data.raw(encryptorParticle?.bytes?.bytes, metaData, encryptor)
-        } else {
-            attachment = null
-        }
-
-        return TokenTransfer.create(
-            from, to, Token.TEST, Math.abs(summary[0].value), attachment, atom.timestamp
-        )
     }
 
     fun getTokenState(address: RadixAddress?): Observable<AddressTokenState> {
@@ -114,6 +111,9 @@ class TokenTransferTranslator(
     fun translate(tokenTransfer: TokenTransfer, atomBuilder: AtomBuilder): Completable {
         return this.getTokenState(tokenTransfer.from)
             .map(AddressTokenState::unconsumedConsumables)
+            .map { u ->
+                if (u.containsKey(tokenTransfer.token.id)) u[tokenTransfer.token.id] else emptyList()
+            }
             .firstOrError()
             .flatMapCompletable { unconsumedConsumables ->
 

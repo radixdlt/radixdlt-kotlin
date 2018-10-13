@@ -106,8 +106,8 @@ class Dson private constructor() {
     }
 
     fun toDson(o: Any?): ByteArray {
-        val raw: ByteArray
-        val type: Int
+        var raw: ByteArray
+        var type: Int
 
         if (o == null) {
             throw IllegalArgumentException("Null sent")
@@ -162,6 +162,9 @@ class Dson private constructor() {
             // HACK
             raw = longToByteArray(o.ordinalValue().toLong())
             type = 2
+        } else if (o is Enum<*>) {
+            raw = o.name.toLowerCase().toByteArray(StandardCharsets.UTF_8)
+            type = Primitive.STRING.value
         } else {
             var c: Class<*> = o.javaClass
             val fields = ArrayList<Field>()

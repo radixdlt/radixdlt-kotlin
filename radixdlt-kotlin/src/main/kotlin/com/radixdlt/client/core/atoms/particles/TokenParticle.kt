@@ -12,11 +12,18 @@ class TokenParticle(
     private val description: String,
     @field:SerializedName("sub_units")
     private val subUnits: Long,
+    @field:SerializedName("mint_permissions")
+    private val mintPermissions: MintPermissions,
     private val icon: ByteArray?
 ) : Particle {
     private val uid: EUID = Token.calcEUID(iso)
     private val spin: Spin = Spin.UP
     private val addresses: List<AccountReference> = listOf(accountReference)
+
+    enum class MintPermissions {
+        GENESIS_ONLY,
+        SAME_ATOM_ONLY
+    }
 
     // TODO: fix this to be an account
     override fun getDestinations(): Set<EUID> {

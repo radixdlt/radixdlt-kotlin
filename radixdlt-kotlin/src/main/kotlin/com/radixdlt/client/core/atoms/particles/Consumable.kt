@@ -12,7 +12,7 @@ import com.radixdlt.client.core.util.mergeAfterSum
 
 open class Consumable(
     val amount: Long,
-    private val address: AccountReference,
+    address: AccountReference,
     val nonce: Long,
     tokenId: EUID,
     val planck: Long,
@@ -24,6 +24,9 @@ open class Consumable(
 
     private val addresses: List<AccountReference> = listOf(address)
 
+    val address: AccountReference
+        get() = addresses[0]
+
     fun spinDown(): Consumable {
         return Consumable(
             this.amount,
@@ -34,8 +37,6 @@ open class Consumable(
             Spin.DOWN
         )
     }
-
-    fun getAddress(): AccountReference = addresses[0]
 
     fun addConsumerQuantities(
         amount: Long,
@@ -54,7 +55,7 @@ open class Consumable(
         }
 
         consumerQuantities.mergeAfterSum(newOwner, amount)
-        consumerQuantities.mergeAfterSum(getAddress().getKey().toECKeyPair(), this.amount - amount)
+        consumerQuantities.mergeAfterSum(address.getKey().toECKeyPair(), this.amount - amount)
     }
 
     override fun getSpin(): Spin {
@@ -75,6 +76,10 @@ open class Consumable(
 
     fun getOwnersPublicKeys(): Set<ECPublicKey> {
         return addresses.asSequence().map { it.getKey() }.toSet() ?: emptySet()
+    }
+
+    fun getOwner(): ECPublicKey {
+        return addresses[0].getKey()
     }
 
     fun getOwners(): Set<ECKeyPair> {

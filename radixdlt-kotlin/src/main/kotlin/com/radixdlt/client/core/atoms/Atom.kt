@@ -1,5 +1,6 @@
 package com.radixdlt.client.core.atoms
 
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.particles.ChronoParticle
 import com.radixdlt.client.core.atoms.particles.Consumable
@@ -67,6 +68,13 @@ class Atom {
         this.signatures = Collections.singletonMap(signatureId.toString(), signature)
     }
 
+    fun consumables(): List<Consumable> {
+        return this.particles!!.asSequence()
+            .filter { p -> p is Consumable }
+            .map { p -> p as Consumable }
+            .toList()
+    }
+
     fun getConsumables(): List<Consumable> {
         return this.particles!!.asSequence()
             .filter { p -> p is Consumable }
@@ -105,9 +113,22 @@ class Atom {
         return Dson.instance.toDson(this)
     }
 
+    fun tokenSummary(): Map<EUID, Map<ECPublicKey, Long>> {
+        return consumables()
+            .filter { c -> c.getTokenClass() != Token.calcEUID("POW") }
+            .groupBy(Consumable::getTokenClass)
+            .mapValues { it ->
+                it.value.asSequence().groupBy(Consumable::getOwner) {
+                    it.getSignedAmount()
+                }.mapValues {
+                    it.value.sum()
+                }
+            }
+    }
+
     fun summary(): Map<Set<ECPublicKey>, Map<EUID, Long>> {
-        return this.getConsumables(Spin.UP).asSequence().plus(getConsumables(
-            Spin.DOWN).asSequence())
+        return consumables()
+            .filter { c -> c.getTokenClass() != Token.calcEUID("POW") }
             .groupBy(Consumable::getOwnersPublicKeys)
             .mapValues { it ->
                 it.value.asSequence().groupBy(Consumable::getTokenClass) {

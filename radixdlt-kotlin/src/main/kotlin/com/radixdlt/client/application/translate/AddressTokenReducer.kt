@@ -1,11 +1,10 @@
 package com.radixdlt.client.application.translate
 
-import com.radixdlt.client.application.objects.Amount
-import com.radixdlt.client.application.objects.Token
+import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
+import com.radixdlt.client.core.atoms.RadixHash
 import com.radixdlt.client.core.atoms.particles.AtomFeeConsumable
 import com.radixdlt.client.core.atoms.particles.Consumable
-import com.radixdlt.client.core.atoms.RadixHash
 import com.radixdlt.client.core.atoms.particles.Spin
 import com.radixdlt.client.core.ledger.ParticleStore
 import io.reactivex.Observable
@@ -31,10 +30,20 @@ class AddressTokenReducer(address: RadixAddress, particleStore: ParticleStore) {
             }
             .debounce(1000, TimeUnit.MILLISECONDS)
             .map { consumables ->
-                val balanceInSubUnits =
-                    consumables.asSequence().map(Consumable::amount).sum()
-                val balance = Amount.subUnitsOf(balanceInSubUnits, Token.TEST)
-                AddressTokenState(balance, consumables)
+
+                val balance: Map<EUID, Long> = consumables
+                    .asSequence()
+                    .groupBy(Consumable::getTokenClass) {
+                        it.amount
+                    }.mapValues {
+                        it.value.sum()
+                    }
+
+                val consumableLists: Map<EUID, List<Consumable>> = consumables
+                    .asSequence()
+                    .groupBy(Consumable::getTokenClass)
+
+                AddressTokenState(balance, consumableLists)
             }
             .replay(1)
             .autoConnect()

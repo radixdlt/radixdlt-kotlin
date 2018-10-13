@@ -14,11 +14,13 @@ import com.radixdlt.client.application.translate.TokenTransferTranslator
 import com.radixdlt.client.application.translate.TransactionAtoms
 import com.radixdlt.client.application.translate.UniquePropertyTranslator
 import com.radixdlt.client.core.RadixUniverse
+import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.UnsignedAtom
+import com.radixdlt.client.core.atoms.particles.Minted
 import com.radixdlt.client.core.atoms.particles.TokenParticle
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
@@ -174,37 +176,54 @@ class RadixApplicationAPI private constructor(
             ledger.getAtomStore().getAtoms(address)) { transactionAtoms, atom ->
             transactionAtoms.accept(atom).newValidTransactions
         }
-            .flatMap { atoms -> atoms.map { tokenTransferTranslator.fromAtom(it) } }
+            .flatMap { atoms -> atoms.flatMapIterable { tokenTransferTranslator.fromAtom(it) } }
     }
 
-    fun getMyBalance(tokenClass: Token): Observable<Amount> {
-        return getBalance(myAddress, tokenClass)
-    }
-
-    fun getBalance(address: RadixAddress, tokenClass: Token): Observable<Amount> {
+    fun getBalance(address: RadixAddress): Observable<Map<EUID, Long>> {
         Objects.requireNonNull(address)
-        Objects.requireNonNull(tokenClass)
 
         pull(address)
 
-        return tokenTransferTranslator.getTokenState(address).map(AddressTokenState::balance)
+        return tokenTransferTranslator.getTokenState(address)
+            .map(AddressTokenState::balance)
+    }
+
+    fun getMyBalance(token: Token): Observable<Amount> {
+        return getBalance(myAddress, token)
+    }
+
+    fun getBalance(address: RadixAddress, token: Token): Observable<Amount> {
+        Objects.requireNonNull(token)
+
+        return getBalance(address)
+            .map { balances -> Amount.subUnitsOf(balances[token.id] ?: 0L , token)}
     }
 
     // TODO: refactor to access a TokenTranslator
     fun createToken(name: String, iso: String, description: String, subUnits: Int): Result {
-        val tokenParticle =
-            TokenParticle(
-                AccountReference(myPublicKey),
-                name,
-                iso,
-                description,
-                subUnits.toLong(),
-                null
-            )
-        val atomBuilder = atomBuilderSupplier()
-        atomBuilder.addParticle(tokenParticle)
+        val account = AccountReference(myPublicKey)
+        val token = TokenParticle(
+            account,
+            name,
+            iso,
+            description,
+            subUnits.toLong(),
+            TokenParticle.MintPermissions.SAME_ATOM_ONLY,
+            null
+        )
+        val minted = Minted(
+            10000,
+            account,
+            System.currentTimeMillis(),
+            Token.calcEUID(iso),
+            System.currentTimeMillis() / 60000L + 60000
+        )
 
-        val unsignedAtom = atomBuilder.buildWithPOWFee(universe.magic, myPublicKey)
+        val unsignedAtom = atomBuilderSupplier()
+            .addParticle(token)
+            .addParticle(minted)
+            .buildWithPOWFee(universe.magic, myPublicKey)
+
         val updates = myIdentity.sign(unsignedAtom)
             .flatMapObservable {
                 ledger.getAtomSubmitter().submitAtom(it)

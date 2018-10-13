@@ -20,14 +20,14 @@ import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixUniverseType
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.MetadataMap
+import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.atoms.particles.AtomFeeConsumable
 import com.radixdlt.client.core.atoms.particles.ChronoParticle
 import com.radixdlt.client.core.atoms.particles.Consumable
 import com.radixdlt.client.core.atoms.particles.DataParticle
-import com.radixdlt.client.core.atoms.particles.Emission
-import com.radixdlt.client.core.atoms.MetadataMap
+import com.radixdlt.client.core.atoms.particles.Minted
 import com.radixdlt.client.core.atoms.particles.Particle
-import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.atoms.particles.Spin
 import com.radixdlt.client.core.atoms.particles.TokenParticle
 import com.radixdlt.client.core.crypto.ECKeyPair
@@ -75,6 +75,14 @@ object RadixJson {
         EncryptedPrivateKey(encryptedPrivateKey)
     }
 
+    private val MINT_PERMISSIONS_SERIALIZER = JsonSerializer<TokenParticle.MintPermissions> { src, _, _ ->
+        JsonPrimitive(STR_PREFIX + src.name.toLowerCase())
+    }
+
+    private val MINT_PERMISSIONS_DESERIALIZER = JsonDeserializer<TokenParticle.MintPermissions> { json, _, _ ->
+        TokenParticle.MintPermissions.valueOf(unString(json.asString).toUpperCase())
+    }
+
     private val SPIN_JSON_SERIALIZER = JsonSerializer<Spin> { src, _, _ ->
         JsonPrimitive(src.ordinalValue())
     }
@@ -99,7 +107,7 @@ object RadixJson {
     init {
         PARTICLE_SERIALIZER_IDS[AtomFeeConsumable::class.java] = "FEEPARTICLE".hashCode().toLong()
         PARTICLE_SERIALIZER_IDS[Consumable::class.java] = "TRANSFERPARTICLE".hashCode().toLong()
-        PARTICLE_SERIALIZER_IDS[Emission::class.java] = 1341978856L
+        PARTICLE_SERIALIZER_IDS[Minted::class.java] = 1341978856L
         PARTICLE_SERIALIZER_IDS[DataParticle::class.java] = 473758768L
         // PARTICLE_SERIALIZER_IDS.put(UniqueParticle.class, Long.valueOf("UNIQUEPARTICLE".hashCode()));
         PARTICLE_SERIALIZER_IDS[ChronoParticle::class.java] = "CHRONOPARTICLE".hashCode().toLong()
@@ -185,6 +193,8 @@ object RadixJson {
             .registerTypeAdapter(RadixUniverseType::class.java, UNIVERSE_TYPE_DESERIALIZER)
             .registerTypeAdapter(Spin::class.java, SPIN_JSON_DESERIALIZER)
             .registerTypeAdapter(Spin::class.java, SPIN_JSON_SERIALIZER)
+            .registerTypeAdapter(TokenParticle.MintPermissions::class.java, MINT_PERMISSIONS_DESERIALIZER)
+            .registerTypeAdapter(TokenParticle.MintPermissions::class.java, MINT_PERMISSIONS_SERIALIZER)
             .registerTypeAdapter(NodeRunnerData::class.java, NODE_RUNNER_DATA_JSON_DESERIALIZER)
 
         gson = gsonBuilder.create()
