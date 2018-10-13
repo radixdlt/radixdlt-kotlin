@@ -3,10 +3,11 @@ package com.radixdlt.client.examples
 import com.radixdlt.client.application.RadixApplicationAPI
 import com.radixdlt.client.application.identity.RadixIdentities
 import com.radixdlt.client.application.identity.RadixIdentity
+import com.radixdlt.client.application.objects.Amount
+import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.Bootstrap
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.dapps.wallet.RadixWallet
 import java.math.BigDecimal
 
 object RadixWalletExample {
@@ -14,7 +15,7 @@ object RadixWalletExample {
     private val TO_ADDRESS_BASE58 = "9ejksTjHEXJAPuSwUP1a9GDYNaRmUShJq5RgMkXQXgdHbdEkTbD"
     // private val TO_ADDRESS_BASE58 = null
     private val MESSAGE = "A gift for you!"
-    private val AMOUNT = BigDecimal("100.0")
+    private val AMOUNT = BigDecimal("0.01")
 
     // Initialize Radix Universe
     init {
@@ -40,29 +41,25 @@ object RadixWalletExample {
         val api = RadixApplicationAPI.create(radixIdentity)
         api.pull()
 
-        val wallet = RadixWallet(api)
+        println("My address: " + api.myAddress)
+        println("My public key: " + api.myPublicKey)
 
         // Print out all past and future transactions
-        wallet.getTransactions()
-            .subscribe { println(it) }
+        api.getMyTokenTransfers()
+            .subscribe(::println)
 
         // Subscribe to current and future total balance
-        wallet.getBalance(api.myAddress)
-            .subscribe { balance -> println("My Balance:\n $balance") }
+        api.getBalance(api.myAddress)
+            .subscribe { balance -> println("My Balance:\n$balance") }
 
-        /*
-        val result = api.createFixedSupplyToken("Test", "Josh", "Just for kicks", 1);
-        result.toObservable().subscribe(System.out::println);
-        */
-
-        // If specified, send money to another myAddress
-        @Suppress("SENSELESS_COMPARISON")
+        // If specified, send money to another address
         if (TO_ADDRESS_BASE58 != null) {
             val toAddress = RadixAddress.fromString(TO_ADDRESS_BASE58)
-//            api.sendTokens(toAddress, Amount.)
-            wallet.sendWhenAvailable(AMOUNT, MESSAGE, toAddress)
-                .toObservable()
-                .subscribe(System.out::println, Throwable::printStackTrace)
+            api.sendTokens(toAddress, Amount.of(AMOUNT, Token.of("JOSH"))).toObservable()
+                .subscribe(
+                    { println(it) },
+                    { it.printStackTrace() }
+                )
         }
     }
 }

@@ -159,13 +159,12 @@ class RadixApplicationAPI private constructor(
         return Result(updates)
     }
 
-    fun getMyTokenTransfers(tokenClass: Token): Observable<TokenTransfer> {
-        return getTokenTransfers(myAddress, tokenClass)
+    fun getMyTokenTransfers(): Observable<TokenTransfer> {
+        return getTokenTransfers(myAddress)
     }
 
-    fun getTokenTransfers(address: RadixAddress, tokenClass: Token): Observable<TokenTransfer> {
+    fun getTokenTransfers(address: RadixAddress): Observable<TokenTransfer> {
         Objects.requireNonNull(address)
-        Objects.requireNonNull(tokenClass)
 
         pull(address)
 
@@ -244,6 +243,43 @@ class RadixApplicationAPI private constructor(
      */
     fun sendTokens(to: RadixAddress, amount: Amount): Result {
         return transferTokens(myAddress, to, amount)
+    }
+
+    /**
+     * Sends an amount of a token with a message attachment to an address
+     *
+     * @param to the address to send tokens to
+     * @param amount the amount and token type
+     * @param message message to be encrypted and attached to transfer
+     * @return result of the transaction
+     */
+    fun sendTokensWithMessage(to: RadixAddress, amount: Amount, message: String?): Result {
+        return sendTokensWithMessage(to, amount, message, null)
+    }
+
+    /**
+     * Sends an amount of a token with a message attachment to an address
+     *
+     * @param to the address to send tokens to
+     * @param amount the amount and token type
+     * @param message message to be encrypted and attached to transfer
+     * @return result of the transaction
+     */
+    fun sendTokensWithMessage(
+        to: RadixAddress,
+        amount: Amount, message: String?, unique: ByteArray?
+    ): Result {
+        val attachment: Data?
+        if (message != null) {
+            attachment = Data.DataBuilder()
+                .addReader(to.publicKey)
+                .addReader(myPublicKey)
+                .bytes(message.toByteArray()).build()
+        } else {
+            attachment = null
+        }
+
+        return transferTokens(myAddress, to, amount, attachment, unique)
     }
 
     /**

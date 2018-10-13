@@ -115,7 +115,7 @@ class RadixApplicationAPITest {
 //        val api = createMockedAPIWhichAlwaysSucceeds()
 //        assertThatThrownBy { api.getReadableData(null) }
 //            .isInstanceOf(NullPointerException::class.java)
-//        assertThatThrownBy { api.getTokenTransfers(null, null) }
+//        assertThatThrownBy { api.getTokenTransfers(null) }
 //            .isInstanceOf(NullPointerException::class.java)
 //        assertThatThrownBy { api.getBalance(null, null) }
 //            .isInstanceOf(NullPointerException::class.java)
