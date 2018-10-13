@@ -56,12 +56,23 @@ class RadixUniverse private constructor(
         fun getAtomSubmitter(): AtomSubmitter
     }
 
+    val inMemoryAtomStore = InMemoryAtomStore()
+
+    init {
+        config.genesis.forEach { atom ->
+            atom.addresses
+                .map(this@RadixUniverse::getAddressFrom)
+                .forEach { addr ->
+                    inMemoryAtomStore.store(addr, atom)
+                }
+        }
+    }
+
     // Hooking up the default configuration
     // TODO: cleanup
     val ledger: Ledger = object : Ledger {
         private val clientSelector = ClientSelector(config, network)
         private val atomFetcher = AtomFetcher(clientSelector::getRadixClient)
-        private val inMemoryAtomStore = InMemoryAtomStore()
         private val atomPuller = RadixAtomPuller(atomFetcher::fetchAtoms, inMemoryAtomStore::store)
         private val atomSubmitter = RadixAtomSubmitter(clientSelector::getRadixClient)
 
@@ -75,7 +86,7 @@ class RadixUniverse private constructor(
 
         override fun getParticleStore(): ParticleStore = this.particleStore
 
-        override fun getAtomStore(): AtomStore = this.inMemoryAtomStore
+        override fun getAtomStore(): AtomStore = inMemoryAtomStore
 
         override fun getAtomSubmitter(): AtomSubmitter = this.atomSubmitter
     }
