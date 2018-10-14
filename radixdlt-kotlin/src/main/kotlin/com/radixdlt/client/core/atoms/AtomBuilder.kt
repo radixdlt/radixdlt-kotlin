@@ -19,7 +19,7 @@ class AtomBuilder {
         return this
     }
 
-    fun buildWithPOWFee(magic: Int, owner: ECPublicKey, powToken: TokenReference): UnsignedAtom {
+    fun buildWithPOWFee(magic: Int, owner: ECPublicKey, powToken: TokenRef): UnsignedAtom {
         val timestamp = System.currentTimeMillis()
 
         // Expensive but fine for now

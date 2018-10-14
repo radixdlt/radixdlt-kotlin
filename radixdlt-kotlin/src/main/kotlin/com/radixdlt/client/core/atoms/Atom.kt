@@ -126,10 +126,9 @@ class Atom {
         return Dson.instance.toDson(this)
     }
 
-    fun tokenSummary(): Map<TokenReference, Map<ECPublicKey, Long>> {
+    fun tokenSummary(): Map<TokenRef, Map<ECPublicKey, Long>> {
         return consumables()
-            .filter { c -> c.tokenReference.equals("POW") }
-            .groupBy(Consumable::tokenReference)
+            .groupBy(Consumable::tokenRef)
             .mapValues { it ->
                 it.value.asSequence().groupBy(Consumable::getOwner) {
                     it.getSignedAmount()

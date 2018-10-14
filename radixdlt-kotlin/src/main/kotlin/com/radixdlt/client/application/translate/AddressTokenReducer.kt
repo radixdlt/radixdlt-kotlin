@@ -2,7 +2,7 @@ package com.radixdlt.client.application.translate
 
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.RadixHash
-import com.radixdlt.client.core.atoms.TokenReference
+import com.radixdlt.client.core.atoms.TokenRef
 import com.radixdlt.client.core.atoms.particles.AtomFeeConsumable
 import com.radixdlt.client.core.atoms.particles.Consumable
 import com.radixdlt.client.core.atoms.particles.Spin
@@ -32,17 +32,17 @@ class AddressTokenReducer(address: RadixAddress, particleStore: ParticleStore) {
             .debounce(1000, TimeUnit.MILLISECONDS)
             .map { consumables ->
 
-                val balance: Map<TokenReference, Long> = consumables
+                val balance: Map<TokenRef, Long> = consumables
                     .asSequence()
-                    .groupBy(Consumable::tokenReference) {
+                    .groupBy(Consumable::tokenRef) {
                         it.amount
                     }.mapValues {
                         it.value.sum()
                     }
 
-                val consumableLists: Map<TokenReference, List<Consumable>> = consumables
+                val consumableLists: Map<TokenRef, List<Consumable>> = consumables
                     .asSequence()
-                    .groupBy(Consumable::tokenReference)
+                    .groupBy(Consumable::tokenRef)
 
                 AddressTokenState(balance, consumableLists)
             }

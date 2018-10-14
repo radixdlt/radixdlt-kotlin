@@ -5,14 +5,14 @@ import java.math.BigDecimal
 import java.nio.charset.StandardCharsets
 import java.util.Objects
 
-class TokenReference private constructor(val address: AccountReference, val iso: String) {
+class TokenRef private constructor(val address: AccountReference, val iso: String) {
 
     init {
         Objects.requireNonNull(iso)
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other !is TokenReference) {
+        if (other !is TokenRef) {
             return false
         }
 
@@ -46,8 +46,8 @@ class TokenReference private constructor(val address: AccountReference, val iso:
             return BigDecimal.valueOf(subUnits, TOKEN_SCALE)
         }
 
-        fun of(address: AccountReference, reference: String): TokenReference {
-            return TokenReference(address, reference)
+        fun of(address: AccountReference, reference: String): TokenRef {
+            return TokenRef(address, reference)
         }
 
         fun calcEUID(isoCode: String): EUID {

@@ -1,7 +1,7 @@
 package com.radixdlt.client.application.actions
 
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.TokenReference
+import com.radixdlt.client.core.atoms.TokenRef
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.Test
@@ -14,7 +14,7 @@ class TokenTransferTest {
     fun testBadBigDecimalScale() {
         val from = mock(RadixAddress::class.java)
         val to = mock(RadixAddress::class.java)
-        val tokenRef = mock(TokenReference::class.java)
+        val tokenRef = mock(TokenRef::class.java)
 
         assertThatThrownBy { TokenTransfer.create(from, to, BigDecimal("0.000001"), tokenRef) }
             .isInstanceOf(IllegalArgumentException::class.java)
@@ -24,7 +24,7 @@ class TokenTransferTest {
     fun testSmallestAllowedAmount() {
         val from = mock(RadixAddress::class.java)
         val to = mock(RadixAddress::class.java)
-        val tokenRef = mock(TokenReference::class.java)
+        val tokenRef = mock(TokenRef::class.java)
 
         assertThat(TokenTransfer.create(from, to, BigDecimal("0.00001"), tokenRef).toString()).isNotNull()
     }
@@ -33,7 +33,7 @@ class TokenTransferTest {
     fun testSmallestAllowedAmountLargeScale() {
         val from = mock(RadixAddress::class.java)
         val to = mock(RadixAddress::class.java)
-        val tokenRef = mock(TokenReference::class.java)
+        val tokenRef = mock(TokenRef::class.java)
 
         assertThat(TokenTransfer.create(from, to, BigDecimal("0.000010000"), tokenRef).toString()).isNotNull()
     }

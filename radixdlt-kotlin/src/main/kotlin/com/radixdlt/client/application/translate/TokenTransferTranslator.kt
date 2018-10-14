@@ -10,7 +10,7 @@ import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Payload
-import com.radixdlt.client.core.atoms.TokenReference
+import com.radixdlt.client.core.atoms.TokenRef
 import com.radixdlt.client.core.atoms.particles.Consumable
 import com.radixdlt.client.core.atoms.particles.DataParticle
 import com.radixdlt.client.core.atoms.particles.Spin
@@ -97,7 +97,7 @@ class TokenTransferTranslator(
                     attachment = null
                 }
 
-                val amount = TokenReference.subUnitsToDecimal(Math.abs(summary[0].value))
+                val amount = TokenRef.subUnitsToDecimal(Math.abs(summary[0].value))
                 return@map TokenTransfer.create(from, to, amount, e.key, attachment, atom.timestamp)
             }
             .toList()
@@ -114,8 +114,8 @@ class TokenTransferTranslator(
             .firstOrError()
             .flatMapCompletable { state ->
                 val allUnconsumedConsumables = state.unconsumedConsumables
-                val unconsumedConsumables = if (allUnconsumedConsumables.containsKey(transfer.tokenReference)) {
-                    allUnconsumedConsumables[transfer.tokenReference]
+                val unconsumedConsumables = if (allUnconsumedConsumables.containsKey(transfer.tokenRef)) {
+                    allUnconsumedConsumables[transfer.tokenRef]
                 } else {
                     emptyList()
                 }
@@ -147,7 +147,7 @@ class TokenTransferTranslator(
                 }
 
                 var consumerTotal: Long = 0
-                val subUnitAmount = transfer.amount.multiply(TokenReference.getSubUnits()).longValueExact()
+                val subUnitAmount = transfer.amount.multiply(TokenRef.getSubUnits()).longValueExact()
                 val iterator = unconsumedConsumables!!.iterator()
                 val consumerQuantities = HashMap<ECKeyPair, Long>()
 
@@ -169,7 +169,7 @@ class TokenTransferTranslator(
                 if (consumerTotal < subUnitAmount) {
                     return@flatMapCompletable Completable.error(
                         InsufficientFundsException(
-                            transfer.tokenReference, TokenReference.subUnitsToDecimal(consumerTotal), transfer.amount
+                            transfer.tokenRef, TokenRef.subUnitsToDecimal(consumerTotal), transfer.amount
                         )
                     )
                 }
@@ -180,7 +180,7 @@ class TokenTransferTranslator(
                             entry.value,
                             AccountReference(entry.key.getPublicKey()),
                             System.nanoTime(),
-                            transfer.tokenReference,
+                            transfer.tokenRef,
                             System.currentTimeMillis() / 60000L + 60000L,
                             Spin.UP
                         )

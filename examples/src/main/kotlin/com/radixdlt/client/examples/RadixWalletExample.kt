@@ -7,7 +7,7 @@ import com.radixdlt.client.core.Bootstrap
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
-import com.radixdlt.client.core.atoms.TokenReference
+import com.radixdlt.client.core.atoms.TokenRef
 import java.math.BigDecimal
 
 object RadixWalletExample {
@@ -53,7 +53,7 @@ object RadixWalletExample {
 			.toObservable().subscribe(::println)
 		*/
 
-        val token = TokenReference.of(AccountReference(api.myPublicKey), "NONA")
+        val token = TokenRef.of(AccountReference(api.myPublicKey), "NONA")
         api.getToken(token)
             .subscribe(::println)
 

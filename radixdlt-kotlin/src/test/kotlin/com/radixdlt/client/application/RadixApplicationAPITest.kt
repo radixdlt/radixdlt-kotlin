@@ -10,7 +10,7 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.TokenReference
+import com.radixdlt.client.core.atoms.TokenRef
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.crypto.CryptoException
@@ -275,7 +275,7 @@ class RadixApplicationAPITest {
 
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
         val observer = TestObserver.create<BigDecimal>()
-        val token = mock(TokenReference::class.java)
+        val token = mock(TokenRef::class.java)
 
         api.getBalance(address, token).subscribe(observer)
         observer.awaitCount(1)
@@ -331,7 +331,7 @@ class RadixApplicationAPITest {
 
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance) { AtomBuilder() }
         val testObserver = TestObserver.create<BigDecimal>()
-        val token = mock(TokenReference::class.java)
+        val token = mock(TokenRef::class.java)
         api.getBalance(address, token).subscribe(testObserver)
         verify(puller, times(1)).pull(address)
     }

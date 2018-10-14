@@ -15,7 +15,7 @@ import com.google.gson.TypeAdapterFactory
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
-import com.radixdlt.client.core.atoms.TokenReference
+import com.radixdlt.client.core.atoms.TokenRef
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.address.RadixUniverseType
 import com.radixdlt.client.core.atoms.AccountReference
@@ -145,7 +145,7 @@ object RadixJson {
         SERIALIZERS[ECKeyPair::class.java] = 547221307
         SERIALIZERS[ECSignature::class.java] = -434788200
         SERIALIZERS[AccountReference::class.java] = "ACCOUNTREFERENCE".hashCode()
-        SERIALIZERS[TokenReference::class.java] = "TOKENCLASSREFERENCE".hashCode()
+        SERIALIZERS[TokenRef::class.java] = "TOKENCLASSREFERENCE".hashCode()
     }
 
     private val ECKEYPAIR_ADAPTER_FACTORY = object : TypeAdapterFactory {

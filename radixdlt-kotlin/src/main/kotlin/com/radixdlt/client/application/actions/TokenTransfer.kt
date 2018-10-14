@@ -2,7 +2,7 @@ package com.radixdlt.client.application.actions
 
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.TokenReference
+import com.radixdlt.client.core.atoms.TokenRef
 import java.math.BigDecimal
 import java.util.Collections
 import java.util.HashMap
@@ -11,14 +11,14 @@ class TokenTransfer private constructor(
     val from: RadixAddress?,
     val to: RadixAddress?,
     val amount: BigDecimal,
-    val tokenReference: TokenReference,
+    val tokenRef: TokenRef,
     val attachment: Data?,
     private val metaData: Map<String, Any>
 ) {
 
     init {
-        if (amount.stripTrailingZeros().scale() > TokenReference.getTokenScale()) {
-            throw IllegalArgumentException("Amount must scale by " + TokenReference.getTokenScale())
+        if (amount.stripTrailingZeros().scale() > TokenRef.getTokenScale()) {
+            throw IllegalArgumentException("Amount must scale by " + TokenRef.getTokenScale())
         }
     }
 
@@ -28,7 +28,7 @@ class TokenTransfer private constructor(
 
     override fun toString(): String {
         val timestamp = metaData["timestamp"] as Long?
-        return ("$timestamp $from -> $to $amount ${tokenReference.iso}" +
+        return ("$timestamp $from -> $to $amount ${tokenRef.iso}" +
             if (attachment == null) "" else " $attachment")
     }
 
@@ -39,7 +39,7 @@ class TokenTransfer private constructor(
             from: RadixAddress?,
             to: RadixAddress?,
             amount: BigDecimal,
-            tokenClass: TokenReference): TokenTransfer {
+            tokenClass: TokenRef): TokenTransfer {
             return TokenTransfer(from, to, amount, tokenClass, null, emptyMap())
         }
 
@@ -48,7 +48,7 @@ class TokenTransfer private constructor(
             from: RadixAddress?,
             to: RadixAddress?,
             amount: BigDecimal,
-            tokenReference: TokenReference,
+            tokenReference: TokenRef,
             attachment: Data?
         ): TokenTransfer {
             return TokenTransfer(from, to, amount, tokenReference, attachment, emptyMap())
@@ -59,7 +59,7 @@ class TokenTransfer private constructor(
             from: RadixAddress?,
             to: RadixAddress?,
             amount: BigDecimal,
-            tokenReference: TokenReference,
+            tokenReference: TokenRef,
             timestamp: Long?
         ): TokenTransfer {
             val metaData = HashMap<String, Any>()
@@ -73,7 +73,7 @@ class TokenTransfer private constructor(
             from: RadixAddress?,
             to: RadixAddress?,
             amount: BigDecimal,
-            tokenReference: TokenReference,
+            tokenReference: TokenRef,
             attachment: Data?,
             timestamp: Long?
         ): TokenTransfer {

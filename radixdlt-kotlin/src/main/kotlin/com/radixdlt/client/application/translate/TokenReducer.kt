@@ -1,7 +1,7 @@
 package com.radixdlt.client.application.translate
 
 import com.radixdlt.client.core.address.RadixAddress
-import com.radixdlt.client.core.atoms.TokenReference
+import com.radixdlt.client.core.atoms.TokenRef
 import com.radixdlt.client.core.atoms.particles.Minted
 import com.radixdlt.client.core.atoms.particles.TokenParticle
 import com.radixdlt.client.core.ledger.ParticleStore
@@ -14,9 +14,9 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 class TokenReducer(private val particleStore: ParticleStore) {
-    private val cache = ConcurrentHashMap<RadixAddress, Observable<Map<TokenReference, TokenState>>>()
+    private val cache = ConcurrentHashMap<RadixAddress, Observable<Map<TokenRef, TokenState>>>()
 
-    fun getState(address: RadixAddress): Observable<Map<TokenReference, TokenState>> {
+    fun getState(address: RadixAddress): Observable<Map<TokenRef, TokenState>> {
         return cache.computeIfAbsentSynchronisedFunction(
             address
         ) { addr ->
@@ -25,7 +25,7 @@ class TokenReducer(private val particleStore: ParticleStore) {
                 .map { p -> p as TokenParticle }
                 .scanWith({ HashMap<String, TokenParticle>() }) { map, p ->
                     val newMap = HashMap(map)
-                    newMap[p.tokenReference.iso] = p
+                    newMap[p.tokenRef.iso] = p
                     newMap
                 }
 
@@ -34,18 +34,18 @@ class TokenReducer(private val particleStore: ParticleStore) {
                 .map { p -> p as Minted }
                 .scanWith({ HashMap<String, Long>() }) { map, p ->
                     val newMap = HashMap(map)
-                    newMap.mergeAfterSum(p.tokenReference.iso, p.amount)
+                    newMap.mergeAfterSum(p.tokenRef.iso, p.amount)
                     return@scanWith newMap
                 }
 
             Observables.combineLatest(tokenParticles, mintedTokens) { tokens, minted ->
                 tokens.entries.asSequence()
                     .associateBy(
-                        { e -> e.value.tokenReference },
+                        { e -> e.value.tokenRef },
                         { e ->
                             val p = e.value
-                            val subUnits = minted[p.tokenReference.iso] ?: 0L
-                            val totalSupply = TokenReference.subUnitsToDecimal(subUnits)
+                            val subUnits = minted[p.tokenRef.iso] ?: 0L
+                            val totalSupply = TokenRef.subUnitsToDecimal(subUnits)
                             TokenState(p.name, p.iso, p.description, totalSupply)
                         }
                     )

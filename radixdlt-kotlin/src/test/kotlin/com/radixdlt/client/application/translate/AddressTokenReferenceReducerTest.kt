@@ -6,7 +6,7 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.RadixHash
-import com.radixdlt.client.core.atoms.TokenReference
+import com.radixdlt.client.core.atoms.TokenRef
 import com.radixdlt.client.core.atoms.particles.Consumable
 import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.atoms.particles.Spin
@@ -27,8 +27,8 @@ class AddressTokenReferenceReducerTest {
         whenever(consumable.amount).thenReturn(10L)
         whenever(consumable.getHash()).thenReturn(hash)
         whenever(consumable.getSpin()).thenReturn(Spin.UP)
-        val token = mock<TokenReference>()
-        whenever(consumable.tokenReference).thenReturn(token)
+        val token = mock<TokenRef>()
+        whenever(consumable.tokenRef).thenReturn(token)
 
         whenever(store.getParticles(address)).thenReturn(
             Observable.just<Particle>(consumable).concatWith(Observable.never())

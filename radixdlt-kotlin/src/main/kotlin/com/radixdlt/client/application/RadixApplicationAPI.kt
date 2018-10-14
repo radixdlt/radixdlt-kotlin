@@ -16,7 +16,7 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.TokenReference
+import com.radixdlt.client.core.atoms.TokenRef
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.atoms.particles.Minted
 import com.radixdlt.client.core.atoms.particles.TokenParticle
@@ -112,7 +112,7 @@ class RadixApplicationAPI private constructor(
         }
     }
 
-    fun getNativeToken(): TokenReference {
+    fun getNativeToken(): TokenRef {
         return universe.nativeToken
     }
 
@@ -120,17 +120,17 @@ class RadixApplicationAPI private constructor(
         return getToken(getNativeToken())
     }
 
-    fun getTokens(address: RadixAddress): Observable<Map<TokenReference, TokenState>> {
+    fun getTokens(address: RadixAddress): Observable<Map<TokenRef, TokenState>> {
         pull(address)
 
         return tokenReducer.getState(address)
     }
 
-    fun getMyTokens(): Observable<Map<TokenReference, TokenState>> {
+    fun getMyTokens(): Observable<Map<TokenRef, TokenState>> {
         return getTokens(myAddress)
     }
 
-    fun getToken(ref: TokenReference): Observable<TokenState> {
+    fun getToken(ref: TokenRef): Observable<TokenState> {
         pull(universe.getAddressFrom(ref.address.getKey()))
 
         return tokenReducer.getState(universe.getAddressFrom(ref.address.getKey()))
@@ -205,7 +205,7 @@ class RadixApplicationAPI private constructor(
             .flatMapIterable(tokenTransferTranslator::fromAtom)
     }
 
-    fun getBalance(address: RadixAddress): Observable<Map<TokenReference, BigDecimal>> {
+    fun getBalance(address: RadixAddress): Observable<Map<TokenRef, BigDecimal>> {
         Objects.requireNonNull(address)
 
         pull(address)
@@ -213,19 +213,19 @@ class RadixApplicationAPI private constructor(
         return tokenTransferTranslator.getTokenState(address)
             .map(AddressTokenState::balance)
             .map { map ->
-                map.entries.asSequence().associateBy(Map.Entry<TokenReference, Long>::key) { e ->
+                map.entries.asSequence().associateBy(Map.Entry<TokenRef, Long>::key) { e ->
                     val subUnitAmount = BigDecimal.valueOf(e.value)
-                    val subUnits = BigDecimal.valueOf(TokenReference.SUB_UNITS.toLong())
+                    val subUnits = BigDecimal.valueOf(TokenRef.SUB_UNITS.toLong())
                     return@associateBy subUnitAmount.divide(subUnits, MathContext.UNLIMITED)
                 }
             }
     }
 
-    fun getMyBalance(tokenReference: TokenReference): Observable<BigDecimal> {
+    fun getMyBalance(tokenReference: TokenRef): Observable<BigDecimal> {
         return getBalance(myAddress, tokenReference)
     }
 
-    fun getBalance(address: RadixAddress, token: TokenReference): Observable<BigDecimal> {
+    fun getBalance(address: RadixAddress, token: TokenRef): Observable<BigDecimal> {
         Objects.requireNonNull(token)
         return getBalance(address)
             .map { balances ->
@@ -245,10 +245,10 @@ class RadixApplicationAPI private constructor(
             null
         )
         val minted = Minted(
-            fixedSupply * TokenReference.SUB_UNITS,
+            fixedSupply * TokenRef.SUB_UNITS,
             account,
             System.currentTimeMillis(),
-            token.tokenReference,
+            token.tokenRef,
             System.currentTimeMillis() / 60000L + 60000
         )
 
@@ -275,7 +275,7 @@ class RadixApplicationAPI private constructor(
      * @param amount the amount and token type
      * @return result of the transaction
      */
-    fun sendTokens(to: RadixAddress, amount: BigDecimal, token: TokenReference): Result {
+    fun sendTokens(to: RadixAddress, amount: BigDecimal, token: TokenRef): Result {
         return transferTokens(myAddress, to, amount, token)
     }
 
@@ -287,7 +287,7 @@ class RadixApplicationAPI private constructor(
      * @param message message to be encrypted and attached to transfer
      * @return result of the transaction
      */
-    fun sendTokensWithMessage(to: RadixAddress, amount: BigDecimal, token: TokenReference, message: String?): Result {
+    fun sendTokensWithMessage(to: RadixAddress, amount: BigDecimal, token: TokenRef, message: String?): Result {
         return sendTokensWithMessage(to, amount, token, message, null)
     }
 
@@ -302,7 +302,7 @@ class RadixApplicationAPI private constructor(
     fun sendTokensWithMessage(
         to: RadixAddress,
         amount: BigDecimal,
-        token: TokenReference,
+        token: TokenRef,
         message: String?,
         unique: ByteArray?
     ): Result {
@@ -330,7 +330,7 @@ class RadixApplicationAPI private constructor(
     fun sendTokens(
         to: RadixAddress,
         amount: BigDecimal,
-        token: TokenReference,
+        token: TokenRef,
         attachment: Data?
     ): Result {
         return transferTokens(myAddress, to, amount, token, attachment)
@@ -349,14 +349,14 @@ class RadixApplicationAPI private constructor(
     fun sendTokens(
         to: RadixAddress,
         amount: BigDecimal,
-        token: TokenReference,
+        token: TokenRef,
         attachment: Data?,
         unique: ByteArray?
     ): Result {
         return transferTokens(myAddress, to, amount, token, attachment, unique)
     }
 
-    fun transferTokens(from: RadixAddress, to: RadixAddress, amount: BigDecimal, token: TokenReference): Result {
+    fun transferTokens(from: RadixAddress, to: RadixAddress, amount: BigDecimal, token: TokenRef): Result {
         return transferTokens(from, to, amount, token, null)
     }
 
@@ -364,7 +364,7 @@ class RadixApplicationAPI private constructor(
         from: RadixAddress,
         to: RadixAddress,
         amount: BigDecimal,
-        token: TokenReference,
+        token: TokenRef,
         attachment: Data?
     ): Result {
         return transferTokens(from, to, amount, token, attachment, null)
@@ -374,7 +374,7 @@ class RadixApplicationAPI private constructor(
         from: RadixAddress,
         to: RadixAddress,
         amount: BigDecimal,
-        token: TokenReference,
+        token: TokenRef,
         attachment: Data?,
         unique: ByteArray? // TODO: make unique immutable
     ): Result {
