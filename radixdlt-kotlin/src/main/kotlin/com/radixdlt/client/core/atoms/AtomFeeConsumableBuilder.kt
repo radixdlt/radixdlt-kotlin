@@ -9,7 +9,7 @@ class AtomFeeConsumableBuilder {
     private var owner: ECPublicKey? = null
     private var magic: Int = 0
     private var leading: Int = 0
-    private var unsignedAtom: UnsignedAtom? = null
+    private var atom: Atom? = null
     private var powToken: TokenRef? = null
 
     fun powToken(powToken: TokenRef): AtomFeeConsumableBuilder {
@@ -23,8 +23,8 @@ class AtomFeeConsumableBuilder {
         return this
     }
 
-    fun atom(atom: UnsignedAtom): AtomFeeConsumableBuilder {
-        this.unsignedAtom = atom
+    fun atom(atom: Atom): AtomFeeConsumableBuilder {
+        this.atom = atom
         return this
     }
 
@@ -34,10 +34,10 @@ class AtomFeeConsumableBuilder {
     }
 
     fun build(): AtomFeeConsumable {
-        Objects.requireNonNull<UnsignedAtom>(unsignedAtom)
+        Objects.requireNonNull<Atom>(atom)
         Objects.requireNonNull<ECPublicKey>(owner)
 
-        val seed = unsignedAtom!!.rawAtom.hash.toByteArray()
+        val seed = atom!!.hash.toByteArray()
 
         val pow = ProofOfWorkBuilder().build(magic, seed, leading)
 

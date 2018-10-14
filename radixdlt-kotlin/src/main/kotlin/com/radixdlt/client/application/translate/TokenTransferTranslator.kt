@@ -8,11 +8,11 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.Atom
-import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Payload
 import com.radixdlt.client.core.atoms.TokenRef
 import com.radixdlt.client.core.atoms.particles.Consumable
 import com.radixdlt.client.core.atoms.particles.DataParticle
+import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.atoms.particles.Spin
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
@@ -96,7 +96,7 @@ class TokenTransferTranslator(
     }
 
     @Throws(InsufficientFundsException::class)
-    fun translate(curState: TokenBalanceState, transfer: TokenTransfer, atomBuilder: AtomBuilder): AtomBuilder {
+    fun map(transfer: TokenTransfer, curState: TokenBalanceState): List<Particle> {
         val allConsumables = curState.getBalance()
 
         val tokenRef = transfer.tokenRef
@@ -109,10 +109,12 @@ class TokenTransferTranslator(
 
         val unconsumedConsumables = allConsumables[transfer.tokenRef]?.unconsumedConsumables()?.toList() ?: emptyList()
 
+        val particles = ArrayList<Particle>()
+
         // Translate attachment to corresponding atom structure
         val attachment = transfer.attachment
         if (attachment != null) {
-            atomBuilder.addParticle(
+            particles.add(
                 DataParticle.DataParticleBuilder()
                     .payload(Payload(attachment.bytes))
                     .account(transfer.from!!)
@@ -131,13 +133,13 @@ class TokenTransferTranslator(
                     .account(transfer.from)
                     .account(transfer.to)
                     .build()
-                atomBuilder.addParticle(encryptorParticle)
+                particles.add(encryptorParticle)
             }
         }
 
         var consumerTotal: Long = 0
         val subUnitAmount = transfer.amount.multiply(TokenRef.getSubUnits()).longValueExact()
-        val iterator = unconsumedConsumables!!.iterator()
+        val iterator = unconsumedConsumables.iterator()
         val consumerQuantities = HashMap<ECKeyPair, Long>()
 
         // HACK for now
@@ -152,10 +154,10 @@ class TokenTransferTranslator(
             val amount = Math.min(left, down.amount)
             down.addConsumerQuantities(amount, transfer.to!!.toECKeyPair(), consumerQuantities)
 
-            atomBuilder.addParticle(down)
+            particles.add(down)
         }
 
-        val consumables = consumerQuantities.entries.asSequence()
+        consumerQuantities.entries.asSequence()
             .map { entry ->
                 Consumable(
                     entry.value,
@@ -166,10 +168,9 @@ class TokenTransferTranslator(
                     Spin.UP
                 )
             }
-            .toList()
-        atomBuilder.addParticles(consumables)
+            .forEach { particles.add(it) }
 
-        return atomBuilder
+        return particles
     }
 
     companion object {

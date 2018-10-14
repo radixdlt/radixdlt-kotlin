@@ -6,7 +6,6 @@ import com.radixdlt.client.application.actions.TokenTransfer
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
-import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.TokenRef
 import com.radixdlt.client.core.crypto.ECPublicKey
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -50,7 +49,7 @@ class TokenTransferTranslatorTest {
         val state = mock<TokenBalanceState>()
         whenever(state.getBalance()).thenReturn(emptyMap())
 
-        assertThatThrownBy { transferTranslator.translate(state, tokenTransfer, AtomBuilder()) }
+        assertThatThrownBy { transferTranslator.map(tokenTransfer, state) }
             .isEqualTo(InsufficientFundsException(token, BigDecimal.ZERO, BigDecimal("1.0")))
     }
 }

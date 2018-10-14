@@ -17,9 +17,14 @@ import com.radixdlt.client.application.translate.UniquePropertyTranslator
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
+import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.AtomFeeConsumableBuilder
 import com.radixdlt.client.core.atoms.TokenRef
+import com.radixdlt.client.core.atoms.UnsignedAtom
+import com.radixdlt.client.core.atoms.particles.ChronoParticle
 import com.radixdlt.client.core.atoms.particles.Minted
+import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.atoms.particles.TokenParticle
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
@@ -33,8 +38,10 @@ import io.reactivex.annotations.Nullable
 import io.reactivex.disposables.Disposable
 import io.reactivex.disposables.Disposables
 import io.reactivex.observables.ConnectableObservable
+import io.reactivex.rxkotlin.Observables
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
+import java.util.ArrayList
 import java.util.Objects
 
 /**
@@ -402,21 +409,34 @@ class RadixApplicationAPI private constructor(
 
         pull(tokenTransfer.from!!)
 
-        val atomBuilder = atomBuilderSupplier()
+        val tokenBalanceState = tokenBalanceStore.getState(tokenTransfer.from)
 
-        uniquePropertyTranslator.translate(uniqueProperty, atomBuilder)
-        val unsignedAtom = tokenBalanceStore.getState(tokenTransfer.from)
-            .firstOrError()
-            .map { curState -> tokenTransferTranslator.translate(curState, tokenTransfer, atomBuilder) }
-            .map { builder ->
-                builder.buildWithPOWFee(
-                    universe.magic,
-                    tokenTransfer.from.publicKey,
-                    universe.powToken
-                )
+        val atomParticles = Observable.concat(
+            Observable.just(uniquePropertyTranslator.map(uniqueProperty)),
+            Observables.combineLatest(Observable.just(tokenTransfer), tokenBalanceState) { transfer, curState ->
+                tokenTransferTranslator.map(transfer, curState)
+            }.firstOrError().toObservable(),
+            Observable.just(listOf(ChronoParticle(System.currentTimeMillis())))
+            )
+            .scanWith<List<Particle>>({ ArrayList() }) { a, b ->
+                a.plus(b)
+            }
+            .lastOrError()
+            .map { particles ->
+                val allParticles = ArrayList(particles)
+                val atom = Atom(particles)
+                val fee = AtomFeeConsumableBuilder()
+                    .powToken(universe.powToken)
+                    .atom(atom)
+                    .owner(tokenTransfer.from.publicKey)
+                    .pow(universe.magic, 16)
+                    .build()
+                allParticles.add(fee)
+                allParticles
             }
 
-        val updates = unsignedAtom
+        val updates = atomParticles
+            .map { list -> UnsignedAtom(Atom(list)) }
             .flatMap(myIdentity::sign)
             .flatMapObservable(ledger.getAtomSubmitter()::submitAtom)
             .doOnNext {update ->

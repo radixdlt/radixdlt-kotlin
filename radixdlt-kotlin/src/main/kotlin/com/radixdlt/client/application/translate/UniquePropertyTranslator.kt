@@ -1,26 +1,22 @@
 package com.radixdlt.client.application.translate
 
 import com.radixdlt.client.application.actions.UniqueProperty
-import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Payload
+import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.atoms.particles.UniqueParticle
-import java.util.Objects
 
 /**
  * Translates an application layer unique property object to an atom level object;
  */
 class UniquePropertyTranslator {
-    fun translate(uniqueProperty: UniqueProperty?, atomBuilder: AtomBuilder) {
-        Objects.requireNonNull(atomBuilder)
-
+    fun map(uniqueProperty: UniqueProperty?): List<Particle> {
         if (uniqueProperty == null) {
-            return
+            return emptyList()
         }
 
         val payload = Payload(uniqueProperty.unique)
         val ecPublicKey = uniqueProperty.address.publicKey
         val uniqueParticle = UniqueParticle.create(payload, ecPublicKey)
-        atomBuilder.addParticle(uniqueParticle)
-        return
+        return listOf<Particle>(uniqueParticle)
     }
 }

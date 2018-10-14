@@ -9,11 +9,6 @@ class AtomBuilder {
 
     private val particles = ArrayList<Particle>()
 
-    fun addParticles(particles: List<Particle>): AtomBuilder {
-        this.particles.addAll(particles)
-        return this
-    }
-
     fun addParticle(particle: Particle): AtomBuilder {
         this.particles.add(particle)
         return this
@@ -28,7 +23,7 @@ class AtomBuilder {
         // Rebuild with atom fee
         val fee = AtomFeeConsumableBuilder()
             .powToken(powToken)
-            .atom(unsignedAtom)
+            .atom(unsignedAtom.rawAtom)
             .owner(owner)
             .pow(magic, POW_LEADING_ZEROES_REQUIRED)
             .build()
@@ -41,11 +36,6 @@ class AtomBuilder {
         val particles = ArrayList(this.particles)
         particles.add(ChronoParticle(timestamp))
         return UnsignedAtom(Atom(particles))
-    }
-
-    // Temporary method for testing
-    fun build(): UnsignedAtom {
-        return this.build(System.currentTimeMillis())
     }
 
     companion object {
