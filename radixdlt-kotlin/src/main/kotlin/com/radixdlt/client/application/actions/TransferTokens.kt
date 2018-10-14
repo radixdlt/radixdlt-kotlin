@@ -7,7 +7,7 @@ import java.math.BigDecimal
 import java.util.Collections
 import java.util.HashMap
 
-class TokenTransfer private constructor(
+class TransferTokens private constructor(
     val from: RadixAddress?,
     val to: RadixAddress?,
     val amount: BigDecimal,
@@ -39,8 +39,8 @@ class TokenTransfer private constructor(
             from: RadixAddress?,
             to: RadixAddress?,
             amount: BigDecimal,
-            tokenClass: TokenRef): TokenTransfer {
-            return TokenTransfer(from, to, amount, tokenClass, null, emptyMap())
+            tokenClass: TokenRef): TransferTokens {
+            return TransferTokens(from, to, amount, tokenClass, null, emptyMap())
         }
 
         @JvmStatic
@@ -50,8 +50,8 @@ class TokenTransfer private constructor(
             amount: BigDecimal,
             tokenReference: TokenRef,
             attachment: Data?
-        ): TokenTransfer {
-            return TokenTransfer(from, to, amount, tokenReference, attachment, emptyMap())
+        ): TransferTokens {
+            return TransferTokens(from, to, amount, tokenReference, attachment, emptyMap())
         }
 
         @JvmStatic
@@ -61,11 +61,11 @@ class TokenTransfer private constructor(
             amount: BigDecimal,
             tokenReference: TokenRef,
             timestamp: Long?
-        ): TokenTransfer {
+        ): TransferTokens {
             val metaData = HashMap<String, Any>()
             metaData["timestamp"] = timestamp!!
 
-            return TokenTransfer(from, to, amount, tokenReference, null, metaData)
+            return TransferTokens(from, to, amount, tokenReference, null, metaData)
         }
 
         @JvmStatic
@@ -76,11 +76,11 @@ class TokenTransfer private constructor(
             tokenReference: TokenRef,
             attachment: Data?,
             timestamp: Long?
-        ): TokenTransfer {
+        ): TransferTokens {
             val metaData = HashMap<String, Any>()
             metaData["timestamp"] = timestamp!!
 
-            return TokenTransfer(from, to, amount, tokenReference, attachment, metaData)
+            return TransferTokens(from, to, amount, tokenReference, attachment, metaData)
         }
     }
 }

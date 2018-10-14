@@ -16,7 +16,7 @@ class TokenTransferTest {
         val to = mock(RadixAddress::class.java)
         val tokenRef = mock(TokenRef::class.java)
 
-        assertThatThrownBy { TokenTransfer.create(from, to, BigDecimal("0.000001"), tokenRef) }
+        assertThatThrownBy { TransferTokens.create(from, to, BigDecimal("0.000001"), tokenRef) }
             .isInstanceOf(IllegalArgumentException::class.java)
     }
 
@@ -26,7 +26,7 @@ class TokenTransferTest {
         val to = mock(RadixAddress::class.java)
         val tokenRef = mock(TokenRef::class.java)
 
-        assertThat(TokenTransfer.create(from, to, BigDecimal("0.00001"), tokenRef).toString()).isNotNull()
+        assertThat(TransferTokens.create(from, to, BigDecimal("0.00001"), tokenRef).toString()).isNotNull()
     }
 
     @Test
@@ -35,6 +35,6 @@ class TokenTransferTest {
         val to = mock(RadixAddress::class.java)
         val tokenRef = mock(TokenRef::class.java)
 
-        assertThat(TokenTransfer.create(from, to, BigDecimal("0.000010000"), tokenRef).toString()).isNotNull()
+        assertThat(TransferTokens.create(from, to, BigDecimal("0.000010000"), tokenRef).toString()).isNotNull()
     }
 }

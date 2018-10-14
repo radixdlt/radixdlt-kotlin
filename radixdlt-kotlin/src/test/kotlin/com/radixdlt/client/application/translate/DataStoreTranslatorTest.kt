@@ -1,6 +1,6 @@
 package com.radixdlt.client.application.translate
 
-import com.radixdlt.client.application.actions.DataStore
+import com.radixdlt.client.application.actions.StoreData
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.crypto.Encryptor
 import org.assertj.core.api.Assertions.assertThat
@@ -13,7 +13,7 @@ class DataStoreTranslatorTest {
     @Test
     fun testEncryptorCreation() {
         val dataStoreTranslator = DataStoreTranslator.instance
-        val dataStore = mock(DataStore::class.java)
+        val dataStore = mock(StoreData::class.java)
         val data = mock(Data::class.java)
         val encryptor = mock(Encryptor::class.java)
         `when`<ByteArray>(data.bytes).thenReturn(byteArrayOf())

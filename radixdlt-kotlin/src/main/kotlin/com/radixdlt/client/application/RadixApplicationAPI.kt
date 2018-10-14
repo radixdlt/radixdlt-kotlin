@@ -1,8 +1,8 @@
 package com.radixdlt.client.application
 
-import com.radixdlt.client.application.actions.DataStore
-import com.radixdlt.client.application.actions.FixedSupplyTokenCreation
-import com.radixdlt.client.application.actions.TokenTransfer
+import com.radixdlt.client.application.actions.StoreData
+import com.radixdlt.client.application.actions.CreateFixedSupplyToken
+import com.radixdlt.client.application.actions.TransferTokens
 import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
@@ -167,22 +167,22 @@ class RadixApplicationAPI private constructor(
     }
 
     fun storeData(data: Data, address: RadixAddress): Result {
-        val dataStore = DataStore(data, address)
+        val dataStore = StoreData(data, address)
 
         return executeTransaction(null, dataStore, null, null)
     }
 
     fun storeData(data: Data, address0: RadixAddress, address1: RadixAddress): Result {
-        val dataStore = DataStore(data, address0, address1)
+        val dataStore = StoreData(data, address0, address1)
 
         return executeTransaction(null, dataStore, null, null)
     }
 
-    fun getMyTokenTransfers(): Observable<TokenTransfer> {
+    fun getMyTokenTransfers(): Observable<TransferTokens> {
         return getTokenTransfers(myAddress)
     }
 
-    fun getTokenTransfers(address: RadixAddress): Observable<TokenTransfer> {
+    fun getTokenTransfers(address: RadixAddress): Observable<TransferTokens> {
         Objects.requireNonNull(address)
 
         pull(address)
@@ -220,7 +220,7 @@ class RadixApplicationAPI private constructor(
     // TODO: refactor to access a TokenTranslator
     fun createFixedSupplyToken(name: String, iso: String, description: String, fixedSupply: Long): Result {
         val account = AccountReference(myPublicKey)
-        val tokenCreation = FixedSupplyTokenCreation(account, name, iso, description, fixedSupply)
+        val tokenCreation = CreateFixedSupplyToken(account, name, iso, description, fixedSupply)
         return executeTransaction(null, null, tokenCreation, null)
     }
 
@@ -339,7 +339,7 @@ class RadixApplicationAPI private constructor(
         Objects.requireNonNull(amount)
         Objects.requireNonNull(token)
 
-        val tokenTransfer = TokenTransfer.create(from, to, amount, token, attachment)
+        val tokenTransfer = TransferTokens.create(from, to, amount, token, attachment)
         val uniqueProperty: UniqueProperty?
         if (unique != null) {
             // Unique Property must be the from address so that all validation occurs in a single shard.
@@ -354,9 +354,9 @@ class RadixApplicationAPI private constructor(
 
     // TODO: make this more generic
     private fun executeTransaction(
-        @Nullable tokenTransfer: TokenTransfer?,
-        @Nullable dataStore: DataStore?,
-        @Nullable tokenCreation: FixedSupplyTokenCreation?,
+        @Nullable tokenTransfer: TransferTokens?,
+        @Nullable dataStore: StoreData?,
+        @Nullable tokenCreation: CreateFixedSupplyToken?,
         @Nullable uniqueProperty: UniqueProperty?
     ): Result {
         if (tokenTransfer != null) {

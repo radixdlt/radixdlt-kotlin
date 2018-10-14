@@ -2,7 +2,7 @@ package com.radixdlt.client.application.translate
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
-import com.radixdlt.client.application.actions.DataStore
+import com.radixdlt.client.application.actions.StoreData
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.Payload
@@ -17,7 +17,7 @@ import java.util.HashMap
 class DataStoreTranslator private constructor() {
 
     // TODO: figure out correct method signature here (return Single<AtomBuilder> instead?)
-    fun map(dataStore: DataStore?): List<Particle> {
+    fun map(dataStore: StoreData?): List<Particle> {
         if (dataStore == null) {
             return emptyList()
         }

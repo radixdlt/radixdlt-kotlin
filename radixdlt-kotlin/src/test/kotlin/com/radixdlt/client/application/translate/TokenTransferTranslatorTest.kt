@@ -2,7 +2,7 @@ package com.radixdlt.client.application.translate
 
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
-import com.radixdlt.client.application.actions.TokenTransfer
+import com.radixdlt.client.application.actions.TransferTokens
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
@@ -41,7 +41,7 @@ class TokenTransferTranslatorTest {
         val token = mock<TokenRef>()
         whenever(token.iso).thenReturn("TEST")
 
-        val tokenTransfer = mock<TokenTransfer>()
+        val tokenTransfer = mock<TransferTokens>()
         whenever(tokenTransfer.amount).thenReturn(BigDecimal("1.0"))
         whenever(tokenTransfer.from).thenReturn(address)
         whenever(tokenTransfer.tokenRef).thenReturn(token)

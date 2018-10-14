@@ -1,6 +1,6 @@
 package com.radixdlt.client.application.translate
 
-import com.radixdlt.client.application.actions.FixedSupplyTokenCreation
+import com.radixdlt.client.application.actions.CreateFixedSupplyToken
 import com.radixdlt.client.core.atoms.TokenRef
 import com.radixdlt.client.core.atoms.particles.Minted
 import com.radixdlt.client.core.atoms.particles.Particle
@@ -9,7 +9,7 @@ import com.radixdlt.client.core.atoms.particles.TokenParticle.MintPermissions
 import java.util.Arrays
 
 class TokenMapper {
-    fun map(tokenCreation: FixedSupplyTokenCreation?): List<Particle> {
+    fun map(tokenCreation: CreateFixedSupplyToken?): List<Particle> {
         if (tokenCreation ==
             null
         ) {
