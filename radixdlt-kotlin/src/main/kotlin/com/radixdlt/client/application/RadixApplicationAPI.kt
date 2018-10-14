@@ -6,8 +6,9 @@ import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.application.objects.UnencryptedData
-import com.radixdlt.client.application.translate.AddressTokenState
 import com.radixdlt.client.application.translate.DataStoreTranslator
+import com.radixdlt.client.application.translate.TokenBalanceReducer
+import com.radixdlt.client.application.translate.TokenBalanceState
 import com.radixdlt.client.application.translate.TokenReducer
 import com.radixdlt.client.application.translate.TokenState
 import com.radixdlt.client.application.translate.TokenTransferTranslator
@@ -17,7 +18,6 @@ import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.TokenRef
-import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.atoms.particles.Minted
 import com.radixdlt.client.core.atoms.particles.TokenParticle
 import com.radixdlt.client.core.crypto.ECPublicKey
@@ -51,9 +51,10 @@ class RadixApplicationAPI private constructor(
     private val ledger: RadixUniverse.Ledger
 ) {
 
-    private val tokenTransferTranslator = TokenTransferTranslator(universe, ledger.getParticleStore())
+    private val tokenTransferTranslator = TokenTransferTranslator(universe)
     private val uniquePropertyTranslator = UniquePropertyTranslator()
     private val tokenReducer = TokenReducer(ledger.getParticleStore())
+    private val tokenBalanceReducer = TokenBalanceReducer(ledger.getParticleStore())
 
     val myAddress: RadixAddress
         get() = universe.getAddressFrom(myIdentity.getPublicKey())
@@ -210,8 +211,8 @@ class RadixApplicationAPI private constructor(
 
         pull(address)
 
-        return tokenTransferTranslator.getTokenState(address)
-            .map(AddressTokenState::balance)
+        return tokenBalanceReducer.getState(address)
+            .map(TokenBalanceState::balance)
             .map { map ->
                 map.entries.asSequence().associateBy(Map.Entry<TokenRef, Long>::key) { e ->
                     val subUnitAmount = BigDecimal.valueOf(e.value)
@@ -400,19 +401,21 @@ class RadixApplicationAPI private constructor(
     private fun executeTransaction(tokenTransfer: TokenTransfer, @Nullable uniqueProperty: UniqueProperty?): Result {
         Objects.requireNonNull(tokenTransfer)
 
-        pull()
+        pull(tokenTransfer.from!!)
 
         val atomBuilder = atomBuilderSupplier()
 
-        val unsignedAtom = uniquePropertyTranslator.translate(uniqueProperty, atomBuilder)
-            .andThen(tokenTransferTranslator.translate(tokenTransfer, atomBuilder))
-            .andThen(Single.fromCallable<UnsignedAtom> {
-                atomBuilder.buildWithPOWFee(
+        uniquePropertyTranslator.translate(uniqueProperty, atomBuilder)
+        val unsignedAtom = tokenBalanceReducer.getState(tokenTransfer.from)
+            .firstOrError()
+            .map { curState -> tokenTransferTranslator.translate(curState, tokenTransfer, atomBuilder) }
+            .map { builder ->
+                builder.buildWithPOWFee(
                     universe.magic,
-                    tokenTransfer.from!!.publicKey,
+                    tokenTransfer.from.publicKey,
                     universe.powToken
                 )
-            })
+            }
 
         val updates = unsignedAtom
             .flatMap(myIdentity::sign)

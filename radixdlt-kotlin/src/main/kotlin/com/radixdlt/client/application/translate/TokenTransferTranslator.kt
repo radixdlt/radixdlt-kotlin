@@ -18,22 +18,14 @@ import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import com.radixdlt.client.core.crypto.Encryptor
-import com.radixdlt.client.core.ledger.ParticleStore
 import com.radixdlt.client.core.serialization.RadixJson
-import com.radixdlt.client.core.util.computeIfAbsentSynchronisedFunction
-import io.reactivex.Completable
-import io.reactivex.Observable
 import java.nio.charset.StandardCharsets
 import java.util.ArrayList
 import java.util.HashMap
-import java.util.concurrent.ConcurrentHashMap
 
 class TokenTransferTranslator(
-    private val universe: RadixUniverse,
-    private val particleStore: ParticleStore
+    private val universe: RadixUniverse
 ) {
-
-    private val cache = ConcurrentHashMap<RadixAddress, AddressTokenReducer>()
 
     fun fromAtom(atom: Atom): List<TokenTransfer> {
         return atom.tokenSummary().entries.asSequence()
@@ -103,93 +95,82 @@ class TokenTransferTranslator(
             .toList()
     }
 
-    fun getTokenState(address: RadixAddress?): Observable<AddressTokenState> {
-        return cache.computeIfAbsentSynchronisedFunction(address!!) { addr ->
-            AddressTokenReducer(addr, particleStore)
-        }.state
-    }
+    @Throws(InsufficientFundsException::class)
+    fun translate(curState: TokenBalanceState, transfer: TokenTransfer, atomBuilder: AtomBuilder): AtomBuilder {
+        val allUnconsumedConsumables = curState.unconsumedConsumables
+        val unconsumedConsumables = if (allUnconsumedConsumables.containsKey(transfer.tokenRef)) {
+            allUnconsumedConsumables[transfer.tokenRef]
+        } else {
+            emptyList()
+        }
 
-    fun translate(transfer: TokenTransfer, atomBuilder: AtomBuilder): Completable {
-        return this.getTokenState(transfer.from)
-            .firstOrError()
-            .flatMapCompletable { state ->
-                val allUnconsumedConsumables = state.unconsumedConsumables
-                val unconsumedConsumables = if (allUnconsumedConsumables.containsKey(transfer.tokenRef)) {
-                    allUnconsumedConsumables[transfer.tokenRef]
-                } else {
-                    emptyList()
-                }
+        // Translate attachment to corresponding atom structure
+        val attachment = transfer.attachment
+        if (attachment != null) {
+            atomBuilder.addParticle(
+                DataParticle.DataParticleBuilder()
+                    .payload(Payload(attachment.bytes))
+                    .account(transfer.from!!)
+                    .account(transfer.to!!)
+                    .build())
+            val encryptor = attachment.encryptor
+            if (encryptor != null) {
+                val protectorsJson = JsonArray()
+                encryptor.protectors.asSequence().map(EncryptedPrivateKey::base64).forEach(protectorsJson::add)
 
-                // Translate attachment to corresponding atom structure
-                val attachment = transfer.attachment
-                if (attachment != null) {
-                    atomBuilder.addParticle(
-                        DataParticle.DataParticleBuilder()
-                            .payload(Payload(attachment.bytes))
-                            .account(transfer.from!!)
-                            .account(transfer.to!!)
-                            .build())
-                    val encryptor = attachment.encryptor
-                    if (encryptor != null) {
-                        val protectorsJson = JsonArray()
-                        encryptor.protectors.asSequence().map(EncryptedPrivateKey::base64).forEach(protectorsJson::add)
-
-                        val encryptorPayload = Payload(protectorsJson.toString().toByteArray(StandardCharsets.UTF_8))
-                        val encryptorParticle = DataParticle.DataParticleBuilder()
-                            .payload(encryptorPayload)
-                            .setMetaData("application", "encryptor")
-                            .setMetaData("contentType", "application/json")
-                            .account(transfer.from)
-                            .account(transfer.to)
-                            .build()
-                        atomBuilder.addParticle(encryptorParticle)
-                    }
-                }
-
-                var consumerTotal: Long = 0
-                val subUnitAmount = transfer.amount.multiply(TokenRef.getSubUnits()).longValueExact()
-                val iterator = unconsumedConsumables!!.iterator()
-                val consumerQuantities = HashMap<ECKeyPair, Long>()
-
-                // HACK for now
-                // TODO: remove this, create a ConsumersCreator
-                // TODO: randomize this to decrease probability of collision
-                while (consumerTotal < subUnitAmount && iterator.hasNext()) {
-                    val left = subUnitAmount - consumerTotal
-
-                    val down = iterator.next().spinDown()
-                    consumerTotal += down.amount
-
-                    val amount = Math.min(left, down.amount)
-                    down.addConsumerQuantities(amount, transfer.to!!.toECKeyPair(), consumerQuantities)
-
-                    atomBuilder.addParticle(down)
-                }
-
-                if (consumerTotal < subUnitAmount) {
-                    return@flatMapCompletable Completable.error(
-                        InsufficientFundsException(
-                            transfer.tokenRef, TokenRef.subUnitsToDecimal(consumerTotal), transfer.amount
-                        )
-                    )
-                }
-
-                val consumables = consumerQuantities.entries.asSequence()
-                    .map { entry ->
-                        Consumable(
-                            entry.value,
-                            AccountReference(entry.key.getPublicKey()),
-                            System.nanoTime(),
-                            transfer.tokenRef,
-                            System.currentTimeMillis() / 60000L + 60000L,
-                            Spin.UP
-                        )
-                    }
-                    .toList()
-                atomBuilder.addParticles(consumables)
-
-                return@flatMapCompletable Completable.complete()
+                val encryptorPayload = Payload(protectorsJson.toString().toByteArray(StandardCharsets.UTF_8))
+                val encryptorParticle = DataParticle.DataParticleBuilder()
+                    .payload(encryptorPayload)
+                    .setMetaData("application", "encryptor")
+                    .setMetaData("contentType", "application/json")
+                    .account(transfer.from)
+                    .account(transfer.to)
+                    .build()
+                atomBuilder.addParticle(encryptorParticle)
             }
+        }
+
+        var consumerTotal: Long = 0
+        val subUnitAmount = transfer.amount.multiply(TokenRef.getSubUnits()).longValueExact()
+        val iterator = unconsumedConsumables!!.iterator()
+        val consumerQuantities = HashMap<ECKeyPair, Long>()
+
+        // HACK for now
+        // TODO: remove this, create a ConsumersCreator
+        // TODO: randomize this to decrease probability of collision
+        while (consumerTotal < subUnitAmount && iterator.hasNext()) {
+            val left = subUnitAmount - consumerTotal
+
+            val down = iterator.next().spinDown()
+            consumerTotal += down.amount
+
+            val amount = Math.min(left, down.amount)
+            down.addConsumerQuantities(amount, transfer.to!!.toECKeyPair(), consumerQuantities)
+
+            atomBuilder.addParticle(down)
+        }
+
+        if (consumerTotal < subUnitAmount) {
+            throw InsufficientFundsException(
+                    transfer.tokenRef, TokenRef.subUnitsToDecimal(consumerTotal), transfer.amount
+                )
+        }
+
+        val consumables = consumerQuantities.entries.asSequence()
+            .map { entry ->
+                Consumable(
+                    entry.value,
+                    AccountReference(entry.key.getPublicKey()),
+                    System.nanoTime(),
+                    transfer.tokenRef,
+                    System.currentTimeMillis() / 60000L + 60000L,
+                    Spin.UP
+                )
+            }
+            .toList()
+        atomBuilder.addParticles(consumables)
+
+        return atomBuilder
     }
 
     companion object {
