@@ -179,6 +179,7 @@ class Dson private constructor() {
                 .filter { field -> !field.name.equals("spin", ignoreCase = true) } // TODO: This needs to be added back in
                 .filter { field -> !field.name.equals("Companion", ignoreCase = true) } // Kotlin field
                 .filter { field -> !Modifier.isTransient(field.modifiers) }
+                .filter { field -> !Modifier.isStatic(field.modifiers) }
                 .filter { field ->
                     try {
                         field.isAccessible = true

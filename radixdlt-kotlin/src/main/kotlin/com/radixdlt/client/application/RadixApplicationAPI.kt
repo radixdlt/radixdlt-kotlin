@@ -6,7 +6,6 @@ import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Amount
 import com.radixdlt.client.application.objects.Data
-import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.application.objects.UnencryptedData
 import com.radixdlt.client.application.translate.AddressTokenState
 import com.radixdlt.client.application.translate.DataStoreTranslator
@@ -16,6 +15,7 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.Token
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.atoms.particles.Minted
 import com.radixdlt.client.core.atoms.particles.TokenParticle
@@ -172,7 +172,7 @@ class RadixApplicationAPI private constructor(
             .flatMapIterable(tokenTransferTranslator::fromAtom)
     }
 
-    fun getBalance(address: RadixAddress): Observable<Map<String, BigDecimal>> {
+    fun getBalance(address: RadixAddress): Observable<Map<Token, BigDecimal>> {
         Objects.requireNonNull(address)
 
         pull(address)
@@ -180,7 +180,7 @@ class RadixApplicationAPI private constructor(
         return tokenTransferTranslator.getTokenState(address)
             .map(AddressTokenState::balance)
             .map { map ->
-                map.entries.asSequence().associateBy(Map.Entry<String, Long>::key) { e ->
+                map.entries.asSequence().associateBy(Map.Entry<Token, Long>::key) { e ->
                     BigDecimal.valueOf(e.value).divide(
                         BigDecimal.valueOf(Token.SUB_UNITS.toLong()), MathContext.UNLIMITED
                     )
@@ -194,9 +194,10 @@ class RadixApplicationAPI private constructor(
 
     fun getBalance(address: RadixAddress, token: Token): Observable<Amount> {
         Objects.requireNonNull(token)
-
         return getBalance(address)
-            .map { balances -> Amount.of(balances[token.iso] ?: BigDecimal.ZERO , token) }
+            .map { balances ->
+                Amount.of(balances[token] ?: BigDecimal.ZERO , token)
+            }
     }
 
     // TODO: refactor to access a TokenTranslator
@@ -214,7 +215,7 @@ class RadixApplicationAPI private constructor(
             fixedSupply * Token.SUB_UNITS,
             account,
             System.currentTimeMillis(),
-            iso,
+            Token.of(iso),
             System.currentTimeMillis() / 60000L + 60000
         )
 

@@ -25,7 +25,7 @@ class RadixAtomValidator private constructor() : AtomValidator {
                     return@map AtomValidationException("No owners in particle")
                 }
 
-                if (down.tokenReference == "POW") {
+                if (down.tokenReference.equals("POW")) {
                     return@map null
                 }
 

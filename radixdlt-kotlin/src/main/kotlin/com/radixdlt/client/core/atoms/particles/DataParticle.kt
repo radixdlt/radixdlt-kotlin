@@ -71,13 +71,13 @@ class DataParticle private constructor(
         return addresses.asSequence().map(AccountReference::getKey).toSet()
     }
 
+    override fun getSpin(): Spin {
+        return spin
+    }
+
     fun getMetaData(key: String): Any? {
         return if (metaData == null) {
             null
         } else metaData[key]
-    }
-
-    override fun getSpin(): Spin {
-        return spin
     }
 }

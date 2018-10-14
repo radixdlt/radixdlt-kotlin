@@ -3,6 +3,7 @@ package com.radixdlt.client.core.atoms.particles
 import com.google.gson.annotations.SerializedName
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.RadixHash
+import com.radixdlt.client.core.atoms.Token
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.serialization.Dson
@@ -13,7 +14,7 @@ open class Consumable(
     address: AccountReference,
     val nonce: Long,
     @SerializedName("token_reference")
-    val tokenReference: String,
+    val tokenReference: Token,
     val planck: Long,
     private val spin: Spin
 ) : Particle {

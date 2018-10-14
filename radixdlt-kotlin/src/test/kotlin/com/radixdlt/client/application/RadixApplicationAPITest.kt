@@ -5,13 +5,13 @@ import com.radixdlt.client.application.RadixApplicationAPI.Result
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Amount
 import com.radixdlt.client.application.objects.Data
-import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.application.objects.UnencryptedData
 import com.radixdlt.client.application.translate.DataStoreTranslator
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
+import com.radixdlt.client.core.atoms.Token
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.crypto.CryptoException
@@ -276,7 +276,7 @@ class RadixApplicationAPITest {
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
         val observer = TestObserver.create<Amount>()
 
-        api.getBalance(address, Token.TEST).subscribe(observer)
+        api.getBalance(address, Token.of("XRD")).subscribe(observer)
         observer.awaitCount(1)
         observer.assertValue { amount -> amount.amountInSubunits == 0L }
     }
@@ -330,7 +330,7 @@ class RadixApplicationAPITest {
 
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance) { AtomBuilder() }
         val testObserver = TestObserver.create<Amount>()
-        api.getBalance(address, Token.TEST).subscribe(testObserver)
+        api.getBalance(address, Token.of("XRD")).subscribe(testObserver)
         verify(puller, times(1)).pull(address)
     }
 }

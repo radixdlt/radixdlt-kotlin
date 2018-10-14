@@ -2,6 +2,7 @@ package com.radixdlt.client.core.ledger
 
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
+import com.radixdlt.client.core.atoms.particles.DataParticle
 import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.atoms.particles.Spin
 import com.radixdlt.client.core.serialization.Dson
@@ -25,7 +26,8 @@ class ValidAtomFilter(private val address: RadixAddress, private val serializer:
             }
 
         atom.particles(Spin.UP)
-            .filter{ up -> !up.getAddresses().isEmpty() && up.getAddresses().asSequence().all(address::ownsKey) }
+            .filter{ up -> !up.getAddresses().isEmpty() && up !is DataParticle // FIXME: remove hardcode of DataParticle
+                && up.getAddresses().asSequence().all(address::ownsKey) }
             .forEach { up ->
                 val dson = ByteBuffer.wrap(serializer.toDson(up))
                 upParticles.computeSynchronisedFunction(dson) { _, current ->

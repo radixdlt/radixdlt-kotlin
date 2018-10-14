@@ -4,7 +4,6 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 import com.radixdlt.client.application.actions.TokenTransfer
 import com.radixdlt.client.application.objects.Data
-import com.radixdlt.client.application.objects.Token
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
@@ -97,7 +96,7 @@ class TokenTransferTranslator(
                 }
 
                 val amount = Math.abs(summary[0].value)
-                return@map TokenTransfer.create(from, to, Token.of(e.key), amount, attachment, atom.timestamp)
+                return@map TokenTransfer.create(from, to, e.key, amount, attachment, atom.timestamp)
             }
             .toList()
     }
@@ -112,7 +111,7 @@ class TokenTransferTranslator(
         return this.getTokenState(tokenTransfer.from)
             .map(AddressTokenState::unconsumedConsumables)
             .map { u ->
-                if (u.containsKey(tokenTransfer.token.iso)) u[tokenTransfer.token.iso] else emptyList()
+                if (u.containsKey(tokenTransfer.token)) u[tokenTransfer.token] else emptyList()
             }
             .firstOrError()
             .flatMapCompletable { unconsumedConsumables ->
@@ -176,7 +175,7 @@ class TokenTransferTranslator(
                             entry.value,
                             AccountReference(entry.key.getPublicKey()),
                             System.nanoTime(),
-                            tokenTransfer.token.iso,
+                            tokenTransfer.token,
                             System.currentTimeMillis() / 60000L + 60000L,
                             Spin.UP
                         )

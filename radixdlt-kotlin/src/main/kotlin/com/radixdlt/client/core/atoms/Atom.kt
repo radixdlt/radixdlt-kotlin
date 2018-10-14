@@ -126,9 +126,9 @@ class Atom {
         return Dson.instance.toDson(this)
     }
 
-    fun tokenSummary(): Map<String, Map<ECPublicKey, Long>> {
+    fun tokenSummary(): Map<Token, Map<ECPublicKey, Long>> {
         return consumables()
-            .filter { c -> c.tokenReference != "POW" }
+            .filter { c -> c.tokenReference.equals("POW") }
             .groupBy(Consumable::tokenReference)
             .mapValues { it ->
                 it.value.asSequence().groupBy(Consumable::getOwner) {
@@ -166,6 +166,6 @@ class Atom {
     }
 
     override fun toString(): String {
-        return "Atom hid($hid)"
+        return "Atom particles($hid)"
     }
 }
