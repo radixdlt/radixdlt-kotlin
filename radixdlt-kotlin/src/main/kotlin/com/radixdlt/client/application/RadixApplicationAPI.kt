@@ -34,7 +34,6 @@ import io.reactivex.disposables.Disposables
 import io.reactivex.observables.ConnectableObservable
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
-import java.math.MathContext
 import java.util.Objects
 
 /**
@@ -53,6 +52,7 @@ class RadixApplicationAPI private constructor(
 
     private val tokenTransferTranslator = TokenTransferTranslator(universe)
     private val uniquePropertyTranslator = UniquePropertyTranslator()
+
     private val tokenReducer = TokenReducer(ledger.getParticleStore())
     private val tokenBalanceReducer = TokenBalanceReducer(ledger.getParticleStore())
 
@@ -212,12 +212,10 @@ class RadixApplicationAPI private constructor(
         pull(address)
 
         return tokenBalanceReducer.getState(address)
-            .map(TokenBalanceState::balance)
+            .map(TokenBalanceState::getBalance)
             .map { map ->
-                map.entries.asSequence().associateBy(Map.Entry<TokenRef, Long>::key) { e ->
-                    val subUnitAmount = BigDecimal.valueOf(e.value)
-                    val subUnits = BigDecimal.valueOf(TokenRef.SUB_UNITS.toLong())
-                    return@associateBy subUnitAmount.divide(subUnits, MathContext.UNLIMITED)
+                map.entries.asSequence().associateBy(Map.Entry<TokenRef, TokenBalanceState.Balance>::key) { e ->
+                    e.value.amount
                 }
             }
     }

@@ -97,12 +97,17 @@ class TokenTransferTranslator(
 
     @Throws(InsufficientFundsException::class)
     fun translate(curState: TokenBalanceState, transfer: TokenTransfer, atomBuilder: AtomBuilder): AtomBuilder {
-        val allUnconsumedConsumables = curState.unconsumedConsumables
-        val unconsumedConsumables = if (allUnconsumedConsumables.containsKey(transfer.tokenRef)) {
-            allUnconsumedConsumables[transfer.tokenRef]
-        } else {
-            emptyList()
+        val allConsumables = curState.getBalance()
+
+        val tokenRef = transfer.tokenRef
+        val balance = allConsumables[transfer.tokenRef] ?: TokenBalanceState.Balance.empty()
+        if (balance.amount < transfer.amount) {
+            throw InsufficientFundsException(
+                tokenRef, balance.amount, transfer.amount
+            )
         }
+
+        val unconsumedConsumables = allConsumables[transfer.tokenRef]?.unconsumedConsumables()?.toList() ?: emptyList()
 
         // Translate attachment to corresponding atom structure
         val attachment = transfer.attachment
@@ -148,12 +153,6 @@ class TokenTransferTranslator(
             down.addConsumerQuantities(amount, transfer.to!!.toECKeyPair(), consumerQuantities)
 
             atomBuilder.addParticle(down)
-        }
-
-        if (consumerTotal < subUnitAmount) {
-            throw InsufficientFundsException(
-                    transfer.tokenRef, TokenRef.subUnitsToDecimal(consumerTotal), transfer.amount
-                )
         }
 
         val consumables = consumerQuantities.entries.asSequence()

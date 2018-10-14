@@ -38,14 +38,17 @@ class TokenTransferTranslatorTest {
         val address = mock<RadixAddress>()
 
         val transferTranslator = TokenTransferTranslator(universe)
+
+        val token = mock<TokenRef>()
+        whenever(token.iso).thenReturn("TEST")
+
         val tokenTransfer = mock<TokenTransfer>()
         whenever(tokenTransfer.amount).thenReturn(BigDecimal("1.0"))
         whenever(tokenTransfer.from).thenReturn(address)
-        val token = mock<TokenRef>()
         whenever(tokenTransfer.tokenRef).thenReturn(token)
 
         val state = mock<TokenBalanceState>()
-        whenever(state.unconsumedConsumables).thenReturn(emptyMap())
+        whenever(state.getBalance()).thenReturn(emptyMap())
 
         assertThatThrownBy { transferTranslator.translate(state, tokenTransfer, AtomBuilder()) }
             .isEqualTo(InsufficientFundsException(token, BigDecimal.ZERO, BigDecimal("1.0")))

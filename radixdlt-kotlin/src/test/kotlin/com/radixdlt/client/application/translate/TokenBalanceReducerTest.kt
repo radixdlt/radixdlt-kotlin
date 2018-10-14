@@ -27,6 +27,7 @@ class TokenBalanceReducerTest {
         whenever(consumable.amount).thenReturn(10L)
         whenever(consumable.getHash()).thenReturn(hash)
         whenever(consumable.getSpin()).thenReturn(Spin.UP)
+        whenever(consumable.getDson()).thenReturn(byteArrayOf(1))
         val token = mock<TokenRef>()
         whenever(consumable.tokenRef).thenReturn(token)
 
@@ -38,12 +39,16 @@ class TokenBalanceReducerTest {
         val testObserver = TestObserver.create<TokenBalanceState>()
         reducer.getState(address).subscribe(testObserver)
         testObserver.awaitCount(1)
-        testObserver.assertValue { state -> state.balance[token] == 10L }
+        testObserver.assertValue { state ->
+            state.getBalance()[token]!!.amount.compareTo(TokenRef.subUnitsToDecimal(10L)) == 0
+        }
         testObserver.dispose()
 
         val testObserver2 = TestObserver.create<TokenBalanceState>()
         reducer.getState(address).subscribe(testObserver2)
-        testObserver2.assertValue { state -> state.balance[token] == 10L }
+        testObserver2.assertValue { state ->
+            state.getBalance()[token]!!.amount.compareTo(TokenRef.subUnitsToDecimal(10L)) == 0
+        }
 
         verify(store, times(1)).getParticles(address)
     }
