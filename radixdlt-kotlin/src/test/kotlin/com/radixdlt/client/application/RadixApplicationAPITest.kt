@@ -6,10 +6,11 @@ import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.application.objects.UnencryptedData
 import com.radixdlt.client.application.translate.DataStoreTranslator
+import com.radixdlt.client.application.translate.FeeMapper
+import com.radixdlt.client.application.translate.PowFeeMapper
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
-import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.TokenRef
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.atoms.particles.Particle
@@ -25,7 +26,6 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.observers.TestObserver
 import org.junit.Test
-import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
@@ -51,17 +51,17 @@ class RadixApplicationAPITest {
         `when`(universe.ledger).thenReturn(ledger)
         val identity = mock(RadixIdentity::class.java)
 
-        val atomBuilder = mock(AtomBuilder::class.java)
-        `when`(atomBuilder.addParticle(anyOrNull())).thenReturn(atomBuilder)
-        `when`(atomBuilder.addParticle(anyOrNull())).thenReturn(atomBuilder)
         val atom = mock(Atom::class.java)
         `when`(identity.sign(anyOrNull())).thenReturn(Single.just(atom))
 
-        val atomBuilderSupplier = { atomBuilder }
         val unsignedAtom = mock(UnsignedAtom::class.java)
-        `when`(atomBuilder.buildWithPOWFee(anyInt(), anyOrNull(), anyOrNull())).thenReturn(unsignedAtom)
+        val feeMapper = object : FeeMapper {
+            override fun map(particles: List<Particle>?, universe: RadixUniverse, key: ECPublicKey?): List<Particle> {
+                return emptyList()
+            }
+        }
 
-        return RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, atomBuilderSupplier)
+        return RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, feeMapper)
     }
 
     private fun createMockedSubmissionWhichAlwaysSucceeds(): AtomSubmitter {
@@ -205,7 +205,7 @@ class RadixApplicationAPITest {
 
         `when`(universe.ledger).thenReturn(ledger)
 
-        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
+        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, PowFeeMapper())
         val observer = TestObserver.create<UnencryptedData>()
         api.getReadableData(address).subscribe(observer)
         observer.assertValueCount(0)
@@ -246,7 +246,7 @@ class RadixApplicationAPITest {
         })
         `when`(universe.ledger).thenReturn(ledger)
 
-        val api = RadixApplicationAPI.create(identity, universe, dataStoreTranslator, ::AtomBuilder)
+        val api = RadixApplicationAPI.create(identity, universe, dataStoreTranslator, PowFeeMapper())
         val observer = TestObserver.create<Any>()
         api.getReadableData(address).subscribe(observer)
 
@@ -273,7 +273,7 @@ class RadixApplicationAPITest {
         val address = mock(RadixAddress::class.java)
         val identity = mock(RadixIdentity::class.java)
 
-        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
+        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, PowFeeMapper())
         val observer = TestObserver.create<BigDecimal>()
         val token = mock(TokenRef::class.java)
 
@@ -308,7 +308,7 @@ class RadixApplicationAPITest {
         val identity = mock(RadixIdentity::class.java)
         val address = mock(RadixAddress::class.java)
 
-        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance) { AtomBuilder() }
+        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, PowFeeMapper())
         val testObserver = TestObserver.create<Data>()
         api.getData(address).subscribe(testObserver)
         verify(puller, times(1)).pull(address)
@@ -329,7 +329,7 @@ class RadixApplicationAPITest {
         val identity = mock(RadixIdentity::class.java)
         val address = mock(RadixAddress::class.java)
 
-        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance) { AtomBuilder() }
+        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, PowFeeMapper())
         val testObserver = TestObserver.create<BigDecimal>()
         val token = mock(TokenRef::class.java)
         api.getBalance(address, token).subscribe(testObserver)

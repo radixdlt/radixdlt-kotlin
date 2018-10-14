@@ -2,15 +2,11 @@ package com.radixdlt.client.application.translate
 
 import com.radixdlt.client.application.actions.DataStore
 import com.radixdlt.client.application.objects.Data
-import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.crypto.Encryptor
-import com.radixdlt.client.util.any
-import io.reactivex.observers.TestObserver
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
 
 class DataStoreTranslatorTest {
 
@@ -23,12 +19,6 @@ class DataStoreTranslatorTest {
         `when`<ByteArray>(data.bytes).thenReturn(byteArrayOf())
         `when`<Encryptor>(data.encryptor).thenReturn(encryptor)
         `when`(dataStore.data).thenReturn(data)
-        val atomBuilder = mock(AtomBuilder::class.java)
-
-        val testObserver = TestObserver.create<Any>()
-        dataStoreTranslator.translate(dataStore, atomBuilder).subscribe(testObserver)
-        testObserver.assertNoErrors()
-        testObserver.assertComplete()
-        verify(atomBuilder, times(2)).addParticle(any())
+        assertThat(dataStoreTranslator.map(dataStore)).size().isEqualTo(2)
     }
 }

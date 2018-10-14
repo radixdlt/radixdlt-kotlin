@@ -5,12 +5,11 @@ import com.google.gson.JsonParser
 import com.radixdlt.client.application.actions.DataStore
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.atoms.Atom
-import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.particles.DataParticle
 import com.radixdlt.client.core.atoms.Payload
+import com.radixdlt.client.core.atoms.particles.DataParticle
+import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
 import com.radixdlt.client.core.crypto.Encryptor
-import io.reactivex.Completable
 import java.nio.charset.StandardCharsets
 import java.util.ArrayList
 import java.util.HashMap
@@ -18,17 +17,22 @@ import java.util.HashMap
 class DataStoreTranslator private constructor() {
 
     // TODO: figure out correct method signature here (return Single<AtomBuilder> instead?)
-    fun translate(dataStore: DataStore, atomBuilder: AtomBuilder): Completable {
+    fun map(dataStore: DataStore?): List<Particle> {
+        if (dataStore == null) {
+            return emptyList()
+        }
+
         val payload = Payload(dataStore.data.bytes)
         val application = dataStore.data.getMetaData()["application"] as String?
 
+        val particles = ArrayList<Particle>()
         val dataParticle = DataParticle.DataParticleBuilder()
             .payload(payload)
             .setMetaData("application", application)
             .accounts(dataStore.getAddresses())
             .build()
+        particles.add(dataParticle)
 
-        atomBuilder.addParticle(dataParticle)
         val encryptor = dataStore.data.encryptor
         if (encryptor != null) {
             val protectorsJson = JsonArray()
@@ -41,10 +45,10 @@ class DataStoreTranslator private constructor() {
                 .setMetaData("contentType", "application/json")
                 .accounts(dataStore.getAddresses())
                 .build()
-            atomBuilder.addParticle(encryptorParticle)
+            particles.add(encryptorParticle)
         }
 
-        return Completable.complete()
+        return particles
     }
 
     // TODO: don't pass in maps, utilize a metadata builder?

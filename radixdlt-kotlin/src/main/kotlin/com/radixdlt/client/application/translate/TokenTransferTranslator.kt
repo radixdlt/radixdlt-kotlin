@@ -96,7 +96,11 @@ class TokenTransferTranslator(
     }
 
     @Throws(InsufficientFundsException::class)
-    fun map(transfer: TokenTransfer, curState: TokenBalanceState): List<Particle> {
+    fun map(transfer: TokenTransfer?, curState: TokenBalanceState): List<Particle> {
+        if (transfer == null) {
+            return emptyList()
+        }
+
         val allConsumables = curState.getBalance()
 
         val tokenRef = transfer.tokenRef
