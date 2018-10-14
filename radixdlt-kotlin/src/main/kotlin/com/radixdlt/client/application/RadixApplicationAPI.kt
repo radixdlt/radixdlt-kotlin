@@ -8,6 +8,8 @@ import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.application.objects.UnencryptedData
 import com.radixdlt.client.application.translate.AddressTokenState
 import com.radixdlt.client.application.translate.DataStoreTranslator
+import com.radixdlt.client.application.translate.TokenReducer
+import com.radixdlt.client.application.translate.TokenState
 import com.radixdlt.client.application.translate.TokenTransferTranslator
 import com.radixdlt.client.application.translate.UniquePropertyTranslator
 import com.radixdlt.client.core.RadixUniverse
@@ -51,6 +53,7 @@ class RadixApplicationAPI private constructor(
 
     private val tokenTransferTranslator = TokenTransferTranslator(universe, ledger.getParticleStore())
     private val uniquePropertyTranslator = UniquePropertyTranslator()
+    private val tokenReducer = TokenReducer(ledger.getParticleStore())
 
     val myAddress: RadixAddress
         get() = universe.getAddressFrom(myIdentity.getPublicKey())
@@ -111,6 +114,29 @@ class RadixApplicationAPI private constructor(
 
     fun getNativeToken(): TokenReference {
         return universe.nativeToken
+    }
+
+    fun getNativeTokenState(): Observable<TokenState> {
+        return getToken(getNativeToken())
+    }
+
+    fun getTokens(address: RadixAddress): Observable<Map<TokenReference, TokenState>> {
+        pull(address)
+
+        return tokenReducer.getState(address)
+    }
+
+    fun getMyTokens(): Observable<Map<TokenReference, TokenState>> {
+        return getTokens(myAddress)
+    }
+
+    fun getToken(ref: TokenReference): Observable<TokenState> {
+        pull(universe.getAddressFrom(ref.address.getKey()))
+
+        return tokenReducer.getState(universe.getAddressFrom(ref.address.getKey()))
+            .flatMapMaybe { m ->
+                m[ref]?.let { Maybe.just(it) } ?: Maybe.empty()
+            }
     }
 
     fun getData(address: RadixAddress): Observable<Data> {
@@ -331,7 +357,7 @@ class RadixApplicationAPI private constructor(
     }
 
     fun transferTokens(from: RadixAddress, to: RadixAddress, amount: BigDecimal, token: TokenReference): Result {
-        return transferTokens(from, to, amount, token, null, null)
+        return transferTokens(from, to, amount, token, null)
     }
 
     fun transferTokens(

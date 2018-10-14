@@ -10,9 +10,9 @@ import com.radixdlt.client.core.serialization.Dson
 
 class TokenParticle(
     accountReference: AccountReference,
-    private val name: String,
-    private val iso: String,
-    private val description: String,
+    val name: String,
+    val iso: String,
+    val description: String,
     @field:SerializedName("mint_permissions")
     private val mintPermissions: MintPermissions,
     private val icon: ByteArray?

@@ -53,10 +53,13 @@ object RadixWalletExample {
 			.toObservable().subscribe(::println)
 		*/
 
+        val token = TokenReference.of(AccountReference(api.myPublicKey), "NONA")
+        api.getToken(token)
+            .subscribe(::println)
+
         // If specified, send money to another address
         if (TO_ADDRESS_BASE58 != null) {
             val toAddress = RadixAddress.fromString(TO_ADDRESS_BASE58)
-            val token = TokenReference.of(AccountReference(api.myPublicKey), "YOSHY")
             api.sendTokens(toAddress, AMOUNT, token).toObservable()
                 .subscribe(
                     { println(it) },

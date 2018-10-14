@@ -13,4 +13,12 @@ class AccountReference(key: ECPublicKey) {
     override fun toString(): String {
         return key.getPublicKey().toString()
     }
+
+    override fun equals(other: Any?): Boolean {
+        return if (other !is AccountReference) false else other.key == this.key
+    }
+
+    override fun hashCode(): Int {
+        return key.hashCode()
+    }
 }

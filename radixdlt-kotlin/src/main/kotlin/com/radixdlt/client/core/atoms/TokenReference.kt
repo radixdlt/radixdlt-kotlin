@@ -5,7 +5,7 @@ import java.math.BigDecimal
 import java.nio.charset.StandardCharsets
 import java.util.Objects
 
-class TokenReference private constructor(private val address: AccountReference, val iso: String) {
+class TokenReference private constructor(val address: AccountReference, val iso: String) {
 
     init {
         Objects.requireNonNull(iso)
@@ -16,8 +16,7 @@ class TokenReference private constructor(private val address: AccountReference, 
             return false
         }
 
-        val tokenReference = other as TokenReference?
-        return this.iso == tokenReference!!.iso
+        return this.iso == other.iso && this.address == other.address
     }
 
     override fun hashCode(): Int {

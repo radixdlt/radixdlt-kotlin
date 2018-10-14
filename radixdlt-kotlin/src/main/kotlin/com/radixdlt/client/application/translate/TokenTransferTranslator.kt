@@ -37,6 +37,7 @@ class TokenTransferTranslator(
 
     fun fromAtom(atom: Atom): List<TokenTransfer> {
         return atom.tokenSummary().entries.asSequence()
+            .filter { e -> e.key != universe.powToken }
             .map { e ->
                 val summary = ArrayList<Map.Entry<ECPublicKey, Long>>(e.value.entries)
 
