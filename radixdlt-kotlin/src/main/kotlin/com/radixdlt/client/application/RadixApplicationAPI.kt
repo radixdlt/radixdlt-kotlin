@@ -6,6 +6,7 @@ import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.application.objects.UnencryptedData
+import com.radixdlt.client.application.translate.ApplicationStore
 import com.radixdlt.client.application.translate.DataStoreTranslator
 import com.radixdlt.client.application.translate.TokenBalanceReducer
 import com.radixdlt.client.application.translate.TokenBalanceState
@@ -53,8 +54,8 @@ class RadixApplicationAPI private constructor(
     private val tokenTransferTranslator = TokenTransferTranslator(universe)
     private val uniquePropertyTranslator = UniquePropertyTranslator()
 
-    private val tokenReducer = TokenReducer(ledger.getParticleStore())
-    private val tokenBalanceReducer = TokenBalanceReducer(ledger.getParticleStore())
+    private val tokenStore = ApplicationStore(ledger.getParticleStore(), TokenReducer())
+    private val tokenBalanceStore = ApplicationStore(ledger.getParticleStore(), TokenBalanceReducer())
 
     val myAddress: RadixAddress
         get() = universe.getAddressFrom(myIdentity.getPublicKey())
@@ -124,7 +125,7 @@ class RadixApplicationAPI private constructor(
     fun getTokens(address: RadixAddress): Observable<Map<TokenRef, TokenState>> {
         pull(address)
 
-        return tokenReducer.getState(address)
+        return tokenStore.getState(address)
     }
 
     fun getMyTokens(): Observable<Map<TokenRef, TokenState>> {
@@ -134,7 +135,7 @@ class RadixApplicationAPI private constructor(
     fun getToken(ref: TokenRef): Observable<TokenState> {
         pull(universe.getAddressFrom(ref.address.getKey()))
 
-        return tokenReducer.getState(universe.getAddressFrom(ref.address.getKey()))
+        return tokenStore.getState(universe.getAddressFrom(ref.address.getKey()))
             .flatMapMaybe { m ->
                 m[ref]?.let { Maybe.just(it) } ?: Maybe.empty()
             }
@@ -211,7 +212,7 @@ class RadixApplicationAPI private constructor(
 
         pull(address)
 
-        return tokenBalanceReducer.getState(address)
+        return tokenBalanceStore.getState(address)
             .map(TokenBalanceState::getBalance)
             .map { map ->
                 map.entries.asSequence().associateBy(Map.Entry<TokenRef, TokenBalanceState.Balance>::key) { e ->
@@ -404,7 +405,7 @@ class RadixApplicationAPI private constructor(
         val atomBuilder = atomBuilderSupplier()
 
         uniquePropertyTranslator.translate(uniqueProperty, atomBuilder)
-        val unsignedAtom = tokenBalanceReducer.getState(tokenTransfer.from)
+        val unsignedAtom = tokenBalanceStore.getState(tokenTransfer.from)
             .firstOrError()
             .map { curState -> tokenTransferTranslator.translate(curState, tokenTransfer, atomBuilder) }
             .map { builder ->

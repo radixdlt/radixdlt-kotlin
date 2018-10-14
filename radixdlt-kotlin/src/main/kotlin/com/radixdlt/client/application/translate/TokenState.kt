@@ -4,7 +4,7 @@ import java.math.BigDecimal
 
 class TokenState(
     val name: String?,
-    val iso: String,
+    val iso: String?,
     val description: String?,
     val totalSupply: BigDecimal
 ) {
