@@ -11,6 +11,7 @@ import com.radixdlt.client.core.util.mergeAfterSum
 
 open class Consumable(
     val amount: Long,
+    val type: ConsumableType,
     address: AccountReference,
     val nonce: Long,
     @SerializedName("token_reference")
@@ -18,6 +19,10 @@ open class Consumable(
     val planck: Long,
     private val spin: Spin
 ) : Particle {
+
+    enum class ConsumableType {
+        MINTED, AMOUNT
+    }
 
     private val addresses: List<AccountReference> = listOf(address)
 
@@ -31,6 +36,7 @@ open class Consumable(
     fun spinDown(): Consumable {
         return Consumable(
             this.amount,
+            type,
             address,
             nonce,
             tokenRef,

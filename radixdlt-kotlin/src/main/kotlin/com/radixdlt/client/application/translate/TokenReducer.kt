@@ -1,8 +1,9 @@
 package com.radixdlt.client.application.translate
 
 import com.radixdlt.client.core.atoms.TokenRef
-import com.radixdlt.client.core.atoms.particles.Minted
+import com.radixdlt.client.core.atoms.particles.Consumable
 import com.radixdlt.client.core.atoms.particles.Particle
+import com.radixdlt.client.core.atoms.particles.Spin
 import com.radixdlt.client.core.atoms.particles.TokenParticle
 import com.radixdlt.client.core.util.mergeAfterFunction
 import java.math.BigDecimal
@@ -17,7 +18,8 @@ class TokenReducer : ParticleReducer<Map<TokenRef, TokenState>> {
     }
 
     override fun reduce(state: Map<TokenRef, TokenState>, p: Particle): Map<TokenRef, TokenState> {
-        if (!(p is TokenParticle || p is Minted)) {
+        if (!(p is TokenParticle
+                || p is Consumable && p.getSpin() == Spin.UP && p.type == Consumable.ConsumableType.MINTED)) {
             return state
         }
 
@@ -30,7 +32,7 @@ class TokenReducer : ParticleReducer<Map<TokenRef, TokenState>> {
             }
 
         } else {
-            val minted = p as Minted
+            val minted = p as Consumable
             val tokenState = TokenState(null, minted.tokenRef.iso, null, TokenRef.subUnitsToDecimal(minted.amount))
 
             newMap.mergeAfterFunction(minted.tokenRef, tokenState) { a, b ->

@@ -165,6 +165,7 @@ class TokenTransferTranslator(
             .map { entry ->
                 Consumable(
                     entry.value,
+                    Consumable.ConsumableType.AMOUNT,
                     AccountReference(entry.key.getPublicKey()),
                     System.nanoTime(),
                     transfer.tokenRef,

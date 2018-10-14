@@ -25,7 +25,8 @@ class TokenParticle(
 
     enum class MintPermissions {
         GENESIS_ONLY,
-        SAME_ATOM_ONLY
+        SAME_ATOM_ONLY,
+        POW
     }
 
     override fun getAddresses(): Set<ECPublicKey> {

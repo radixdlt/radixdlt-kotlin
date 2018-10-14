@@ -3,7 +3,8 @@ package com.radixdlt.client.application.translate
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import com.radixdlt.client.core.atoms.TokenRef
-import com.radixdlt.client.core.atoms.particles.Minted
+import com.radixdlt.client.core.atoms.particles.Consumable
+import com.radixdlt.client.core.atoms.particles.Spin
 import com.radixdlt.client.core.atoms.particles.TokenParticle
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -34,9 +35,11 @@ class TokenReducerTest {
         whenever(tokenParticle.iso).thenReturn("ISO")
         whenever(tokenParticle.description).thenReturn("Desc")
 
-        val minted = mock<Minted>()
+        val minted = mock<Consumable>()
         whenever(minted.amount).thenReturn(100L)
+        whenever(minted.type).thenReturn(Consumable.ConsumableType.MINTED)
         whenever(minted.tokenRef).thenReturn(tokenRef)
+        whenever(minted.getSpin()).thenReturn(Spin.UP)
 
         val tokenReducer = TokenReducer()
         val state1: Map<TokenRef, TokenState> = tokenReducer.reduce(emptyMap(), tokenParticle)
