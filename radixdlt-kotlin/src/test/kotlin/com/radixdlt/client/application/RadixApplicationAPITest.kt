@@ -3,7 +3,6 @@ package com.radixdlt.client.application
 import com.nhaarman.mockitokotlin2.anyOrNull
 import com.radixdlt.client.application.RadixApplicationAPI.Result
 import com.radixdlt.client.application.identity.RadixIdentity
-import com.radixdlt.client.application.objects.Amount
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.application.objects.UnencryptedData
 import com.radixdlt.client.application.translate.DataStoreTranslator
@@ -31,6 +30,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import java.math.BigDecimal
 
 class RadixApplicationAPITest {
     private fun createMockedAPI(
@@ -274,12 +274,12 @@ class RadixApplicationAPITest {
         val identity = mock(RadixIdentity::class.java)
 
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
-        val observer = TestObserver.create<Amount>()
+        val observer = TestObserver.create<BigDecimal>()
         val token = mock(TokenReference::class.java)
 
         api.getBalance(address, token).subscribe(observer)
         observer.awaitCount(1)
-        observer.assertValue { amount -> amount.amountInSubunits == 0L }
+        observer.assertValue { amount -> amount.compareTo(BigDecimal.ZERO) == 0 }
     }
 
     @Test
@@ -330,7 +330,7 @@ class RadixApplicationAPITest {
         val address = mock(RadixAddress::class.java)
 
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance) { AtomBuilder() }
-        val testObserver = TestObserver.create<Amount>()
+        val testObserver = TestObserver.create<BigDecimal>()
         val token = mock(TokenReference::class.java)
         api.getBalance(address, token).subscribe(testObserver)
         verify(puller, times(1)).pull(address)

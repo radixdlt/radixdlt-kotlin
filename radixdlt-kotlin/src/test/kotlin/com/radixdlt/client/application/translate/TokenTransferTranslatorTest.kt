@@ -15,6 +15,7 @@ import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.math.BigDecimal
 
 class TokenTransferTranslatorTest {
 
@@ -46,7 +47,7 @@ class TokenTransferTranslatorTest {
             }
         })
         val tokenTransfer = mock<TokenTransfer>()
-        whenever(tokenTransfer.subUnitAmount).thenReturn(10L)
+        whenever(tokenTransfer.amount).thenReturn(BigDecimal("1.0"))
         whenever(tokenTransfer.from).thenReturn(address)
         val tokenReference = mock<TokenReference>()
         whenever(tokenTransfer.tokenReference).thenReturn(tokenReference)
@@ -54,6 +55,6 @@ class TokenTransferTranslatorTest {
         val observer = TestObserver.create<Any>()
         transferTranslator.translate(tokenTransfer, AtomBuilder()).subscribe(observer)
         observer.awaitTerminalEvent()
-        observer.assertError(InsufficientFundsException(tokenReference, 0, 10))
+        observer.assertError(InsufficientFundsException(tokenReference, BigDecimal.ZERO, BigDecimal("1.0")))
     }
 }

@@ -10,6 +10,7 @@ import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Payload
+import com.radixdlt.client.core.atoms.TokenReference
 import com.radixdlt.client.core.atoms.particles.Consumable
 import com.radixdlt.client.core.atoms.particles.DataParticle
 import com.radixdlt.client.core.atoms.particles.Spin
@@ -95,8 +96,8 @@ class TokenTransferTranslator(
                     attachment = null
                 }
 
-                val amount = Math.abs(summary[0].value)
-                return@map TokenTransfer.create(from, to, e.key, amount, attachment, atom.timestamp)
+                val amount = TokenReference.subUnitsToDecimal(Math.abs(summary[0].value))
+                return@map TokenTransfer.create(from, to, amount, e.key, attachment, atom.timestamp)
             }
             .toList()
     }
@@ -107,23 +108,25 @@ class TokenTransferTranslator(
         }.state
     }
 
-    fun translate(tokenTransfer: TokenTransfer, atomBuilder: AtomBuilder): Completable {
-        return this.getTokenState(tokenTransfer.from)
-            .map(AddressTokenState::unconsumedConsumables)
-            .map { u ->
-                if (u.containsKey(tokenTransfer.tokenReference)) u[tokenTransfer.tokenReference] else emptyList()
-            }
+    fun translate(transfer: TokenTransfer, atomBuilder: AtomBuilder): Completable {
+        return this.getTokenState(transfer.from)
             .firstOrError()
-            .flatMapCompletable { unconsumedConsumables ->
+            .flatMapCompletable { state ->
+                val allUnconsumedConsumables = state.unconsumedConsumables
+                val unconsumedConsumables = if (allUnconsumedConsumables.containsKey(transfer.tokenReference)) {
+                    allUnconsumedConsumables[transfer.tokenReference]
+                } else {
+                    emptyList()
+                }
 
                 // Translate attachment to corresponding atom structure
-                val attachment = tokenTransfer.attachment
+                val attachment = transfer.attachment
                 if (attachment != null) {
                     atomBuilder.addParticle(
                         DataParticle.DataParticleBuilder()
                             .payload(Payload(attachment.bytes))
-                            .account(tokenTransfer.from!!)
-                            .account(tokenTransfer.to!!)
+                            .account(transfer.from!!)
+                            .account(transfer.to!!)
                             .build())
                     val encryptor = attachment.encryptor
                     if (encryptor != null) {
@@ -135,36 +138,37 @@ class TokenTransferTranslator(
                             .payload(encryptorPayload)
                             .setMetaData("application", "encryptor")
                             .setMetaData("contentType", "application/json")
-                            .account(tokenTransfer.from)
-                            .account(tokenTransfer.to)
+                            .account(transfer.from)
+                            .account(transfer.to)
                             .build()
                         atomBuilder.addParticle(encryptorParticle)
                     }
                 }
 
                 var consumerTotal: Long = 0
-                val iterator = unconsumedConsumables.iterator()
+                val subUnitAmount = transfer.amount.multiply(TokenReference.getSubUnits()).longValueExact()
+                val iterator = unconsumedConsumables!!.iterator()
                 val consumerQuantities = HashMap<ECKeyPair, Long>()
 
                 // HACK for now
                 // TODO: remove this, create a ConsumersCreator
                 // TODO: randomize this to decrease probability of collision
-                while (consumerTotal < tokenTransfer.subUnitAmount && iterator.hasNext()) {
-                    val left = tokenTransfer.subUnitAmount - consumerTotal
+                while (consumerTotal < subUnitAmount && iterator.hasNext()) {
+                    val left = subUnitAmount - consumerTotal
 
                     val down = iterator.next().spinDown()
                     consumerTotal += down.amount
 
                     val amount = Math.min(left, down.amount)
-                    down.addConsumerQuantities(amount, tokenTransfer.to!!.toECKeyPair(), consumerQuantities)
+                    down.addConsumerQuantities(amount, transfer.to!!.toECKeyPair(), consumerQuantities)
 
                     atomBuilder.addParticle(down)
                 }
 
-                if (consumerTotal < tokenTransfer.subUnitAmount) {
+                if (consumerTotal < subUnitAmount) {
                     return@flatMapCompletable Completable.error(
                         InsufficientFundsException(
-                            tokenTransfer.tokenReference, consumerTotal, tokenTransfer.subUnitAmount
+                            transfer.tokenReference, TokenReference.subUnitsToDecimal(consumerTotal), transfer.amount
                         )
                     )
                 }
@@ -175,7 +179,7 @@ class TokenTransferTranslator(
                             entry.value,
                             AccountReference(entry.key.getPublicKey()),
                             System.nanoTime(),
-                            tokenTransfer.tokenReference,
+                            transfer.tokenReference,
                             System.currentTimeMillis() / 60000L + 60000L,
                             Spin.UP
                         )

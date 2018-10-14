@@ -1,6 +1,7 @@
 package com.radixdlt.client.core.atoms
 
 import com.radixdlt.client.core.address.EUID
+import java.math.BigDecimal
 import java.nio.charset.StandardCharsets
 import java.util.Objects
 
@@ -29,8 +30,22 @@ class TokenReference private constructor(private val address: AccountReference, 
 
     companion object {
 
+        private const val TOKEN_SCALE = 5
         private val CHARSET = StandardCharsets.UTF_8
-        val SUB_UNITS = 100000
+        const val SUB_UNITS = 100000
+        private val SUB_UNITS_BIG_DECIMAL = BigDecimal(SUB_UNITS)
+
+        fun getTokenScale(): Int {
+            return TOKEN_SCALE
+        }
+
+        fun getSubUnits(): BigDecimal {
+            return SUB_UNITS_BIG_DECIMAL
+        }
+
+        fun subUnitsToDecimal(subUnits: Long): BigDecimal {
+            return BigDecimal.valueOf(subUnits, TOKEN_SCALE)
+        }
 
         fun of(address: AccountReference, reference: String): TokenReference {
             return TokenReference(address, reference)

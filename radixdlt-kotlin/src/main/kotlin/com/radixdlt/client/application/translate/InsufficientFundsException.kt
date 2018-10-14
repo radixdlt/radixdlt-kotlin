@@ -1,23 +1,22 @@
 package com.radixdlt.client.application.translate
 
-import com.radixdlt.client.application.objects.Amount
 import com.radixdlt.client.core.atoms.TokenReference
+import java.math.BigDecimal
 
 class InsufficientFundsException(
-    private val token: TokenReference,
-    val available: Long,
-    val requestedAmount: Long
-) : Exception(
-    "Requested ${Amount.subUnitsOf(requestedAmount, token)} but only ${Amount.subUnitsOf(available, token)} available."
-) {
+    private val tokenReference: TokenReference,
+    val available: BigDecimal,
+    val requestedAmount: BigDecimal
+) : Exception("Requested $requestedAmount but only $available ${tokenReference.iso} available.") {
 
     override fun equals(other: Any?): Boolean {
         if (other !is InsufficientFundsException) {
             return false
         }
 
-        val o = other as InsufficientFundsException?
-        return this.token == o!!.token && this.available == o.available && this.requestedAmount == o.requestedAmount
+        return (this.tokenReference == other.tokenReference
+            && this.available.compareTo(other.available) == 0
+            && this.requestedAmount.compareTo(other.requestedAmount) == 0)
     }
 
     override fun hashCode(): Int {

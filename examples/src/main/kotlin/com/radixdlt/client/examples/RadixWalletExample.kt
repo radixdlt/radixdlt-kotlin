@@ -3,7 +3,6 @@ package com.radixdlt.client.examples
 import com.radixdlt.client.application.RadixApplicationAPI
 import com.radixdlt.client.application.identity.RadixIdentities
 import com.radixdlt.client.application.identity.RadixIdentity
-import com.radixdlt.client.application.objects.Amount
 import com.radixdlt.client.core.Bootstrap
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
@@ -58,7 +57,7 @@ object RadixWalletExample {
         if (TO_ADDRESS_BASE58 != null) {
             val toAddress = RadixAddress.fromString(TO_ADDRESS_BASE58)
             val token = TokenReference.of(AccountReference(api.myPublicKey), "YOSHY")
-            api.sendTokens(toAddress, Amount.of(AMOUNT, token)).toObservable()
+            api.sendTokens(toAddress, AMOUNT, token).toObservable()
                 .subscribe(
                     { println(it) },
                     { it.printStackTrace() }

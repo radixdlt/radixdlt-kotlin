@@ -4,7 +4,6 @@ import com.radixdlt.client.application.actions.DataStore
 import com.radixdlt.client.application.actions.TokenTransfer
 import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
-import com.radixdlt.client.application.objects.Amount
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.application.objects.UnencryptedData
 import com.radixdlt.client.application.translate.AddressTokenState
@@ -196,15 +195,15 @@ class RadixApplicationAPI private constructor(
             }
     }
 
-    fun getMyBalance(tokenReference: TokenReference): Observable<Amount> {
+    fun getMyBalance(tokenReference: TokenReference): Observable<BigDecimal> {
         return getBalance(myAddress, tokenReference)
     }
 
-    fun getBalance(address: RadixAddress, tokenReference: TokenReference): Observable<Amount> {
-        Objects.requireNonNull(tokenReference)
+    fun getBalance(address: RadixAddress, token: TokenReference): Observable<BigDecimal> {
+        Objects.requireNonNull(token)
         return getBalance(address)
             .map { balances ->
-                Amount.of(balances[tokenReference] ?: BigDecimal.ZERO , tokenReference)
+                balances[token] ?: BigDecimal.ZERO
             }
     }
 
@@ -250,8 +249,8 @@ class RadixApplicationAPI private constructor(
      * @param amount the amount and token type
      * @return result of the transaction
      */
-    fun sendTokens(to: RadixAddress, amount: Amount): Result {
-        return transferTokens(myAddress, to, amount)
+    fun sendTokens(to: RadixAddress, amount: BigDecimal, token: TokenReference): Result {
+        return transferTokens(myAddress, to, amount, token)
     }
 
     /**
@@ -262,8 +261,8 @@ class RadixApplicationAPI private constructor(
      * @param message message to be encrypted and attached to transfer
      * @return result of the transaction
      */
-    fun sendTokensWithMessage(to: RadixAddress, amount: Amount, message: String?): Result {
-        return sendTokensWithMessage(to, amount, message, null)
+    fun sendTokensWithMessage(to: RadixAddress, amount: BigDecimal, token: TokenReference, message: String?): Result {
+        return sendTokensWithMessage(to, amount, token, message, null)
     }
 
     /**
@@ -276,7 +275,10 @@ class RadixApplicationAPI private constructor(
      */
     fun sendTokensWithMessage(
         to: RadixAddress,
-        amount: Amount, message: String?, unique: ByteArray?
+        amount: BigDecimal,
+        token: TokenReference,
+        message: String?,
+        unique: ByteArray?
     ): Result {
         val attachment: Data?
         if (message != null) {
@@ -288,7 +290,7 @@ class RadixApplicationAPI private constructor(
             attachment = null
         }
 
-        return transferTokens(myAddress, to, amount, attachment, unique)
+        return transferTokens(myAddress, to, amount, token, attachment, unique)
     }
 
     /**
@@ -299,8 +301,13 @@ class RadixApplicationAPI private constructor(
      * @param attachment the data attached to the transaction
      * @return result of the transaction
      */
-    fun sendTokens(to: RadixAddress, amount: Amount, attachment: Data?): Result {
-        return transferTokens(myAddress, to, amount, attachment)
+    fun sendTokens(
+        to: RadixAddress,
+        amount: BigDecimal,
+        token: TokenReference,
+        attachment: Data?
+    ): Result {
+        return transferTokens(myAddress, to, amount, token, attachment)
     }
 
     /**
@@ -313,35 +320,44 @@ class RadixApplicationAPI private constructor(
      * @param unique the bytes representing the unique id of this transaction
      * @return result of the transaction
      */
-    fun sendTokens(to: RadixAddress, amount: Amount, attachment: Data?, unique: ByteArray?): Result {
-        return transferTokens(myAddress, to, amount, attachment, unique)
+    fun sendTokens(
+        to: RadixAddress,
+        amount: BigDecimal,
+        token: TokenReference,
+        attachment: Data?,
+        unique: ByteArray?
+    ): Result {
+        return transferTokens(myAddress, to, amount, token, attachment, unique)
     }
 
-    fun transferTokens(from: RadixAddress, to: RadixAddress, amount: Amount): Result {
-        return transferTokens(from, to, amount, null, null)
+    fun transferTokens(from: RadixAddress, to: RadixAddress, amount: BigDecimal, token: TokenReference): Result {
+        return transferTokens(from, to, amount, token, null, null)
     }
 
     fun transferTokens(
         from: RadixAddress,
         to: RadixAddress,
-        amount: Amount,
+        amount: BigDecimal,
+        token: TokenReference,
         attachment: Data?
     ): Result {
-        return transferTokens(from, to, amount, attachment, null)
+        return transferTokens(from, to, amount, token, attachment, null)
     }
 
     fun transferTokens(
         from: RadixAddress,
         to: RadixAddress,
-        amount: Amount,
+        amount: BigDecimal,
+        token: TokenReference,
         attachment: Data?,
         unique: ByteArray? // TODO: make unique immutable
     ): Result {
         Objects.requireNonNull(from)
         Objects.requireNonNull(to)
         Objects.requireNonNull(amount)
+        Objects.requireNonNull(token)
 
-        val tokenTransfer = TokenTransfer.create(from, to, amount.tokenReference, amount.amountInSubunits, attachment)
+        val tokenTransfer = TokenTransfer.create(from, to, amount, token, attachment)
         val uniqueProperty: UniqueProperty?
         if (unique != null) {
             // Unique Property must be the from address so that all validation occurs in a single shard.
