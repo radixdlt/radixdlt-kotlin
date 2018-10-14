@@ -9,6 +9,9 @@ import java.math.BigDecimal
 import java.util.Collections
 import java.util.HashMap
 
+/**
+ * All the token balances at an address at a given point in time.
+ */
 class TokenBalanceState {
 
     private val balance: Map<TokenRef, Balance>

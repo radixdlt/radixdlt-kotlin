@@ -8,6 +8,9 @@ import com.radixdlt.client.core.util.mergeAfterFunction
 import java.math.BigDecimal
 import java.util.HashMap
 
+/**
+ * Reduces particles at an address into concrete Tokens and their states
+ */
 class TokenReducer : ParticleReducer<Map<TokenRef, TokenState>> {
     override fun initialState(): Map<TokenRef, TokenState> {
         return emptyMap()

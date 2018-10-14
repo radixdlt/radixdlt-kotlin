@@ -2,6 +2,9 @@ package com.radixdlt.client.application.translate
 
 import java.math.BigDecimal
 
+/**
+ * The state and data of a token at a given moment in time
+ */
 class TokenState(
     val name: String?,
     val iso: String?,

@@ -1,7 +1,7 @@
 package com.radixdlt.client.application
 
-import com.radixdlt.client.application.actions.StoreData
 import com.radixdlt.client.application.actions.CreateFixedSupplyToken
+import com.radixdlt.client.application.actions.StoreData
 import com.radixdlt.client.application.actions.TransferTokens
 import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
@@ -120,24 +120,52 @@ class RadixApplicationAPI private constructor(
         }
     }
 
-    fun getNativeToken(): TokenRef {
+    /**
+     * Returns the native Token Reference found in the genesis atom
+     *
+     * @return the native token reference
+     */
+    fun getNativeTokenRef(): TokenRef {
         return universe.nativeToken
     }
 
+    /**
+     * Returns a hot observable with the latest token state of the native token
+     *
+     * @return a hot observable of latest state of the native token
+     */
     fun getNativeTokenState(): Observable<TokenState> {
-        return getToken(getNativeToken())
+        return getToken(getNativeTokenRef())
     }
 
+    /**
+     * Returns a hot observable of the latest state of token classes at a given
+     * address
+     *
+     * @param address the address of the account to check
+     * @return a hot observable of the latest state of token classes
+     */
     fun getTokens(address: RadixAddress): Observable<Map<TokenRef, TokenState>> {
         pull(address)
 
         return tokenStore.getState(address)
     }
 
+    /**
+     * Returns a hot observable of the latest state of token classes at the user's
+     * address
+     *
+     * @return a hot observable of the latest state of token classes
+     */
     fun getMyTokens(): Observable<Map<TokenRef, TokenState>> {
         return getTokens(myAddress)
     }
 
+    /**
+     * Returns a hot observable of the latest state of a given token
+     *
+     * @return a hot observable of the latest state of the token
+     */
     fun getToken(ref: TokenRef): Observable<TokenState> {
         pull(universe.getAddressFrom(ref.address.getKey()))
 
@@ -217,7 +245,15 @@ class RadixApplicationAPI private constructor(
             }
     }
 
-    // TODO: refactor to access a TokenTranslator
+    /**
+     * Creates a fixed supply third party token
+     *
+     * @param name The name of the token to create
+     * @param iso The symbol of the token to create
+     * @param description A description of the token
+     * @param fixedSupply The initial/final amount of supply of this token
+     * @return result of the transaction
+     */
     fun createFixedSupplyToken(name: String, iso: String, description: String, fixedSupply: Long): Result {
         val account = AccountReference(myPublicKey)
         val tokenCreation = CreateFixedSupplyToken(account, name, iso, description, fixedSupply)

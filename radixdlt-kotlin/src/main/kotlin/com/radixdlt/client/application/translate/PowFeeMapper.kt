@@ -9,6 +9,9 @@ import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.pow.ProofOfWorkBuilder
 import java.util.Objects
 
+/**
+ * Maps a complete list of particles ready to be submitted to a POW fee particle.
+ */
 class PowFeeMapper(
     private val hasher: (List<Particle>) -> (RadixHash),
     private val powBuilder: ProofOfWorkBuilder

@@ -8,6 +8,9 @@ import com.radixdlt.client.core.atoms.particles.TokenParticle
 import com.radixdlt.client.core.atoms.particles.TokenParticle.MintPermissions
 import java.util.Arrays
 
+/**
+ * Maps the CreateFixedSupplyToken action into it's corresponding particles
+ */
 class TokenMapper {
     fun map(tokenCreation: CreateFixedSupplyToken?): List<Particle> {
         if (tokenCreation ==
