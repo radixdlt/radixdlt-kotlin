@@ -29,6 +29,7 @@ import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.network.AtomSubmissionUpdate
 import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
+import com.radixdlt.client.core.pow.ProofOfWorkBuilder
 import com.radixdlt.client.core.serialization.RadixJson
 import io.reactivex.Completable
 import io.reactivex.Maybe
@@ -414,7 +415,12 @@ class RadixApplicationAPI private constructor(
         @JvmStatic
         fun create(identity: RadixIdentity): RadixApplicationAPI {
             Objects.requireNonNull(identity)
-            return create(identity, RadixUniverse.getInstance(), DataStoreTranslator.instance, PowFeeMapper())
+            return create(
+                identity,
+                RadixUniverse.getInstance(),
+                DataStoreTranslator.instance,
+                PowFeeMapper({ p -> Atom(p).hash }, ProofOfWorkBuilder())
+            )
         }
 
         @JvmStatic

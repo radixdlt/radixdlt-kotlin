@@ -1,6 +1,7 @@
 package com.radixdlt.client.application
 
 import com.nhaarman.mockitokotlin2.anyOrNull
+import com.nhaarman.mockitokotlin2.mock
 import com.radixdlt.client.application.RadixApplicationAPI.Result
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
@@ -205,7 +206,7 @@ class RadixApplicationAPITest {
 
         `when`(universe.ledger).thenReturn(ledger)
 
-        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, PowFeeMapper())
+        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, mock<PowFeeMapper>())
         val observer = TestObserver.create<UnencryptedData>()
         api.getReadableData(address).subscribe(observer)
         observer.assertValueCount(0)
@@ -246,7 +247,7 @@ class RadixApplicationAPITest {
         })
         `when`(universe.ledger).thenReturn(ledger)
 
-        val api = RadixApplicationAPI.create(identity, universe, dataStoreTranslator, PowFeeMapper())
+        val api = RadixApplicationAPI.create(identity, universe, dataStoreTranslator, mock<PowFeeMapper>())
         val observer = TestObserver.create<Any>()
         api.getReadableData(address).subscribe(observer)
 
@@ -273,7 +274,7 @@ class RadixApplicationAPITest {
         val address = mock(RadixAddress::class.java)
         val identity = mock(RadixIdentity::class.java)
 
-        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, PowFeeMapper())
+        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, mock<PowFeeMapper>())
         val observer = TestObserver.create<BigDecimal>()
         val token = mock(TokenRef::class.java)
 
@@ -308,7 +309,7 @@ class RadixApplicationAPITest {
         val identity = mock(RadixIdentity::class.java)
         val address = mock(RadixAddress::class.java)
 
-        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, PowFeeMapper())
+        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, mock<PowFeeMapper>())
         val testObserver = TestObserver.create<Data>()
         api.getData(address).subscribe(testObserver)
         verify(puller, times(1)).pull(address)
@@ -329,7 +330,7 @@ class RadixApplicationAPITest {
         val identity = mock(RadixIdentity::class.java)
         val address = mock(RadixAddress::class.java)
 
-        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, PowFeeMapper())
+        val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, mock<PowFeeMapper>())
         val testObserver = TestObserver.create<BigDecimal>()
         val token = mock(TokenRef::class.java)
         api.getBalance(address, token).subscribe(testObserver)

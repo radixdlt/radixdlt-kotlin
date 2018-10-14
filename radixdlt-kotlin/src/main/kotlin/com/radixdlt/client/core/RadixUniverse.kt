@@ -70,14 +70,14 @@ class RadixUniverse private constructor(
         powToken = config.genesis.asSequence()
             .flatMap { atom -> atom.particles(Spin.UP).asSequence() }
             .filter { p -> p is TokenParticle }
-            .filter { p -> (p as TokenParticle).tokenRef.iso == "POW" }
+            .filter { p -> (p as TokenParticle).tokenRef!!.iso == "POW" }
             .map { p -> (p as TokenParticle).tokenRef }
             .firstOrNull() ?: throw IllegalStateException("No POW Token defined in universe")
 
         nativeToken = config.genesis.asSequence()
             .flatMap { atom -> atom.particles(Spin.UP).asSequence() }
             .filter { p -> p is TokenParticle }
-            .filter { p -> (p as TokenParticle).tokenRef.iso != "POW" }
+            .filter { p -> (p as TokenParticle).tokenRef!!.iso != "POW" }
             .map { p -> (p as TokenParticle).tokenRef }
             .firstOrNull() ?: throw IllegalStateException("No Native Token defined in universe")
 

@@ -21,13 +21,14 @@ class TokenMapper {
             tokenCreation.name,
             tokenCreation.iso,
             tokenCreation.description,
-            MintPermissions.SAME_ATOM_ONLY, null
+            MintPermissions.SAME_ATOM_ONLY,
+            null
         )
         val minted = Minted(
             tokenCreation.fixedSupply * TokenRef.SUB_UNITS,
             tokenCreation.accountReference,
             System.currentTimeMillis(),
-            token.tokenRef,
+            token.tokenRef!!,
             System.currentTimeMillis() / 60000L + 60000
         )
 
