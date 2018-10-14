@@ -6,7 +6,7 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.RadixHash
-import com.radixdlt.client.core.atoms.Token
+import com.radixdlt.client.core.atoms.TokenReference
 import com.radixdlt.client.core.atoms.particles.Consumable
 import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.atoms.particles.Spin
@@ -15,7 +15,7 @@ import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
 import org.junit.Test
 
-class AddressTokenReducerTest {
+class AddressTokenReferenceReducerTest {
 
     @Test
     fun testCache() {
@@ -27,7 +27,8 @@ class AddressTokenReducerTest {
         whenever(consumable.amount).thenReturn(10L)
         whenever(consumable.getHash()).thenReturn(hash)
         whenever(consumable.getSpin()).thenReturn(Spin.UP)
-        whenever(consumable.tokenReference).thenReturn(Token.of("TEST"))
+        val token = mock<TokenReference>()
+        whenever(consumable.tokenReference).thenReturn(token)
 
         whenever(store.getParticles(address)).thenReturn(
             Observable.just<Particle>(consumable).concatWith(Observable.never())
@@ -37,12 +38,12 @@ class AddressTokenReducerTest {
         val testObserver = TestObserver.create<AddressTokenState>()
         reducer.state.subscribe(testObserver)
         testObserver.awaitCount(1)
-        testObserver.assertValue { state -> state.balance[Token.of("TEST")] == 10L }
+        testObserver.assertValue { state -> state.balance[token] == 10L }
         testObserver.dispose()
 
         val testObserver2 = TestObserver.create<AddressTokenState>()
         reducer.state.subscribe(testObserver2)
-        testObserver2.assertValue { state -> state.balance[Token.of("TEST")] == 10L }
+        testObserver2.assertValue { state -> state.balance[token] == 10L }
 
         verify(store, times(1)).getParticles(address)
     }

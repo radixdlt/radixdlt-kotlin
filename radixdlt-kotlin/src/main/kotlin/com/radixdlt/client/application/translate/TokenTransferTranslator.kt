@@ -111,7 +111,7 @@ class TokenTransferTranslator(
         return this.getTokenState(tokenTransfer.from)
             .map(AddressTokenState::unconsumedConsumables)
             .map { u ->
-                if (u.containsKey(tokenTransfer.token)) u[tokenTransfer.token] else emptyList()
+                if (u.containsKey(tokenTransfer.tokenReference)) u[tokenTransfer.tokenReference] else emptyList()
             }
             .firstOrError()
             .flatMapCompletable { unconsumedConsumables ->
@@ -164,7 +164,7 @@ class TokenTransferTranslator(
                 if (consumerTotal < tokenTransfer.subUnitAmount) {
                     return@flatMapCompletable Completable.error(
                         InsufficientFundsException(
-                            tokenTransfer.token, consumerTotal, tokenTransfer.subUnitAmount
+                            tokenTransfer.tokenReference, consumerTotal, tokenTransfer.subUnitAmount
                         )
                     )
                 }
@@ -175,7 +175,7 @@ class TokenTransferTranslator(
                             entry.value,
                             AccountReference(entry.key.getPublicKey()),
                             System.nanoTime(),
-                            tokenTransfer.token,
+                            tokenTransfer.tokenReference,
                             System.currentTimeMillis() / 60000L + 60000L,
                             Spin.UP
                         )

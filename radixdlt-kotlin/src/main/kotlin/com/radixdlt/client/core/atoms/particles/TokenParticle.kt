@@ -1,10 +1,12 @@
 package com.radixdlt.client.core.atoms.particles
 
 import com.google.gson.annotations.SerializedName
-import com.radixdlt.client.core.atoms.Token
 import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.AccountReference
+import com.radixdlt.client.core.atoms.RadixHash
+import com.radixdlt.client.core.atoms.TokenReference
 import com.radixdlt.client.core.crypto.ECPublicKey
+import com.radixdlt.client.core.serialization.Dson
 
 class TokenParticle(
     accountReference: AccountReference,
@@ -15,16 +17,20 @@ class TokenParticle(
     private val mintPermissions: MintPermissions,
     private val icon: ByteArray?
 ) : Particle {
-    private val uid: EUID = Token.calcEUID(iso)
+
+    // FIXME: bad hack
+    private val uid: EUID = RadixHash.of(Dson.instance.toDson(tokenReference)).toEUID()
     private val spin: Spin = Spin.UP
     private val addresses: List<AccountReference> = listOf(accountReference)
+
+    val tokenReference: TokenReference
+        get() = TokenReference.of(addresses[0], iso)
 
     enum class MintPermissions {
         GENESIS_ONLY,
         SAME_ATOM_ONLY
     }
 
-    // TODO: fix this to be an account
     override fun getAddresses(): Set<ECPublicKey> {
         return setOf(addresses[0].getKey())
     }

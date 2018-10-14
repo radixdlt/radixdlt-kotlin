@@ -15,7 +15,7 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AccountReference
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.Token
+import com.radixdlt.client.core.atoms.TokenReference
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.atoms.particles.Minted
 import com.radixdlt.client.core.atoms.particles.TokenParticle
@@ -110,6 +110,10 @@ class RadixApplicationAPI private constructor(
         }
     }
 
+    fun getNativeToken(): TokenReference {
+        return universe.nativeToken
+    }
+
     fun getData(address: RadixAddress): Observable<Data> {
         Objects.requireNonNull(address)
 
@@ -134,7 +138,9 @@ class RadixApplicationAPI private constructor(
 
         val atomBuilder = atomBuilderSupplier()
         val updates: ConnectableObservable<AtomSubmissionUpdate> = dataStoreTranslator.translate(dataStore, atomBuilder)
-            .andThen(Single.fromCallable { atomBuilder.buildWithPOWFee(universe.magic, address.publicKey) })
+            .andThen(Single.fromCallable {
+                atomBuilder.buildWithPOWFee(universe.magic, address.publicKey, universe.powToken)
+            })
             .flatMap(myIdentity::sign)
             .flatMapObservable(ledger.getAtomSubmitter()::submitAtom)
             .replay()
@@ -149,7 +155,9 @@ class RadixApplicationAPI private constructor(
 
         val atomBuilder = atomBuilderSupplier()
         val updates: ConnectableObservable<AtomSubmissionUpdate> = dataStoreTranslator.translate(dataStore, atomBuilder)
-            .andThen(Single.fromCallable { atomBuilder.buildWithPOWFee(universe.magic, address0.publicKey) })
+            .andThen(Single.fromCallable {
+                atomBuilder.buildWithPOWFee(universe.magic, address0.publicKey, universe.powToken)
+            })
             .flatMap(myIdentity::sign)
             .flatMapObservable(ledger.getAtomSubmitter()::submitAtom)
             .replay()
@@ -172,7 +180,7 @@ class RadixApplicationAPI private constructor(
             .flatMapIterable(tokenTransferTranslator::fromAtom)
     }
 
-    fun getBalance(address: RadixAddress): Observable<Map<Token, BigDecimal>> {
+    fun getBalance(address: RadixAddress): Observable<Map<TokenReference, BigDecimal>> {
         Objects.requireNonNull(address)
 
         pull(address)
@@ -180,23 +188,23 @@ class RadixApplicationAPI private constructor(
         return tokenTransferTranslator.getTokenState(address)
             .map(AddressTokenState::balance)
             .map { map ->
-                map.entries.asSequence().associateBy(Map.Entry<Token, Long>::key) { e ->
-                    BigDecimal.valueOf(e.value).divide(
-                        BigDecimal.valueOf(Token.SUB_UNITS.toLong()), MathContext.UNLIMITED
-                    )
+                map.entries.asSequence().associateBy(Map.Entry<TokenReference, Long>::key) { e ->
+                    val subUnitAmount = BigDecimal.valueOf(e.value)
+                    val subUnits = BigDecimal.valueOf(TokenReference.SUB_UNITS.toLong())
+                    return@associateBy subUnitAmount.divide(subUnits, MathContext.UNLIMITED)
                 }
             }
     }
 
-    fun getMyBalance(token: Token): Observable<Amount> {
-        return getBalance(myAddress, token)
+    fun getMyBalance(tokenReference: TokenReference): Observable<Amount> {
+        return getBalance(myAddress, tokenReference)
     }
 
-    fun getBalance(address: RadixAddress, token: Token): Observable<Amount> {
-        Objects.requireNonNull(token)
+    fun getBalance(address: RadixAddress, tokenReference: TokenReference): Observable<Amount> {
+        Objects.requireNonNull(tokenReference)
         return getBalance(address)
             .map { balances ->
-                Amount.of(balances[token] ?: BigDecimal.ZERO , token)
+                Amount.of(balances[tokenReference] ?: BigDecimal.ZERO , tokenReference)
             }
     }
 
@@ -212,17 +220,17 @@ class RadixApplicationAPI private constructor(
             null
         )
         val minted = Minted(
-            fixedSupply * Token.SUB_UNITS,
+            fixedSupply * TokenReference.SUB_UNITS,
             account,
             System.currentTimeMillis(),
-            Token.of(iso),
+            token.tokenReference,
             System.currentTimeMillis() / 60000L + 60000
         )
 
         val unsignedAtom = atomBuilderSupplier()
             .addParticle(token)
             .addParticle(minted)
-            .buildWithPOWFee(universe.magic, myPublicKey)
+            .buildWithPOWFee(universe.magic, myPublicKey, universe.powToken)
 
         val updates = myIdentity.sign(unsignedAtom)
             .flatMapObservable {
@@ -333,7 +341,7 @@ class RadixApplicationAPI private constructor(
         Objects.requireNonNull(to)
         Objects.requireNonNull(amount)
 
-        val tokenTransfer = TokenTransfer.create(from, to, amount.token, amount.amountInSubunits, attachment)
+        val tokenTransfer = TokenTransfer.create(from, to, amount.tokenReference, amount.amountInSubunits, attachment)
         val uniqueProperty: UniqueProperty?
         if (unique != null) {
             // Unique Property must be the from address so that all validation occurs in a single shard.
@@ -359,7 +367,8 @@ class RadixApplicationAPI private constructor(
             .andThen(Single.fromCallable<UnsignedAtom> {
                 atomBuilder.buildWithPOWFee(
                     universe.magic,
-                    tokenTransfer.from!!.publicKey
+                    tokenTransfer.from!!.publicKey,
+                    universe.powToken
                 )
             })
 

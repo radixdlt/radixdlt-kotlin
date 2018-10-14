@@ -10,6 +10,12 @@ class AtomFeeConsumableBuilder {
     private var magic: Int = 0
     private var leading: Int = 0
     private var unsignedAtom: UnsignedAtom? = null
+    private var powToken: TokenReference? = null
+
+    fun powToken(powToken: TokenReference): AtomFeeConsumableBuilder {
+        this.powToken = powToken
+        return this
+    }
 
     fun pow(magic: Int, leading: Int): AtomFeeConsumableBuilder {
         this.magic = magic
@@ -39,7 +45,7 @@ class AtomFeeConsumableBuilder {
             pow.nonce,
             AccountReference(owner!!),
             System.nanoTime(),
-            Token.of("POW"),
+            powToken!!,
             System.currentTimeMillis() * 60000
         )
     }

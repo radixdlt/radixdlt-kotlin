@@ -1,10 +1,10 @@
 package com.radixdlt.client.application.translate
 
 import com.radixdlt.client.application.objects.Amount
-import com.radixdlt.client.core.atoms.Token
+import com.radixdlt.client.core.atoms.TokenReference
 
 class InsufficientFundsException(
-    private val token: Token,
+    private val token: TokenReference,
     val available: Long,
     val requestedAmount: Long
 ) : Exception(

@@ -2,15 +2,15 @@ package com.radixdlt.client.application.actions
 
 import com.radixdlt.client.application.objects.Amount
 import com.radixdlt.client.application.objects.Data
-import com.radixdlt.client.core.atoms.Token
 import com.radixdlt.client.core.address.RadixAddress
+import com.radixdlt.client.core.atoms.TokenReference
 import java.util.Collections
 import java.util.HashMap
 
 class TokenTransfer private constructor(
     val from: RadixAddress?,
     val to: RadixAddress?,
-    val token: Token,
+    val tokenReference: TokenReference,
     val subUnitAmount: Long,
     val attachment: Data?,
     private val metaData: Map<String, Any>
@@ -23,13 +23,13 @@ class TokenTransfer private constructor(
     override fun toString(): String {
         val timestamp = metaData["timestamp"] as Long
         return ("$timestamp $from -> $to ${Amount.subUnitsOf(
-            subUnitAmount, token)}${if (attachment == null) "" else " $attachment"}")
+            subUnitAmount, tokenReference)}${if (attachment == null) "" else " $attachment"}")
     }
 
     companion object {
 
         @JvmStatic
-        fun create(from: RadixAddress?, to: RadixAddress?, tokenClass: Token, subUnitAmount: Long): TokenTransfer {
+        fun create(from: RadixAddress?, to: RadixAddress?, tokenClass: TokenReference, subUnitAmount: Long): TokenTransfer {
             return TokenTransfer(from, to, tokenClass, subUnitAmount, null, emptyMap())
         }
 
@@ -37,32 +37,32 @@ class TokenTransfer private constructor(
         fun create(
             from: RadixAddress?,
             to: RadixAddress?,
-            tokenClass: Token,
+            tokenReference: TokenReference,
             subUnitAmount: Long,
             attachment: Data?
         ): TokenTransfer {
-            return TokenTransfer(from, to, tokenClass, subUnitAmount, attachment, emptyMap())
+            return TokenTransfer(from, to, tokenReference, subUnitAmount, attachment, emptyMap())
         }
 
         @JvmStatic
         fun create(
             from: RadixAddress?,
             to: RadixAddress?,
-            tokenClass: Token,
+            tokenReference: TokenReference,
             subUnitAmount: Long,
             timestamp: Long?
         ): TokenTransfer {
             val metaData = HashMap<String, Any>()
             metaData["timestamp"] = timestamp!!
 
-            return TokenTransfer(from, to, tokenClass, subUnitAmount, null, metaData)
+            return TokenTransfer(from, to, tokenReference, subUnitAmount, null, metaData)
         }
 
         @JvmStatic
         fun create(
             from: RadixAddress?,
             to: RadixAddress?,
-            tokenClass: Token,
+            tokenReference: TokenReference,
             subUnitAmount: Long,
             attachment: Data?,
             timestamp: Long?
@@ -70,7 +70,7 @@ class TokenTransfer private constructor(
             val metaData = HashMap<String, Any>()
             metaData["timestamp"] = timestamp!!
 
-            return TokenTransfer(from, to, tokenClass, subUnitAmount, attachment, metaData)
+            return TokenTransfer(from, to, tokenReference, subUnitAmount, attachment, metaData)
         }
     }
 }

@@ -7,7 +7,7 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.Token
+import com.radixdlt.client.core.atoms.TokenReference
 import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.ledger.ParticleStore
@@ -26,7 +26,8 @@ class TokenTransferTranslatorTest {
         val myKey = mock<ECPublicKey>()
         val myAddress = mock<RadixAddress>()
         whenever(universe.getAddressFrom(myKey)).thenReturn(myAddress)
-        whenever(atom.tokenSummary()).thenReturn(mapOf(Token.of("TEST") to mapOf(myKey to 0L)))
+        val tokenReference = mock<TokenReference>()
+        whenever(atom.tokenSummary()).thenReturn(mapOf(tokenReference to mapOf(myKey to 0L)))
 
         val tokenTransferTranslator = TokenTransferTranslator(universe, particleStore)
         val tokenTransfers = tokenTransferTranslator.fromAtom(atom)
@@ -47,11 +48,12 @@ class TokenTransferTranslatorTest {
         val tokenTransfer = mock<TokenTransfer>()
         whenever(tokenTransfer.subUnitAmount).thenReturn(10L)
         whenever(tokenTransfer.from).thenReturn(address)
-        whenever(tokenTransfer.token).thenReturn(Token.of("XRD"))
+        val tokenReference = mock<TokenReference>()
+        whenever(tokenTransfer.tokenReference).thenReturn(tokenReference)
 
         val observer = TestObserver.create<Any>()
         transferTranslator.translate(tokenTransfer, AtomBuilder()).subscribe(observer)
         observer.awaitTerminalEvent()
-        observer.assertError(InsufficientFundsException(Token.of("XRD"), 0, 10))
+        observer.assertError(InsufficientFundsException(tokenReference, 0, 10))
     }
 }

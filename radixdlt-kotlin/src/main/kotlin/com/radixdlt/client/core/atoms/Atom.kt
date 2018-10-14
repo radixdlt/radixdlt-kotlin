@@ -126,7 +126,7 @@ class Atom {
         return Dson.instance.toDson(this)
     }
 
-    fun tokenSummary(): Map<Token, Map<ECPublicKey, Long>> {
+    fun tokenSummary(): Map<TokenReference, Map<ECPublicKey, Long>> {
         return consumables()
             .filter { c -> c.tokenReference.equals("POW") }
             .groupBy(Consumable::tokenReference)

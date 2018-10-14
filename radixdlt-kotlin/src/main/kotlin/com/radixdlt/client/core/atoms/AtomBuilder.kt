@@ -19,7 +19,7 @@ class AtomBuilder {
         return this
     }
 
-    fun buildWithPOWFee(magic: Int, owner: ECPublicKey): UnsignedAtom {
+    fun buildWithPOWFee(magic: Int, owner: ECPublicKey, powToken: TokenReference): UnsignedAtom {
         val timestamp = System.currentTimeMillis()
 
         // Expensive but fine for now
@@ -27,6 +27,7 @@ class AtomBuilder {
 
         // Rebuild with atom fee
         val fee = AtomFeeConsumableBuilder()
+            .powToken(powToken)
             .atom(unsignedAtom)
             .owner(owner)
             .pow(magic, POW_LEADING_ZEROES_REQUIRED)

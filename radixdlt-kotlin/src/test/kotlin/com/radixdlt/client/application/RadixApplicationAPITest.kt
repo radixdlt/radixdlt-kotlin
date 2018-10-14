@@ -11,7 +11,7 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.AtomBuilder
-import com.radixdlt.client.core.atoms.Token
+import com.radixdlt.client.core.atoms.TokenReference
 import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.crypto.CryptoException
@@ -59,7 +59,7 @@ class RadixApplicationAPITest {
 
         val atomBuilderSupplier = { atomBuilder }
         val unsignedAtom = mock(UnsignedAtom::class.java)
-        `when`(atomBuilder.buildWithPOWFee(anyInt(), anyOrNull())).thenReturn(unsignedAtom)
+        `when`(atomBuilder.buildWithPOWFee(anyInt(), anyOrNull(), anyOrNull())).thenReturn(unsignedAtom)
 
         return RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, atomBuilderSupplier)
     }
@@ -275,8 +275,9 @@ class RadixApplicationAPITest {
 
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance, ::AtomBuilder)
         val observer = TestObserver.create<Amount>()
+        val token = mock(TokenReference::class.java)
 
-        api.getBalance(address, Token.of("XRD")).subscribe(observer)
+        api.getBalance(address, token).subscribe(observer)
         observer.awaitCount(1)
         observer.assertValue { amount -> amount.amountInSubunits == 0L }
     }
@@ -330,7 +331,8 @@ class RadixApplicationAPITest {
 
         val api = RadixApplicationAPI.create(identity, universe, DataStoreTranslator.instance) { AtomBuilder() }
         val testObserver = TestObserver.create<Amount>()
-        api.getBalance(address, Token.of("XRD")).subscribe(testObserver)
+        val token = mock(TokenReference::class.java)
+        api.getBalance(address, token).subscribe(testObserver)
         verify(puller, times(1)).pull(address)
     }
 }

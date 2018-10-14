@@ -2,6 +2,9 @@ package com.radixdlt.client.core
 
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.address.RadixUniverseConfig
+import com.radixdlt.client.core.atoms.TokenReference
+import com.radixdlt.client.core.atoms.particles.Spin
+import com.radixdlt.client.core.atoms.particles.TokenParticle
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.ledger.AtomFetcher
 import com.radixdlt.client.core.ledger.AtomPuller
@@ -58,7 +61,26 @@ class RadixUniverse private constructor(
 
     val inMemoryAtomStore = InMemoryAtomStore()
 
+    val powToken: TokenReference
+
+    val nativeToken: TokenReference
+
     init {
+
+        powToken = config.genesis.asSequence()
+            .flatMap { atom -> atom.particles(Spin.UP).asSequence() }
+            .filter { p -> p is TokenParticle }
+            .filter { p -> (p as TokenParticle).tokenReference.iso.equals("POW") }
+            .map { p -> (p as TokenParticle).tokenReference }
+            .firstOrNull() ?: throw IllegalStateException("No POW Token defined in universe")
+
+        nativeToken = config.genesis.asSequence()
+            .flatMap { atom -> atom.particles(Spin.UP).asSequence() }
+            .filter { p -> p is TokenParticle }
+            .filter { p -> !(p as TokenParticle).tokenReference.iso.equals("POW") }
+            .map { p -> (p as TokenParticle).tokenReference }
+            .firstOrNull() ?: throw IllegalStateException("No Native Token defined in universe")
+
         config.genesis.forEach { atom ->
             atom.addresses
                 .map(this@RadixUniverse::getAddressFrom)
@@ -67,6 +89,8 @@ class RadixUniverse private constructor(
                 }
         }
     }
+
+
 
     // Hooking up the default configuration
     // TODO: cleanup

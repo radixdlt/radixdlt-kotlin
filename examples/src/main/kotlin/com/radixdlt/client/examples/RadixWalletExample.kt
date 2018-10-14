@@ -4,10 +4,11 @@ import com.radixdlt.client.application.RadixApplicationAPI
 import com.radixdlt.client.application.identity.RadixIdentities
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Amount
-import com.radixdlt.client.core.atoms.Token
 import com.radixdlt.client.core.Bootstrap
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
+import com.radixdlt.client.core.atoms.AccountReference
+import com.radixdlt.client.core.atoms.TokenReference
 import java.math.BigDecimal
 
 object RadixWalletExample {
@@ -48,14 +49,16 @@ object RadixWalletExample {
         api.getMyTokenTransfers()
             .subscribe(::println)
 
-        // Subscribe to current and future total balance
-        api.getBalance(api.myAddress)
-            .subscribe { balance -> println("My Balance:\n$balance") }
+        /*
+		api.createFixedSupplyToken("Joshy Token", "YOSHY", "The Best Coin Ever", 10000)
+			.toObservable().subscribe(::println)
+		*/
 
         // If specified, send money to another address
         if (TO_ADDRESS_BASE58 != null) {
             val toAddress = RadixAddress.fromString(TO_ADDRESS_BASE58)
-            api.sendTokens(toAddress, Amount.of(AMOUNT, Token.of("JOSH"))).toObservable()
+            val token = TokenReference.of(AccountReference(api.myPublicKey), "YOSHY")
+            api.sendTokens(toAddress, Amount.of(AMOUNT, token)).toObservable()
                 .subscribe(
                     { println(it) },
                     { it.printStackTrace() }
