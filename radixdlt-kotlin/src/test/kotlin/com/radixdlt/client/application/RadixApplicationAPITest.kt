@@ -54,6 +54,7 @@ class RadixApplicationAPITest {
         val atom = mock(Atom::class.java)
         `when`(identity.sign(anyOrNull())).thenReturn(Single.just(atom))
 
+        // Added publicKey for Kotlin
         val publicKey = mock<ECPublicKey>()
         `when`(identity.getPublicKey()).thenReturn(publicKey)
 
