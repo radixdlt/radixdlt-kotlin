@@ -13,7 +13,6 @@ import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.TokenRef
-import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.atoms.particles.Particle
 import com.radixdlt.client.core.crypto.CryptoException
 import com.radixdlt.client.core.crypto.ECPublicKey
@@ -55,9 +54,11 @@ class RadixApplicationAPITest {
         val atom = mock(Atom::class.java)
         `when`(identity.sign(anyOrNull())).thenReturn(Single.just(atom))
 
-        val unsignedAtom = mock(UnsignedAtom::class.java)
+        val publicKey = mock<ECPublicKey>()
+        `when`(identity.getPublicKey()).thenReturn(publicKey)
+
         val feeMapper = object : FeeMapper {
-            override fun map(particles: List<Particle>?, universe: RadixUniverse, key: ECPublicKey?): List<Particle> {
+            override fun map(particles: List<Particle>, universe: RadixUniverse, key: ECPublicKey): List<Particle> {
                 return emptyList()
             }
         }

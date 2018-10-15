@@ -1,9 +1,12 @@
 package com.radixdlt.client.core.atoms.particles
 
 import com.google.gson.annotations.SerializedName
+import com.radixdlt.client.core.address.EUID
 import com.radixdlt.client.core.atoms.AccountReference
+import com.radixdlt.client.core.atoms.RadixHash
 import com.radixdlt.client.core.atoms.TokenRef
 import com.radixdlt.client.core.crypto.ECPublicKey
+import com.radixdlt.client.core.serialization.Dson
 
 class TokenParticle(
     accountReference: AccountReference,
@@ -15,13 +18,14 @@ class TokenParticle(
     private val icon: ByteArray?
 ) : Particle {
 
-    // FIXME: bad hack
-//    private val uid: EUID = RadixHash.of(Dson.instance.toDson(tokenRef)).toEUID()
     private val spin: Spin = Spin.UP
     private val addresses: List<AccountReference> = listOf(accountReference)
 
     val tokenRef: TokenRef?
         get() = TokenRef.of(addresses[0], iso)
+
+    // FIXME: bad hack
+    private val uid: EUID = RadixHash.of(Dson.instance.toDson(tokenRef)).toEUID()
 
     enum class MintPermissions {
         GENESIS_ONLY,

@@ -17,12 +17,12 @@ class PowFeeMapper(
     private val powBuilder: ProofOfWorkBuilder
 ) : FeeMapper {
 
-    override fun map(particles: List<Particle>?, universe: RadixUniverse, key: ECPublicKey?): List<Particle> {
+    override fun map(particles: List<Particle>, universe: RadixUniverse, key: ECPublicKey): List<Particle> {
         Objects.requireNonNull(key)
         Objects.requireNonNull(universe)
         Objects.requireNonNull(particles)
 
-        val seed = hasher(particles!!).toByteArray()
+        val seed = hasher(particles).toByteArray()
         val pow = powBuilder.build(universe.magic, seed, LEADING)
 
         val fee = AtomFeeConsumable(
