@@ -4,8 +4,11 @@ import com.radixdlt.client.core.address.RadixUniverseConfig
 import com.radixdlt.client.core.network.RadixJsonRpcClient
 import com.radixdlt.client.core.network.RadixNetwork
 import com.radixdlt.client.core.network.WebSocketClient.RadixClientStatus
+import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.rxkotlin.zipWith
 import org.slf4j.LoggerFactory
+import java.util.concurrent.TimeUnit
 
 /**
  * Given a network, selects the node to connect to
@@ -20,6 +23,11 @@ class ClientSelector(
      */
     private val radixNetwork: RadixNetwork
 ) {
+
+    /**
+     * The amount of time to delay in between node connection requests
+     */
+    private val delaySecs: Int = 3
 
     /**
      * Returns a cold observable of the first peer found which supports
@@ -49,6 +57,7 @@ class ClientSelector(
                     .toMaybe()
                     .onErrorComplete()
             }
+            .zipWith(Observable.timer(delaySecs.toLong(), TimeUnit.SECONDS)) { c, _ -> c }
             .flatMapMaybe { client ->
                 client.getUniverse()
                     .doOnSuccess { cliUniverse ->

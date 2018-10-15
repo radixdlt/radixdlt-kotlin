@@ -1,6 +1,10 @@
 package com.radixdlt.client.core.ledger
 
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.times
+import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.whenever
 import com.radixdlt.client.core.address.RadixUniverseConfig
 import com.radixdlt.client.core.network.RadixJsonRpcClient
 import com.radixdlt.client.core.network.RadixNetwork
@@ -9,19 +13,18 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.observers.TestObserver
 import org.junit.Test
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 class ClientSelectorTest {
     @Test
     fun failedNodeConnectionTest() {
-        val config = mock<RadixUniverseConfig>(RadixUniverseConfig::class.java)
-        val network = mock<RadixNetwork>(RadixNetwork::class.java)
-        val client = mock<RadixJsonRpcClient>(RadixJsonRpcClient::class.java)
-        `when`(client.status).thenReturn(Observable.just(RadixClientStatus.OPEN))
-        `when`(client.getUniverse()).thenReturn(Single.error<RadixUniverseConfig>(IOException()))
-        `when`(network.getRadixClients(any<Set<Long>>())).thenReturn(
+        val config = mock<RadixUniverseConfig>()
+        val network = mock<RadixNetwork>()
+        val client = mock<RadixJsonRpcClient>()
+        whenever(client.status).thenReturn(Observable.just(RadixClientStatus.OPEN))
+        whenever(client.getUniverse()).thenReturn(Single.error<RadixUniverseConfig>(IOException()))
+        whenever(network.getRadixClients(any<Set<Long>>())).thenReturn(
             Observable.concat(
                 Observable.just(client),
                 Observable.never()
@@ -34,5 +37,37 @@ class ClientSelectorTest {
 
         testObserver.assertNoErrors()
         testObserver.assertNoValues()
+    }
+
+    @Test
+    fun dontConnectToAllNodesTest() {
+        val config = mock<RadixUniverseConfig>()
+
+        val network = mock<RadixNetwork>()
+
+        val clients = (0..100).asSequence().map { i ->
+            val client = mock<RadixJsonRpcClient>()
+            whenever(client.status).thenReturn(Observable.just(RadixClientStatus.CLOSED))
+            if (i == 0) {
+                whenever(client.getUniverse()).thenReturn(
+                    Single.timer(
+                        1,
+                        TimeUnit.SECONDS
+                    ).map { _ -> config })
+            } else {
+                whenever(client.getUniverse()).thenReturn(Single.never<RadixUniverseConfig>())
+            }
+            client
+        }.toList()
+        whenever(network.getRadixClients(any<Set<Long>>()))
+            .thenReturn(Observable.fromIterable(clients))
+
+        val clientSelector = ClientSelector(config, network)
+        val testObserver = TestObserver.create<RadixJsonRpcClient>()
+        clientSelector.getRadixClient(1L).subscribe(testObserver)
+        testObserver.awaitTerminalEvent()
+        testObserver.assertValue(clients[0])
+
+        verify(clients[99], times(0)).getUniverse()
     }
 }
