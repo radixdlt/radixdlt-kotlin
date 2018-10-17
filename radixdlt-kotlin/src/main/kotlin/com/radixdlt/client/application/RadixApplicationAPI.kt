@@ -1,8 +1,8 @@
 package com.radixdlt.client.application
 
-import com.radixdlt.client.application.actions.CreateFixedSupplyToken
-import com.radixdlt.client.application.actions.StoreData
-import com.radixdlt.client.application.actions.TransferTokens
+import com.radixdlt.client.application.actions.CreateFixedSupplyTokenAction
+import com.radixdlt.client.application.actions.StoreDataAction
+import com.radixdlt.client.application.actions.TransferTokensAction
 import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
@@ -195,22 +195,22 @@ class RadixApplicationAPI private constructor(
     }
 
     fun storeData(data: Data, address: RadixAddress): Result {
-        val dataStore = StoreData(data, address)
+        val storeDataAction = StoreDataAction(data, address)
 
-        return executeTransaction(null, dataStore, null, null)
+        return executeTransaction(null, storeDataAction, null, null)
     }
 
     fun storeData(data: Data, address0: RadixAddress, address1: RadixAddress): Result {
-        val dataStore = StoreData(data, address0, address1)
+        val storeDataAction = StoreDataAction(data, address0, address1)
 
-        return executeTransaction(null, dataStore, null, null)
+        return executeTransaction(null, storeDataAction, null, null)
     }
 
-    fun getMyTokenTransfers(): Observable<TransferTokens> {
+    fun getMyTokenTransfers(): Observable<TransferTokensAction> {
         return getTokenTransfers(myAddress)
     }
 
-    fun getTokenTransfers(address: RadixAddress): Observable<TransferTokens> {
+    fun getTokenTransfers(address: RadixAddress): Observable<TransferTokensAction> {
         Objects.requireNonNull(address)
 
         pull(address)
@@ -256,7 +256,7 @@ class RadixApplicationAPI private constructor(
      */
     fun createFixedSupplyToken(name: String, iso: String, description: String, fixedSupply: Long): Result {
         val account = AccountReference(myPublicKey)
-        val tokenCreation = CreateFixedSupplyToken(account, name, iso, description, fixedSupply)
+        val tokenCreation = CreateFixedSupplyTokenAction(account, name, iso, description, fixedSupply)
         return executeTransaction(null, null, tokenCreation, null)
     }
 
@@ -375,7 +375,7 @@ class RadixApplicationAPI private constructor(
         Objects.requireNonNull(amount)
         Objects.requireNonNull(token)
 
-        val tokenTransfer = TransferTokens.create(from, to, amount, token, attachment)
+        val transferTokensAction = TransferTokensAction.create(from, to, amount, token, attachment)
         val uniqueProperty: UniqueProperty?
         if (unique != null) {
             // Unique Property must be the from address so that all validation occurs in a single shard.
@@ -385,29 +385,29 @@ class RadixApplicationAPI private constructor(
             uniqueProperty = null
         }
 
-        return executeTransaction(tokenTransfer, null, null, uniqueProperty)
+        return executeTransaction(transferTokensAction, null, null, uniqueProperty)
     }
 
     // TODO: make this more generic
     private fun executeTransaction(
-        @Nullable tokenTransfer: TransferTokens?,
-        @Nullable dataStore: StoreData?,
-        @Nullable tokenCreation: CreateFixedSupplyToken?,
+        @Nullable transferTokensAction: TransferTokensAction?,
+        @Nullable storeDataAction: StoreDataAction?,
+        @Nullable tokenCreation: CreateFixedSupplyTokenAction?,
         @Nullable uniqueProperty: UniqueProperty?
     ): Result {
-        if (tokenTransfer != null) {
-            pull(tokenTransfer.from!!)
+        if (transferTokensAction != null) {
+            pull(transferTokensAction.from!!)
         }
 
         val atomParticles = Observable.concatArray(
             Observable.just(uniquePropertyTranslator.map(uniqueProperty)),
-            if (tokenTransfer != null)
-                tokenBalanceStore.getState(tokenTransfer.from!!)
+            if (transferTokensAction != null)
+                tokenBalanceStore.getState(transferTokensAction.from!!)
                     .firstOrError().toObservable()
-                    .map { s -> tokenTransferTranslator.map(tokenTransfer, s) }
+                    .map { s -> tokenTransferTranslator.map(transferTokensAction, s) }
             else
                 Observable.empty(),
-            Observable.just(dataStoreTranslator.map(dataStore)),
+            Observable.just(dataStoreTranslator.map(storeDataAction)),
             Observable.just(tokenMapper.map(tokenCreation)),
             Observable.just(listOf(ChronoParticle(System.currentTimeMillis())))
         )

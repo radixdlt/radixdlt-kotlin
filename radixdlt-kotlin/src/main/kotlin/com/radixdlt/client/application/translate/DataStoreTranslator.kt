@@ -2,7 +2,7 @@ package com.radixdlt.client.application.translate
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
-import com.radixdlt.client.application.actions.StoreData
+import com.radixdlt.client.application.actions.StoreDataAction
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.atoms.Atom
 import com.radixdlt.client.core.atoms.Payload
@@ -17,23 +17,23 @@ import java.util.HashMap
 class DataStoreTranslator private constructor() {
 
     // TODO: figure out correct method signature here (return Single<AtomBuilder> instead?)
-    fun map(dataStore: StoreData?): List<Particle> {
-        if (dataStore == null) {
+    fun map(storeDataAction: StoreDataAction?): List<Particle> {
+        if (storeDataAction == null) {
             return emptyList()
         }
 
-        val payload = Payload(dataStore.data.bytes)
-        val application = dataStore.data.getMetaData()["application"] as String?
+        val payload = Payload(storeDataAction.data.bytes)
+        val application = storeDataAction.data.getMetaData()["application"] as String?
 
         val particles = ArrayList<Particle>()
         val dataParticle = DataParticle.DataParticleBuilder()
             .payload(payload)
             .setMetaData("application", application)
-            .accounts(dataStore.getAddresses())
+            .accounts(storeDataAction.getAddresses())
             .build()
         particles.add(dataParticle)
 
-        val encryptor = dataStore.data.encryptor
+        val encryptor = storeDataAction.data.encryptor
         if (encryptor != null) {
             val protectorsJson = JsonArray()
             encryptor.protectors.asSequence().map(EncryptedPrivateKey::base64).forEach(protectorsJson::add)
@@ -43,7 +43,7 @@ class DataStoreTranslator private constructor() {
                 .payload(encryptorPayload)
                 .setMetaData("application", "encryptor")
                 .setMetaData("contentType", "application/json")
-                .accounts(dataStore.getAddresses())
+                .accounts(storeDataAction.getAddresses())
                 .build()
             particles.add(encryptorParticle)
         }

@@ -2,7 +2,7 @@ package com.radixdlt.client.application.translate
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
-import com.radixdlt.client.application.actions.TransferTokens
+import com.radixdlt.client.application.actions.TransferTokensAction
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
@@ -27,7 +27,7 @@ class TokenTransferTranslator(
     private val universe: RadixUniverse
 ) {
 
-    fun fromAtom(atom: Atom): List<TransferTokens> {
+    fun fromAtom(atom: Atom): List<TransferTokensAction> {
         return atom.tokenSummary().entries.asSequence()
             .filter { e -> e.key != universe.powToken }
             .map { e ->
@@ -90,13 +90,13 @@ class TokenTransferTranslator(
                 }
 
                 val amount = TokenRef.subUnitsToDecimal(Math.abs(summary[0].value))
-                return@map TransferTokens.create(from, to, amount, e.key, attachment, atom.timestamp)
+                return@map TransferTokensAction.create(from, to, amount, e.key, attachment, atom.timestamp)
             }
             .toList()
     }
 
     @Throws(InsufficientFundsException::class)
-    fun map(transfer: TransferTokens?, curState: TokenBalanceState): List<Particle> {
+    fun map(transfer: TransferTokensAction?, curState: TokenBalanceState): List<Particle> {
         if (transfer == null) {
             return emptyList()
         }

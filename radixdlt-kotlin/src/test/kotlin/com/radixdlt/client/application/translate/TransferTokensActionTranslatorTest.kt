@@ -2,7 +2,7 @@ package com.radixdlt.client.application.translate
 
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
-import com.radixdlt.client.application.actions.TransferTokens
+import com.radixdlt.client.application.actions.TransferTokensAction
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.Atom
@@ -13,7 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.math.BigDecimal
 
-class TokenTransferTranslatorTest {
+class TransferTokensActionTranslatorTest {
 
     @Test
     fun testSendToSelfTest() {
@@ -26,9 +26,9 @@ class TokenTransferTranslatorTest {
         whenever(atom.tokenSummary()).thenReturn(mapOf(tokenReference to mapOf(myKey to 0L)))
 
         val tokenTransferTranslator = TokenTransferTranslator(universe)
-        val tokenTransfers = tokenTransferTranslator.fromAtom(atom)
-        assertEquals(myAddress, tokenTransfers[0].from)
-        assertEquals(myAddress, tokenTransfers[0].to)
+        val transferTokenActions = tokenTransferTranslator.fromAtom(atom)
+        assertEquals(myAddress, transferTokenActions[0].from)
+        assertEquals(myAddress, transferTokenActions[0].to)
     }
 
     @Test
@@ -41,15 +41,15 @@ class TokenTransferTranslatorTest {
         val token = mock<TokenRef>()
         whenever(token.iso).thenReturn("TEST")
 
-        val tokenTransfer = mock<TransferTokens>()
-        whenever(tokenTransfer.amount).thenReturn(BigDecimal("1.0"))
-        whenever(tokenTransfer.from).thenReturn(address)
-        whenever(tokenTransfer.tokenRef).thenReturn(token)
+        val transferTokensAction = mock<TransferTokensAction>()
+        whenever(transferTokensAction.amount).thenReturn(BigDecimal("1.0"))
+        whenever(transferTokensAction.from).thenReturn(address)
+        whenever(transferTokensAction.tokenRef).thenReturn(token)
 
         val state = mock<TokenBalanceState>()
         whenever(state.getBalance()).thenReturn(emptyMap())
 
-        assertThatThrownBy { transferTranslator.map(tokenTransfer, state) }
+        assertThatThrownBy { transferTranslator.map(transferTokensAction, state) }
             .isEqualTo(InsufficientFundsException(token, BigDecimal.ZERO, BigDecimal("1.0")))
     }
 }
