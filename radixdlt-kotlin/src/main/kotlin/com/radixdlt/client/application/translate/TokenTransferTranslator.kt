@@ -1,13 +1,16 @@
 package com.radixdlt.client.application.translate
 
-import com.radixdlt.client.application.actions.TokenTransfer
+import com.radixdlt.client.application.actions.TransferTokensAction
+import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
+import com.radixdlt.client.application.objects.TokenTransfer
 import com.radixdlt.client.assets.Asset
 import com.radixdlt.client.core.RadixUniverse
 import com.radixdlt.client.core.address.RadixAddress
 import com.radixdlt.client.core.atoms.AtomBuilder
 import com.radixdlt.client.core.atoms.Consumable
 import com.radixdlt.client.core.atoms.TransactionAtom
+import com.radixdlt.client.core.crypto.CryptoException
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
 import com.radixdlt.client.core.crypto.EncryptedPrivateKey
@@ -15,6 +18,7 @@ import com.radixdlt.client.core.ledger.ParticleStore
 import com.radixdlt.client.core.ledger.computeIfAbsentSynchronisedFunction
 import io.reactivex.Completable
 import io.reactivex.Observable
+import io.reactivex.Single
 import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.HashMap
 import java.util.concurrent.ConcurrentHashMap
@@ -26,7 +30,7 @@ class TokenTransferTranslator(
 
     private val cache = ConcurrentHashMap<RadixAddress, AddressTokenReducer>()
 
-    fun fromAtom(transactionAtom: TransactionAtom): TokenTransfer {
+    fun fromAtom(transactionAtom: TransactionAtom, identity: RadixIdentity): Single<TokenTransfer> {
         val summary = transactionAtom.summary().entries.asSequence()
             .filter { entry -> entry.value.containsKey(Asset.TEST.id) }
             .map { entry ->
@@ -56,6 +60,8 @@ class TokenTransferTranslator(
             }
         }
 
+        val subUnitAmount = Math.abs(summary[0].value)
+
         val attachment: Data?
         if (transactionAtom.encrypted != null) {
             val protectors: List<EncryptedPrivateKey>
@@ -67,13 +73,25 @@ class TokenTransferTranslator(
             val metaData = HashMap<String, Any>()
             metaData["encrypted"] = !protectors.isEmpty()
             attachment = Data.raw(transactionAtom.encrypted.bytes, metaData, protectors)
-        } else {
-            attachment = null
-        }
 
-        return TokenTransfer.create(
-            from, to, Asset.TEST, Math.abs(summary[0].value), attachment, transactionAtom.timestamp
-        )
+            val timestamp = transactionAtom.timestamp
+            return Single.just(attachment)
+                .flatMap(identity::decrypt)
+                .map { unencrypted -> TokenTransfer(from!!, to!!, Asset.TEST, subUnitAmount, unencrypted, timestamp) }
+                .onErrorResumeNext { e ->
+                    if (e is CryptoException) {
+                        return@onErrorResumeNext Single.just(
+                            TokenTransfer(from!!, to!!, Asset.TEST, subUnitAmount, null, timestamp)
+                        )
+                    } else {
+                        return@onErrorResumeNext Single.error(e)
+                    }
+                }
+        } else {
+            return Single.just(
+                TokenTransfer(from!!, to!!, Asset.TEST, subUnitAmount, null, transactionAtom.timestamp)
+            )
+        }
     }
 
     fun getTokenState(address: RadixAddress?): Observable<AddressTokenState> {
@@ -82,18 +100,18 @@ class TokenTransferTranslator(
         }.state
     }
 
-    fun translate(tokenTransfer: TokenTransfer, atomBuilder: AtomBuilder): Completable {
+    fun translate(transferTokensAction: TransferTokensAction, atomBuilder: AtomBuilder): Completable {
         atomBuilder.type(TransactionAtom::class.java)
 
-        return this.getTokenState(tokenTransfer.from)
+        return this.getTokenState(transferTokensAction.from)
             .map(AddressTokenState::unconsumedConsumables)
             .firstOrError()
             .flatMapCompletable { unconsumedConsumables ->
 
-                if (tokenTransfer.attachment != null) {
-                    atomBuilder.payload(tokenTransfer.attachment.bytes!!)
-                    if (!tokenTransfer.attachment.protectors.isEmpty()) {
-                        atomBuilder.protectors(tokenTransfer.attachment.protectors)
+                if (transferTokensAction.attachment != null) {
+                    atomBuilder.payload(transferTokensAction.attachment.bytes!!)
+                    if (!transferTokensAction.attachment.protectors.isEmpty()) {
+                        atomBuilder.protectors(transferTokensAction.attachment.protectors)
                     }
                 }
 
@@ -104,25 +122,25 @@ class TokenTransferTranslator(
                 // HACK for now
                 // TODO: remove this, create a ConsumersCreator
                 // TODO: randomize this to decrease probability of collision
-                while (consumerTotal < tokenTransfer.subUnitAmount && iterator.hasNext()) {
-                    val left = tokenTransfer.subUnitAmount - consumerTotal
+                while (consumerTotal < transferTokensAction.subUnitAmount && iterator.hasNext()) {
+                    val left = transferTokensAction.subUnitAmount - consumerTotal
 
                     val newConsumer = iterator.next().toConsumer()
                     consumerTotal += newConsumer.quantity
 
                     val amount = Math.min(left, newConsumer.quantity)
                     newConsumer.addConsumerQuantities(
-                        amount, setOf(tokenTransfer.to!!.toECKeyPair()),
+                        amount, setOf(transferTokensAction.to!!.toECKeyPair()),
                         consumerQuantities
                     )
 
                     atomBuilder.addParticle(newConsumer)
                 }
 
-                if (consumerTotal < tokenTransfer.subUnitAmount) {
+                if (consumerTotal < transferTokensAction.subUnitAmount) {
                     return@flatMapCompletable Completable.error(
                         InsufficientFundsException(
-                            tokenTransfer.tokenClass, consumerTotal, tokenTransfer.subUnitAmount
+                            transferTokensAction.tokenClass, consumerTotal, transferTokensAction.subUnitAmount
                         )
                     )
                 }

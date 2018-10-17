@@ -8,7 +8,7 @@ import java.util.Collections
 /**
  * An Application Layer Action object which stores data into an myAddress or multiple addresses.
  */
-class DataStore {
+class StoreDataAction {
     val data: Data
     private val addresses: List<RadixAddress>
 

@@ -7,7 +7,7 @@ import com.radixdlt.client.core.address.RadixAddress
 import java.util.Collections
 import java.util.HashMap
 
-class TokenTransfer private constructor(
+class TransferTokensAction private constructor(
     val from: RadixAddress?,
     val to: RadixAddress?,
     val tokenClass: Asset,
@@ -29,8 +29,8 @@ class TokenTransfer private constructor(
     companion object {
 
         @JvmStatic
-        fun create(from: RadixAddress?, to: RadixAddress?, tokenClass: Asset, subUnitAmount: Long): TokenTransfer {
-            return TokenTransfer(from, to, tokenClass, subUnitAmount, null, emptyMap())
+        fun create(from: RadixAddress?, to: RadixAddress?, tokenClass: Asset, subUnitAmount: Long): TransferTokensAction {
+            return TransferTokensAction(from, to, tokenClass, subUnitAmount, null, emptyMap())
         }
 
         @JvmStatic
@@ -40,8 +40,8 @@ class TokenTransfer private constructor(
             tokenClass: Asset,
             subUnitAmount: Long,
             attachment: Data?
-        ): TokenTransfer {
-            return TokenTransfer(from, to, tokenClass, subUnitAmount, attachment, emptyMap())
+        ): TransferTokensAction {
+            return TransferTokensAction(from, to, tokenClass, subUnitAmount, attachment, emptyMap())
         }
 
         @JvmStatic
@@ -51,11 +51,11 @@ class TokenTransfer private constructor(
             tokenClass: Asset,
             subUnitAmount: Long,
             timestamp: Long?
-        ): TokenTransfer {
+        ): TransferTokensAction {
             val metaData = HashMap<String, Any>()
             metaData["timestamp"] = timestamp!!
 
-            return TokenTransfer(from, to, tokenClass, subUnitAmount, null, metaData)
+            return TransferTokensAction(from, to, tokenClass, subUnitAmount, null, metaData)
         }
 
         @JvmStatic
@@ -66,11 +66,11 @@ class TokenTransfer private constructor(
             subUnitAmount: Long,
             attachment: Data?,
             timestamp: Long?
-        ): TokenTransfer {
+        ): TransferTokensAction {
             val metaData = HashMap<String, Any>()
             metaData["timestamp"] = timestamp!!
 
-            return TokenTransfer(from, to, tokenClass, subUnitAmount, attachment, metaData)
+            return TransferTokensAction(from, to, tokenClass, subUnitAmount, attachment, metaData)
         }
     }
 }

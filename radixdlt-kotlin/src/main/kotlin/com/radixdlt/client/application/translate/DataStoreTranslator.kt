@@ -1,6 +1,6 @@
 package com.radixdlt.client.application.translate
 
-import com.radixdlt.client.application.actions.DataStore
+import com.radixdlt.client.application.actions.StoreDataAction
 import com.radixdlt.client.application.objects.Data
 import com.radixdlt.client.core.atoms.ApplicationPayloadAtom
 import com.radixdlt.client.core.atoms.AtomBuilder
@@ -10,19 +10,19 @@ import java.util.HashMap
 
 class DataStoreTranslator private constructor() {
 
-    fun translate(dataStore: DataStore, atomBuilder: AtomBuilder): Completable {
+    fun translate(storeDataAction: StoreDataAction, atomBuilder: AtomBuilder): Completable {
         atomBuilder.type(ApplicationPayloadAtom::class.java)
-        atomBuilder.payload(dataStore.data.bytes)
+        atomBuilder.payload(storeDataAction.data.bytes)
 
-        if (!dataStore.data.protectors.isEmpty()) {
-            atomBuilder.protectors(dataStore.data.protectors)
+        if (!storeDataAction.data.protectors.isEmpty()) {
+            atomBuilder.protectors(storeDataAction.data.protectors)
         }
 
-        if (dataStore.data.getMetaData().containsKey("application")) {
-            atomBuilder.applicationId(dataStore.data.getMetaData()["application"] as String)
+        if (storeDataAction.data.getMetaData().containsKey("application")) {
+            atomBuilder.applicationId(storeDataAction.data.getMetaData()["application"] as String)
         }
 
-        dataStore.getAddresses().forEach { atomBuilder.addDestination(it) }
+        storeDataAction.getAddresses().forEach { atomBuilder.addDestination(it) }
 
         return Completable.complete()
     }

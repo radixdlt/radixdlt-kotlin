@@ -1,10 +1,11 @@
 package com.radixdlt.client.application
 
-import com.radixdlt.client.application.actions.DataStore
-import com.radixdlt.client.application.actions.TokenTransfer
+import com.radixdlt.client.application.actions.StoreDataAction
+import com.radixdlt.client.application.actions.TransferTokensAction
 import com.radixdlt.client.application.actions.UniqueProperty
 import com.radixdlt.client.application.identity.RadixIdentity
 import com.radixdlt.client.application.objects.Data
+import com.radixdlt.client.application.objects.TokenTransfer
 import com.radixdlt.client.application.objects.UnencryptedData
 import com.radixdlt.client.application.translate.AddressTokenState
 import com.radixdlt.client.application.translate.DataStoreTranslator
@@ -127,10 +128,11 @@ class RadixApplicationAPI private constructor(
     }
 
     fun storeData(data: Data, address: RadixAddress): Result {
-        val dataStore = DataStore(data, address)
+        val storeDataAction = StoreDataAction(data, address)
 
         val atomBuilder = atomBuilderSupplier()
-        val updates: ConnectableObservable<AtomSubmissionUpdate> = dataStoreTranslator.translate(dataStore, atomBuilder)
+        val updates: ConnectableObservable<AtomSubmissionUpdate> = dataStoreTranslator
+            .translate(storeDataAction, atomBuilder)
             .andThen(Single.fromCallable { atomBuilder.buildWithPOWFee(universe.magic, address.publicKey) })
             .flatMap(myIdentity::sign)
             .flatMapObservable(ledger.getAtomSubmitter()::submitAtom)
@@ -142,10 +144,11 @@ class RadixApplicationAPI private constructor(
     }
 
     fun storeData(data: Data, address0: RadixAddress, address1: RadixAddress): Result {
-        val dataStore = DataStore(data, address0, address1)
+        val storeDataAction = StoreDataAction(data, address0, address1)
 
         val atomBuilder = atomBuilderSupplier()
-        val updates: ConnectableObservable<AtomSubmissionUpdate> = dataStoreTranslator.translate(dataStore, atomBuilder)
+        val updates: ConnectableObservable<AtomSubmissionUpdate> = dataStoreTranslator
+            .translate(storeDataAction, atomBuilder)
             .andThen(Single.fromCallable { atomBuilder.buildWithPOWFee(universe.magic, address0.publicKey) })
             .flatMap(myIdentity::sign)
             .flatMapObservable(ledger.getAtomSubmitter()::submitAtom)
@@ -174,7 +177,8 @@ class RadixApplicationAPI private constructor(
         ) { transactionAtoms, atom ->
             transactionAtoms.accept(atom).newValidTransactions
         }
-            .flatMap { atoms -> atoms.map { tokenTransferTranslator.fromAtom(it) } }
+        .flatMap { atoms -> atoms }
+        .flatMapSingle { atom -> tokenTransferTranslator.fromAtom(atom, myIdentity) }
     }
 
     fun getMyBalance(tokenClass: Asset): Observable<Amount> {
@@ -251,7 +255,8 @@ class RadixApplicationAPI private constructor(
         Objects.requireNonNull(to)
         Objects.requireNonNull(amount)
 
-        val tokenTransfer = TokenTransfer.create(from, to, amount.getTokenClass(), amount.amountInSubunits, attachment)
+        val transferTokensAction = TransferTokensAction
+            .create(from, to, amount.getTokenClass(), amount.amountInSubunits, attachment)
         val uniqueProperty: UniqueProperty?
         if (unique != null) {
             // Unique Property must be the from address so that all validation occurs in a single shard.
@@ -261,24 +266,22 @@ class RadixApplicationAPI private constructor(
             uniqueProperty = null
         }
 
-        return executeTransaction(tokenTransfer, uniqueProperty)
+        return executeTransaction(transferTokensAction, uniqueProperty)
     }
 
     // TODO: make this more generic
-    private fun executeTransaction(tokenTransfer: TokenTransfer, @Nullable uniqueProperty: UniqueProperty?): Result {
-        Objects.requireNonNull(tokenTransfer)
+    private fun executeTransaction(
+        transferTokensAction: TransferTokensAction, @Nullable uniqueProperty: UniqueProperty?): Result {
+        Objects.requireNonNull(transferTokensAction)
 
         pull()
 
         val atomBuilder = atomBuilderSupplier()
 
         val unsignedAtom = uniquePropertyTranslator.translate(uniqueProperty, atomBuilder)
-            .andThen(tokenTransferTranslator.translate(tokenTransfer, atomBuilder))
+            .andThen(tokenTransferTranslator.translate(transferTokensAction, atomBuilder))
             .andThen(Single.fromCallable<UnsignedAtom> {
-                atomBuilder.buildWithPOWFee(
-                    universe.magic,
-                    tokenTransfer.from!!.publicKey
-                )
+                atomBuilder.buildWithPOWFee(universe.magic, transferTokensAction.from!!.publicKey)
             })
 
         val updates = unsignedAtom
