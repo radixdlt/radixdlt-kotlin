@@ -12,7 +12,7 @@ class Encryptor(protectors: List<EncryptedPrivateKey>) {
             // TODO: remove exception catching
             try {
                 return accessor.decrypt(data, protector)
-            } catch (e: MacMismatchException) {
+            } catch (e: CryptoException) {
             }
         }
 

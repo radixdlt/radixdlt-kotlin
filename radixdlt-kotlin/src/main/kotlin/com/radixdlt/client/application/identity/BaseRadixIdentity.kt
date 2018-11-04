@@ -7,7 +7,6 @@ import com.radixdlt.client.core.atoms.UnsignedAtom
 import com.radixdlt.client.core.crypto.CryptoException
 import com.radixdlt.client.core.crypto.ECKeyPair
 import com.radixdlt.client.core.crypto.ECPublicKey
-import com.radixdlt.client.core.crypto.MacMismatchException
 import io.reactivex.Single
 
 internal class BaseRadixIdentity(private val myKey: ECKeyPair) : RadixIdentity {
@@ -28,7 +27,8 @@ internal class BaseRadixIdentity(private val myKey: ECKeyPair) : RadixIdentity {
                 try {
                     val bytes = myKey.decrypt(data.bytes!!, protector)
                     return Single.just(UnencryptedData(bytes, data.getMetaData(), true))
-                } catch (e: MacMismatchException) {
+                } catch (e: CryptoException) {
+                    // Decryption failed, try the next one
                 }
             }
             return Single.error(CryptoException("Cannot decrypt"))

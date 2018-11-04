@@ -44,7 +44,7 @@ class ECKeyPair {
 
         try {
             val domain: ECDomainParameters = ECKeyPairGenerator.getDomain((this.privateKey.size - 1) * 8)!!
-            val privateKeySpec: ECPrivateKeySpec = ECPrivateKeySpec(
+            val privateKeySpec = ECPrivateKeySpec(
                 BigInteger(1, this.privateKey),
                 ECParameterSpec(domain.getCurve(), domain.getG(), domain.getN(), domain.getH())
             )
@@ -55,7 +55,7 @@ class ECKeyPair {
 
         try {
             val domain: ECDomainParameters = ECKeyPairGenerator.getDomain((this.privateKey.size - 1) * 8)!!
-            val publicKeySpec: ECPublicKeySpec = ECPublicKeySpec(
+            val publicKeySpec = ECPublicKeySpec(
                 domain.getG().multiply(ecPrivateKey.getD()),
                 ECParameterSpec(domain.getCurve(), domain.getG(), domain.getN(), domain.getH())
             )
@@ -96,30 +96,25 @@ class ECKeyPair {
 
     fun sign(data: ByteArray): ECSignature {
         val domain: ECDomainParameters = ECKeyPairGenerator.getDomain((getPublicKey().length() - 1) * 8)!!
-        val signer: ECDSASigner = ECDSASigner()
+        val signer = ECDSASigner()
         signer.init(true, ECPrivateKeyParameters(BigInteger(1, getPrivateKey()), domain))
         val components: Array<out BigInteger> = signer.generateSignature(data)
         return ECSignature(components[0], components[1])
     }
 
-    @Throws(MacMismatchException::class)
+    @Throws(CryptoException::class)
     fun decrypt(data: ByteArray, sharedKey: EncryptedPrivateKey): ByteArray {
         if (privateKey == null) {
             throw IllegalStateException("This key does not contain a private key.")
         }
 
         val privateKey: ByteArray = decrypt(sharedKey.toByteArray())
-        val sharedPrivateKey: ECKeyPair = ECKeyPair(privateKey)
+        val sharedPrivateKey = ECKeyPair(privateKey)
 
-        try {
-            return sharedPrivateKey.decrypt(data)
-        } catch (e: MacMismatchException) {
-            println("${e.expectedBase64} ${e.actualBase64}")
-            throw IllegalStateException("Unable to decrypt with shared private key.")
-        }
+        return sharedPrivateKey.decrypt(data)
     }
 
-    @Throws(MacMismatchException::class)
+    @Throws(CryptoException::class)
     fun decrypt(data: ByteArray): ByteArray {
         if (privateKey == null) {
             throw IllegalStateException("This key does not contain a private key.")
@@ -134,9 +129,9 @@ class ECKeyPair {
 
             // 2. Read the ephemeral public key
             val publicKeySize: Int = inputStream.readUnsignedByte()
-            val publicKeyRaw: ByteArray = ByteArray(publicKeySize)
+            val publicKeyRaw = ByteArray(publicKeySize)
             inputStream.readFully(publicKeyRaw)
-            val ephemeral: ECPublicKey = ECPublicKey(publicKeyRaw)
+            val ephemeral = ECPublicKey(publicKeyRaw)
 
             // 3. Do an EC point multiply with this.getPrivateKey() and ephemeral public key. This gives you a point M.
             val m: ECPoint = ephemeral.publicPoint.multiply(BigInteger(1, getPrivateKey())).normalize()
@@ -149,11 +144,11 @@ class ECKeyPair {
             val keyM: ByteArray = Arrays.copyOfRange(h, 32, 64)
 
             // 6. Read encrypted data
-            val encrypted: ByteArray = ByteArray(inputStream.readInt())
+            val encrypted = ByteArray(inputStream.readInt())
             inputStream.readFully(encrypted)
 
             // 6. Read MAC
-            val mac: ByteArray = ByteArray(32)
+            val mac = ByteArray(32)
             inputStream.readFully(mac)
 
             // 7. Compare MAC with MAC'. If not equal, decryption will fail.
@@ -166,14 +161,8 @@ class ECKeyPair {
             //    and the cipher text as payload. The output is the padded input text.
             return publicKey.crypt(false, iv, encrypted, keyE)
         } catch (e: IOException) {
-            // TODO: change type of exception thrown
-            throw RuntimeException("Failed to decrypt", e)
+            throw CryptoException("Failed to decrypt", e)
         }
-    }
-
-    @Throws(MacMismatchException::class)
-    fun decryptToAscii(data: ByteArray): String {
-        return String(this.decrypt(data))
     }
 
     override fun hashCode(): Int {

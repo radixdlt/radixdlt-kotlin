@@ -58,7 +58,7 @@ class ECKeyPairGeneratorTest {
     }
 
     @Test
-    @Throws(MacMismatchException::class)
+    @Throws(CryptoException::class)
     fun encryptionTest() {
         val testPhrase = "Hello World"
         val ecKeyPair = ECKeyPairGenerator.newInstance().generateKeyPair()
