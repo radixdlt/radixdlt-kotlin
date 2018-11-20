@@ -19,8 +19,8 @@ class ConsumableDataSource(private val atomStore: AtomStore) : ParticleStore {
                 .flatMapIterable(TransactionAtom::getAbstractConsumables)
                 .filter { particle -> particle.ownersPublicKeys.asSequence().all(address::ownsKey) }
                 .cache()
-                //.replay(1)
-                //.autoConnect()
+                // .replay(1)
+                // .autoConnect()
         }
     }
 }

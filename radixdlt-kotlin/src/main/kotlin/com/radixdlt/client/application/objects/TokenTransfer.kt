@@ -14,10 +14,10 @@ class TokenTransfer(
 ) {
 
     val attachmentAsString: String?
-          get() = attachment?.data?.let { String(it) }
+        get() = attachment?.data?.let { String(it) }
 
     override fun toString(): String {
-        return ("$timestamp $from -> $to " + Amount.subUnitsOf(subUnitAmount, tokenClass).toString()
-            + if (attachment == null) "" else " $attachment")
+        return ("$timestamp $from -> $to " + Amount.subUnitsOf(subUnitAmount, tokenClass).toString() +
+            if (attachment == null) "" else " $attachment")
     }
 }

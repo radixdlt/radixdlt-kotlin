@@ -271,7 +271,9 @@ class RadixApplicationAPI private constructor(
 
     // TODO: make this more generic
     private fun executeTransaction(
-        transferTokensAction: TransferTokensAction, @Nullable uniqueProperty: UniqueProperty?): Result {
+        transferTokensAction: TransferTokensAction,
+        @Nullable uniqueProperty: UniqueProperty?
+    ): Result {
         Objects.requireNonNull(transferTokensAction)
 
         pull()

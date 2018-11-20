@@ -18,7 +18,7 @@ class AddressTokenReducer(address: RadixAddress, particleStore: ParticleStore) {
     init {
         this.state = particleStore.getConsumables(address)
             .filter { p -> p !is AtomFeeConsumable }
-            .scanWith( { HashMap<RadixHash, AbstractConsumable>() }) { map, p ->
+            .scanWith({ HashMap<RadixHash, AbstractConsumable>() }) { map, p ->
                 val newMap = HashMap(map)
                 newMap[p.hash] = p
                 newMap
