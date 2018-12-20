@@ -350,6 +350,10 @@ class RadixJsonRpcClient(
         }
     }
 
+    override fun toString(): String {
+        return wsClient.toString()
+    }
+
     companion object {
         private val LOGGER = LoggerFactory.getLogger(RadixJsonRpcClient::class.java)
 

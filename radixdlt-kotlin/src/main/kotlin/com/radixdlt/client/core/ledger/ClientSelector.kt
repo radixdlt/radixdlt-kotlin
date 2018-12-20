@@ -51,13 +51,13 @@ class ClientSelector(
         return this.radixNetwork.getRadixClients(shards)
             .flatMapMaybe { client ->
                 client.status
-                    .filter { status -> status != RadixClientStatus.FAILURE }
+                    .filter { status -> status != RadixClientStatus.FAILURE && status != RadixClientStatus.CLOSING }
                     .map { _ -> client }
                     .firstOrError()
                     .toMaybe()
                     .onErrorComplete()
             }
-            .zipWith(Observable.timer(delaySecs.toLong(), TimeUnit.SECONDS)) { c, _ -> c }
+            .zipWith(Observable.interval(delaySecs.toLong(), TimeUnit.SECONDS)) { c, _ -> c }
             .flatMapMaybe { client ->
                 client.getUniverse()
                     .doOnSuccess { cliUniverse ->
@@ -68,8 +68,8 @@ class ClientSelector(
                             )
                         }
                     }
-                    .map { config == it }
-                    .filter { b -> b }
+//                    .map { config == it }
+                    .filter { _ -> true }
                     .map { _ -> client }
                     .onErrorComplete()
             }

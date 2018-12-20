@@ -13,19 +13,17 @@ import okhttp3.WebSocketListener
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 
 class WebSocketClient(private val okHttpClient: () -> OkHttpClient, val endpoint: Request) {
 
     private var webSocket: WebSocket? = null
 
     private val status = BehaviorSubject.createDefault(RadixClientStatus.CLOSED)
-    private val closed = AtomicBoolean(false)
 
     private var messages = PublishSubject.create<String>()
 
     enum class RadixClientStatus {
-        CONNECTING, OPEN, CLOSED, FAILURE
+        CONNECTING, OPEN, CLOSING, CLOSED, FAILURE
     }
 
     init {
@@ -51,7 +49,10 @@ class WebSocketClient(private val okHttpClient: () -> OkHttpClient, val endpoint
             return false
         }
 
-        this.webSocket?.close(1000, null)
+        this.webSocket?.let {
+            this.status.onNext(RadixClientStatus.CLOSING)
+            it.cancel()
+        }
 
         return true
     }
@@ -83,7 +84,8 @@ class WebSocketClient(private val okHttpClient: () -> OkHttpClient, val endpoint
             }
 
             override fun onFailure(websocket: WebSocket?, t: Throwable?, response: Response?) {
-                if (closed.get()) {
+                if (status.value == RadixClientStatus.CLOSING) {
+                    this@WebSocketClient.status.onNext(RadixClientStatus.CLOSED)
                     return
                 }
 
@@ -117,6 +119,10 @@ class WebSocketClient(private val okHttpClient: () -> OkHttpClient, val endpoint
 
     fun send(message: String): Boolean {
         return this.webSocket!!.send(message)
+    }
+
+    override fun toString(): String {
+        return endpoint.toString()
     }
 
     companion object {

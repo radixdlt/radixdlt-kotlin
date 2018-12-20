@@ -70,4 +70,41 @@ class ClientSelectorTest {
 
         verify(clients[99], times(0)).getUniverse()
     }
+
+    @Test
+    fun whenFirstNodeFailsThenSecondNodeShouldConnect() {
+        val config = mock<RadixUniverseConfig>()
+        val network = mock<RadixNetwork>()
+        val badClient = mock<RadixJsonRpcClient>()
+        whenever(badClient.status).thenReturn(Observable.just(RadixClientStatus.OPEN))
+        whenever(badClient.getUniverse()).thenReturn(
+            Single.error<RadixUniverseConfig>(
+                IOException()
+            )
+        )
+
+        val goodClient = mock<RadixJsonRpcClient>()
+        whenever(goodClient.status).thenReturn(Observable.just(RadixClientStatus.OPEN))
+        whenever(goodClient.getUniverse()).thenReturn(
+            Single.just<RadixUniverseConfig>(
+                mock()
+            )
+        )
+
+        whenever(network.getRadixClients(any<Set<Long>>())).thenReturn(
+            Observable.concat(
+                Observable.just(badClient),
+                Observable.just(goodClient),
+                Observable.never<RadixJsonRpcClient>()
+            )
+        )
+
+        val clientSelector = ClientSelector(config, network)
+        val testObserver = TestObserver.create<RadixJsonRpcClient>()
+        clientSelector.getRadixClient(1L).subscribe(testObserver)
+
+        testObserver.awaitTerminalEvent()
+        testObserver.assertNoErrors()
+        testObserver.assertValue(goodClient)
+    }
 }
