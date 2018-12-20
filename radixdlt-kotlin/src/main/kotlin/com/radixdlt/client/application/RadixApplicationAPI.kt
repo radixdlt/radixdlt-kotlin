@@ -26,7 +26,6 @@ import com.radixdlt.client.core.network.AtomSubmissionUpdate.AtomSubmissionState
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.annotations.Nullable
 import io.reactivex.disposables.Disposable
 import io.reactivex.disposables.Disposables
 import io.reactivex.observables.ConnectableObservable
@@ -177,8 +176,8 @@ class RadixApplicationAPI private constructor(
         ) { transactionAtoms, atom ->
             transactionAtoms.accept(atom).newValidTransactions
         }
-        .flatMap { atoms -> atoms }
-        .flatMapSingle { atom -> tokenTransferTranslator.fromAtom(atom, myIdentity) }
+            .flatMap { atoms -> atoms }
+            .flatMapSingle { atom -> tokenTransferTranslator.fromAtom(atom, myIdentity) }
     }
 
     fun getMyBalance(tokenClass: Asset): Observable<Amount> {
@@ -269,26 +268,33 @@ class RadixApplicationAPI private constructor(
         return executeTransaction(transferTokensAction, uniqueProperty)
     }
 
-    // TODO: make this more generic
-    private fun executeTransaction(
-        transferTokensAction: TransferTokensAction,
-        @Nullable uniqueProperty: UniqueProperty?
-    ): Result {
-        Objects.requireNonNull(transferTokensAction)
-
+    fun mapToAtom(transferTokensAction: TransferTokensAction, uniqueProperty: UniqueProperty?): Single<UnsignedAtom> {
         pull()
 
         val atomBuilder = atomBuilderSupplier()
 
-        val unsignedAtom = uniquePropertyTranslator.translate(uniqueProperty, atomBuilder)
+        return uniquePropertyTranslator.translate(uniqueProperty, atomBuilder)
             .andThen(tokenTransferTranslator.translate(transferTokensAction, atomBuilder))
-            .andThen(Single.fromCallable<UnsignedAtom> {
-                atomBuilder.buildWithPOWFee(universe.magic, transferTokensAction.from!!.publicKey)
+            .andThen(Single.fromCallable {
+                atomBuilder.buildWithPOWFee(
+                    universe.magic,
+                    transferTokensAction.from!!.publicKey
+                )
             })
+    }
 
-        val updates = unsignedAtom
-            .flatMap(myIdentity::sign)
-            .flatMapObservable(ledger.getAtomSubmitter()::submitAtom)
+    // TODO: make this more generic
+    private fun executeTransaction(
+        transferTokensAction: TransferTokensAction,
+        uniqueProperty: UniqueProperty?
+    ): Result {
+        Objects.requireNonNull(transferTokensAction)
+
+        val updates = this.mapToAtom(transferTokensAction, uniqueProperty)
+            .flatMap { myIdentity.sign(it) }
+            .flatMapObservable {
+                ledger.getAtomSubmitter().submitAtom(it)
+            }
             .replay()
 
         updates.connect()
