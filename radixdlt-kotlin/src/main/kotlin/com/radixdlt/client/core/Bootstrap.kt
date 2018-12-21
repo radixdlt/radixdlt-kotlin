@@ -12,6 +12,10 @@ enum class Bootstrap(private val config: RadixUniverseConfig, private val discov
         RadixUniverseConfigs.alphanet,
         PeersFromNodeFinder("https://alphanet.radixdlt.com/node-finder", 443)
     ),
+    ALPHANET2(
+        RadixUniverseConfigs.alphanet2,
+        PeersFromNodeFinder("https://alphanet2.radixdlt.com/node-finder", 443)
+    ),
     HIGHGARDEN(
         RadixUniverseConfigs.highgarden,
         PeersFromNodeFinder("https://highgarden.radixdlt.com/node-finder", 443)
