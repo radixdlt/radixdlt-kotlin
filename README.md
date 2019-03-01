@@ -37,8 +37,8 @@ Include the following gradle dependency:
 repositories {
     maven { url 'https://jitpack.io' }
 }
-
 ```
+
 ```
 dependencies {
     implementation 'com.radixdlt:radixdlt-kotlin:0.11.6'
@@ -178,4 +178,4 @@ To check code style - `gradle ktlint` (it's also bound to `gradle check`).
 
 ## License
 
-radixdlt-java is released under the [MIT License](LICENSE).
+radixdlt-kotlin is released under the [MIT License](LICENSE).
