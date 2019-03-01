@@ -66,7 +66,7 @@ To bootstrap to the Alphanet test network:
 ```kotlin
 RadixUniverse.bootstrap(Bootstrap.ALPHANET)
 ```
-NOTE: No network connections will be made yet until it is required.
+**Note:** No network connections will be made yet until it is required.
 
 ## Radix Dapp API
 The Radix Application API is a client side API exposing high level abstractions to make
