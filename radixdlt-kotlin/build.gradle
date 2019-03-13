@@ -13,12 +13,27 @@ buildscript {
 plugins {
     id 'java-library'
     id 'maven'
+    id 'jacoco'
+    id 'org.sonarqube' version "2.7"
 }
 
 apply plugin: 'java'
 apply plugin: 'kotlin'
 
 sourceCompatibility = 1.8
+
+jacoco {
+    toolVersion = "0.8.3"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.enabled false
+        xml.destination file("${buildDir}/reports/jacoco.xml")
+    }
+}
 
 configurations {
     ktlint
@@ -90,6 +105,16 @@ jar {
     }
 
     exclude('universe.key')
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "com.radixdlt:radixdlt-kotlin"
+        property "sonar.projectName", "radixdlt-kotlin"
+        property "sonar.sources", "./src/main"
+        property "sonar.tests", "./src/test"
+        property "sonar.coverage.jacoco.xmlReportPaths", "./build/reports/jacoco.xml"
+    }
 }
 
 task depsize {

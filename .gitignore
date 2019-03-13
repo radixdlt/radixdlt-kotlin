@@ -1,7 +1,10 @@
 .gradle
 .idea
 .DS_Store
+.java-version
 .project
+.scannerwork/*
+.sonar_lock
 examples/out/
 out/
 *.key

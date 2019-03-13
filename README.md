@@ -1,6 +1,10 @@
 [![Build Status](https://travis-ci.com/radixdlt/radixdlt-kotlin.svg?branch=master)](https://travis-ci.com/radixdlt/radixdlt-kotlin)
 [![License MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![](https://jitpack.io/v/com.radixdlt/radixdlt-kotlin.svg)](https://jitpack.io/#com.radixdlt/radixdlt-kotlin)
+[![](https://jitpack.io/v/com.radixdlt/radixdlt-kotlin.svg)](https://jitpack.io/#com.radixdlt/radixdlt-kotlin) 
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=com.radixdlt%3Aradixdlt-kotlin&metric=alert_status)](https://sonarcloud.io/dashboard?id=com.radixdlt%3Aradixdlt-kotlin) 
+[![Reliability](https://sonarcloud.io/api/project_badges/measure?project=com.radixdlt%3Aradixdlt-kotlin&metric=reliability_rating)](https://sonarcloud.io/component_measures?id=com.radixdlt%3Aradixdlt-kotlin&metric=reliability_rating) 
+[![Security](https://sonarcloud.io/api/project_badges/measure?project=com.radixdlt%3Aradixdlt-kotlin&metric=security_rating)](https://sonarcloud.io/component_measures?id=com.radixdlt%3Aradixdlt-kotlin&metric=security_rating) 
+[![Code Corevage](https://sonarcloud.io/api/project_badges/measure?project=com.radixdlt%3Aradixdlt-kotlin&metric=coverage)](https://sonarcloud.io/component_measures?id=com.radixdlt%3Aradixdlt-kotlin&metric=Coverage)
 
 # radixdlt-kotlin
 A Kotlin Client library for interacting with a [Radix](https://www.radixdlt.com) Distributed Ledger compatible with Kotlin/Java projects and maximising compatibility with all versions of Android.
