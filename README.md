@@ -14,6 +14,7 @@ Compatibility with lower versions of Android is achieved by avoiding the use of 
 
 ## Table of contents
 
+- [Changelog](CHANGELOG.md)
 - [Features](#features)
 - [Installation](#installation)
 - [Getting started](#getting-started)
