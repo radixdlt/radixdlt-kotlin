@@ -6,7 +6,16 @@
 [![Security](https://sonarcloud.io/api/project_badges/measure?project=com.radixdlt%3Aradixdlt-kotlin&metric=security_rating)](https://sonarcloud.io/component_measures?id=com.radixdlt%3Aradixdlt-kotlin&metric=security_rating) 
 [![Code Corevage](https://sonarcloud.io/api/project_badges/measure?project=com.radixdlt%3Aradixdlt-kotlin&metric=coverage)](https://sonarcloud.io/component_measures?id=com.radixdlt%3Aradixdlt-kotlin&metric=Coverage)
 
-# radixdlt-kotlin
+# radixdlt-kotlin [Deprecated]
+
+The current master branch for this client library will connect to the old alphanet until it is decided for it to be taken down by the team.
+
+Development of the Kotlin library for Betanet is paused until further notice.
+
+Please use the [radixdlt-java](https://github.com/radixdlt/radixdlt-java) which is up to date with all the latest changes.
+
+***
+
 A Kotlin Client library for interacting with a [Radix](https://www.radixdlt.com) Distributed Ledger compatible with Kotlin/Java projects and maximising compatibility with all versions of Android.
 
 Compatibility with lower versions of Android is achieved by avoiding the use of any Java 8 APIs e.g. Stream, Optional, Function, etc and using Kotlin built in alternatives.
